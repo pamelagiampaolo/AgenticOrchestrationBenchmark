@@ -5,7 +5,7 @@
 Questo repository supporta una tesi sperimentale sull'orchestrazione adattiva di
 sistemi multi-agente basati su Large Language Models. Contiene:
 
-- `AgentOrchestrator/`: orchestratore .NET che esegue gli agenti e registra le metriche.
+- `AgenticExperimentRunner/`: orchestratore .NET che esegue gli agenti e registra le metriche.
 - `BenchmarkTarget/`: applicazione TypeScript usata come bersaglio comune dei task.
 
 L'esperimento confronta tre condizioni: single-agent, multi-agent gerarchica
