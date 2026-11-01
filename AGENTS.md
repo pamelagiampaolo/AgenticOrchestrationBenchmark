@@ -38,6 +38,10 @@ Non implementare in anticipo le soluzioni dei task sperimentali.
 9. Al termine di ogni passo indicare il messaggio di commit consigliato, anche se
    non viene creato alcun commit. Creare effettivamente il commit soltanto dopo
    un'autorizzazione esplicita dell'utente.
+10. Prima di iniziare un passo, verificare se richiede informazioni, vincoli o
+    decisioni non ancora documentati. In tal caso chiedere chiarimenti all'utente
+    e attendere la risposta, senza introdurre assunzioni. Non richiedere nuovamente
+    informazioni già definite nel repository o confermate dall'utente.
 
 ## Confini e autorizzazioni
 
