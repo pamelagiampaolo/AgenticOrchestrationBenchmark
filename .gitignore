@@ -1,0 +1,39 @@
+# Node.js / TypeScript dependencies and generated output
+**/node_modules/
+**/dist/
+**/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# .NET build and test output
+**/[Bb]in/
+**/[Oo]bj/
+**/TestResults/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local IDE settings
+.vs/
+.vscode/
+.idea/
+
+# Secrets and local environment configuration
+.env
+.env.*
+!.env.example
+
+# Logs, temporary files, and operating-system metadata
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+**/results/
