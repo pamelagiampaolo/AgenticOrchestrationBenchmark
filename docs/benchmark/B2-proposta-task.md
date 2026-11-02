@@ -6,8 +6,8 @@
 - **Fase:** 2, blocco B, passo B2
 - **Obiettivo:** proporre esattamente 6 task indipendenti, progressivi e
   verificabili per il gestionale di ordini, prodotti e magazzino.
-- **Stato:** proposta da revisionare e approvare prima di implementare la
-  baseline o redigere le specifiche operative definitive.
+- **Stato:** struttura preliminare approvata il 2 novembre 2026; specifiche
+  operative ancora da revisionare prima di implementare la baseline.
 
 ## Regole comuni
 
