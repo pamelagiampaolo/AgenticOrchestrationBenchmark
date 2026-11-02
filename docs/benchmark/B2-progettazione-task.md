@@ -1,12 +1,51 @@
-# B2 — Specifiche concrete dei task T1–T6
+# B2 — Progettazione dei task sperimentali T1–T6
 
 ## Registro
 
 - **Data:** 2 novembre 2026
-- **Fase:** 2, blocco B, definizione delle specifiche
-- **Stato:** specifiche approvate dall'utente il 2 novembre 2026; nessuna
-  implementazione ancora autorizzata
-- **Origine:** struttura preliminare T1–T6 approvata dall'utente
+- **Fase:** 2, blocco B, progettazione dei task
+- **Stato:** progettazione e specifiche approvate dall'utente il 2 novembre 2026;
+  nessuna implementazione ancora autorizzata
+- **Origine:** consolidamento delle decisioni, della proposta preliminare e delle
+  specifiche concrete approvate
+
+## Decisioni progettuali approvate
+
+### Dominio e forma dell'applicazione
+
+`BenchmarkTarget` sarà un piccolo gestionale di ordini, prodotti e magazzino,
+realizzato come libreria TypeScript verificabile tramite test automatici. In
+questa fase non sono previste una CLI o un'API HTTP.
+
+La logica applicativa resterà separata da eventuali interfacce, così da non legare
+il dominio a uno specifico canale di utilizzo e permettere l'aggiunta di una
+componente web dopo la consegna della tesi.
+
+### Conservazione dei dati
+
+I dati applicativi saranno conservati in memoria mediante oggetti e collezioni
+TypeScript. Ogni esecuzione partirà da uno stato controllato e non condividerà
+dati applicativi modificabili con le altre esecuzioni.
+
+Questa scelta riguarda soltanto i dati del gestionale. Log, metriche, risultati
+dei test e altri dati sperimentali saranno salvati persistentemente
+dall'infrastruttura sperimentale.
+
+### Baseline funzionale minima
+
+La baseline comprenderà soltanto:
+
+- catalogo dei prodotti;
+- quantità disponibili in magazzino;
+- creazione degli ordini con righe prodotto;
+- aggiornamento delle scorte alla conferma di un ordine;
+- consultazione di prodotti, scorte e ordini;
+- dati iniziali deterministici;
+- test pubblici essenziali.
+
+La baseline resterà il più semplice possibile e non includerà in anticipo le
+soluzioni di T1–T6. Ogni esecuzione partirà dallo stesso commit pulito e da
+condizioni iniziali equivalenti.
 
 ## Scopo e limiti
 
@@ -64,6 +103,21 @@ Per ogni task sono riportate due ipotesi distinte:
 
 Queste valutazioni servono a costruire un benchmark equilibrato. Non sono misure,
 non sono risultati sperimentali e non implicano che usare più agenti sia utile.
+
+## Quadro riassuntivo
+
+| Task | Categoria principale | Difficoltà ipotizzata | Coordinamento ipotizzato |
+| --- | --- | --- | --- |
+| T1 | Modifica semplice e circoscritta | Bassa | Basso |
+| T2 | Nuova funzionalità | Medio-bassa | Basso |
+| T3 | Correzione di un difetto verificabile | Media | Basso |
+| T4 | Modifica trasversale a più moduli | Medio-alta | Medio |
+| T5 | Refactoring con compatibilità obbligatoria | Alta | Medio |
+| T6 | Funzionalità complessa e scomponibile | Alta | Medio-alto |
+
+Difficoltà e coordinamento sono ipotesi distinte. Un task difficile non richiede
+necessariamente molti agenti e un eventuale vantaggio del single-agent nei task
+più circoscritti costituisce un risultato sperimentale valido.
 
 ---
 
@@ -397,7 +451,79 @@ Questa distribuzione non attribuisce vantaggi a priori. Correttezza, tempo, uso
 di risorse e overhead saranno misurati durante le 54 esecuzioni e solo allora
 potranno sostenere conclusioni.
 
-## Decisioni approvate
+## Mappa progettuale di moduli, sottotask e dipendenze
+
+Questa mappa descrive una scomposizione plausibile, non istruzioni organizzative
+da consegnare alle architetture sperimentali.
+
+### T1
+
+- **Moduli potenziali:** query di catalogo e magazzino, tipo del risultato e test.
+- **Sottotask:** definire il contratto, validare la soglia, filtrare e ordinare,
+  verificare i casi limite.
+- **Dipendenze:** validazione e query dipendono dal contratto; nessuna dipendenza
+  esterna.
+
+### T2
+
+- **Moduli potenziali:** servizio di magazzino, accesso al catalogo, API pubblica
+  e test.
+- **Sottotask:** definire errori, validare prodotto e quantità, aggiornare
+  atomicamente la scorta, verificare isolamento.
+- **Dipendenze:** l'aggiornamento dipende dalle validazioni; nessuna dipendenza
+  esterna.
+
+### T3
+
+- **Moduli potenziali:** validazione e conferma ordini, aggiornamento magazzino e
+  test ordine–magazzino.
+- **Sottotask:** riprodurre il difetto, localizzarlo, aggregare prima delle
+  mutazioni, verificare atomicità e regressioni.
+- **Dipendenze:** la correzione dipende dalla diagnosi; analisi e preparazione dei
+  casi di test possono procedere separatamente.
+
+### T4
+
+- **Moduli potenziali:** modello e servizio prodotti, ordini, query del catalogo,
+  esportazioni pubbliche e test trasversali.
+- **Sottotask:** estendere il modello, implementare le transizioni, applicare la
+  regola agli ordini, aggiornare le query, verificare lo storico.
+- **Dipendenze:** modello e contratto precedono ordini e query; questi ultimi
+  possono poi essere sviluppati separatamente.
+
+### T5
+
+- **Moduli potenziali:** composizione, servizi, contratti degli archivi,
+  implementazioni in memoria e suite di regressione.
+- **Sottotask:** mappare gli accessi, definire tre contratti minimi, implementare
+  gli archivi, migrare i servizi, aggiornare la composizione, verificare la
+  compatibilità.
+- **Dipendenze:** i contratti precedono la migrazione; gli archivi sono separabili,
+  mentre composizione e regressione dipendono dalla loro integrazione.
+
+### T6
+
+- **Moduli potenziali:** modello e stati dell'ordine, allocazione, carico del
+  magazzino, query di riepilogo, composizione e test trasversali.
+- **Sottotask:** definire invarianti e stati, implementare allocazione e carico,
+  coordinare ordine e magazzino, produrre il riepilogo, verificare flussi ed
+  errori.
+- **Dipendenze:** invarianti e contratti precedono l'integrazione; stati,
+  allocazione e riepilogo sono parzialmente separabili.
+
+## Controllo rispetto alla baseline
+
+La baseline è sufficiente a rendere comprensibili i task senza anticiparne le
+soluzioni:
+
+- T1 introduce una query di soglia assente inizialmente;
+- T2 introduce un'operazione pubblica di carico assente inizialmente;
+- T3 usa un difetto intenzionale e riproducibile sulle righe duplicate;
+- T4 introduce lo stato del prodotto;
+- T5 rifattorizza gli accessi diretti alle collezioni;
+- T6 introduce evasione parziale e carico minimo per il relativo flusso.
+
+## Decisioni approvate e registro delle revisioni
 
 Con l'approvazione del documento sono confermati:
 
@@ -409,3 +535,13 @@ Con l'approvazione del documento sono confermati:
 
 L'approvazione autorizza la successiva progettazione della struttura della
 baseline e della strategia di test, non la loro implementazione automatica.
+
+### Cronologia
+
+- **1 novembre 2026:** approvati dominio, libreria TypeScript, dati in memoria e
+  baseline funzionale minima.
+- **2 novembre 2026:** approvata la struttura preliminare di T1–T6.
+- **2 novembre 2026:** approvate le specifiche concrete, la fixture proposta, i
+  contratti osservabili e i casi di verifica.
+- **2 novembre 2026:** consolidati i tre documenti B2 in questo documento unico,
+  senza modificare le decisioni scientifiche approvate.
