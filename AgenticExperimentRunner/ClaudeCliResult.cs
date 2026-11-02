@@ -3,6 +3,7 @@
 /// </summary>
 /// <param name="ExitCode">Codice di uscita del processo, oppure <see langword="null"/> se il processo non è stato avviato.</param>
 /// <param name="Response">Risposta contenuta nell'evento finale <c>result</c>, se disponibile.</param>
+/// <param name="IsError">Indicatore di errore dichiarato dall'evento finale, oppure <see langword="null"/> se assente.</param>
 /// <param name="DurationMs">Durata in millisecondi dichiarata dalla CLI nell'evento finale.</param>
 /// <param name="InputTokens">Token di input non serviti dalla cache dichiarati nell'evento finale.</param>
 /// <param name="CacheReadInputTokens">Token di input letti dalla cache dichiarati nell'evento finale.</param>
@@ -17,6 +18,7 @@
 public sealed record ClaudeCliResult(
     int? ExitCode,
     string? Response,
+    bool? IsError,
     long? DurationMs,
     long? InputTokens,
     long? CacheReadInputTokens,

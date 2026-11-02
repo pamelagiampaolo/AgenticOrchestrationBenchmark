@@ -106,6 +106,13 @@ public sealed class ClaudeCliClient
                 using JsonDocument document = JsonDocument.Parse(line);
                 JsonElement root = document.RootElement;
 
+                if (root.ValueKind != JsonValueKind.Object)
+                {
+                    parsingErrors.Add(
+                        $"Riga {lineNumber}: atteso un oggetto JSON, trovato {root.ValueKind}.");
+                    continue;
+                }
+
                 sessionId ??= GetString(root, "session_id");
                 effectiveModel ??= GetString(root, "model") ?? GetNestedString(root, "message", "model");
 
@@ -136,6 +143,7 @@ public sealed class ClaudeCliClient
         return new ClaudeCliResult(
             exitCode,
             finalResult is JsonElement result ? GetString(result, "result") : null,
+            finalResult is JsonElement errorResult ? GetBoolean(errorResult, "is_error") : null,
             finalResult is JsonElement durationResult ? GetInt64(durationResult, "duration_ms") : null,
             usage is JsonElement inputUsage ? GetInt64(inputUsage, "input_tokens") : null,
             usage is JsonElement cacheReadUsage ? GetInt64(cacheReadUsage, "cache_read_input_tokens") : null,
@@ -179,5 +187,15 @@ public sealed class ClaudeCliClient
         && property.ValueKind == JsonValueKind.Number
         && property.TryGetInt64(out long value)
             ? value
+            : null;
+
+    private static bool? GetBoolean(JsonElement element, string propertyName) =>
+        element.TryGetProperty(propertyName, out JsonElement property)
+            ? property.ValueKind switch
+            {
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                _ => null
+            }
             : null;
 }

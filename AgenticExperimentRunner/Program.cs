@@ -43,6 +43,7 @@ var metriche = new
     dataOraUtc = DateTimeOffset.UtcNow,
     richiesta = prompt,
     risposta = result.Response,
+    isError = result.IsError,
     codiceUscita = result.ExitCode,
     durataMs = result.DurationMs,
     tokenInput = result.InputTokens,
