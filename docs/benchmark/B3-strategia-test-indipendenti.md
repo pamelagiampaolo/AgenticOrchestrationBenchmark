@@ -6,7 +6,8 @@
 - **Fase:** 2, blocco B, passo B3
 - **Obiettivo:** progettare una valutazione automatica, indipendente e identica
   per single-agent, gerarchia statica e gerarchia adattiva.
-- **Stato:** proposta da revisionare; nessun test o pacchetto implementato.
+- **Stato:** progettazione approvata dall'utente il 2 novembre 2026; nessun test,
+  isolamento o pacchetto ancora implementato e verificato.
 - **Framework approvato:** Vitest.
 
 ## Principio di indipendenza
@@ -373,17 +374,26 @@ Queste sono verifiche pianificate, non ancora eseguite.
 | Reporter cambia formato | versione Vitest fissata e normalizzatore con schema proprio |
 | Guasto del valutatore confuso con errore agente | stati finali e codici di errore distinti |
 
-## Decisioni ancora da approvare
+## Stato di approvazione e verifiche rinviate
 
-Prima dell'implementazione devono essere approvati:
+Sono approvati a livello progettuale:
 
 1. isolamento a due ruoli tra controllore fidato e worker temporaneo;
 2. esclusione dei test aggiuntivi dal punteggio ufficiale;
 3. metriche temporali separate;
 4. criterio di successo e formule dei risultati parziali;
-5. scelta successiva della versione esatta di Vitest;
-6. meccanismo Windows più semplice che superi le prove di isolamento;
-7. percorsi fisici definitivi e politica di eliminazione delle aree temporanee.
+5. scelta proporzionata del meccanismo di isolamento.
 
-L'approvazione di B3 non autorizza automaticamente installazioni o
-implementazioni.
+Restano attività di implementazione e verifica, non proprietà già dimostrate:
+
+- selezionare e approvare la versione esatta di Vitest;
+- individuare il meccanismo Windows più semplice disponibile;
+- definire percorsi fisici e politica di eliminazione delle aree temporanee;
+- implementare controllore, worker, configurazioni e report;
+- eseguire le prove negative di accesso a file, risultati, credenziali e rete;
+- dimostrare con test concreti l'isolamento prima della sperimentazione.
+
+L'approvazione conclude B3 soltanto a livello progettuale e non autorizza
+installazioni o implementazioni. Le proprietà di isolamento non dovranno essere
+descritte come verificate finché le prove pianificate non saranno state eseguite
+con esito osservato e registrato.
