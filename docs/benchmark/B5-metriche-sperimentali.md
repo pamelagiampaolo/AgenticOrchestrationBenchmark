@@ -8,7 +8,7 @@
   per confrontare single-agent, gerarchia statica e gerarchia adattiva.
 - **Perimetro:** 6 task, 3 architetture e 3 ripetizioni per ogni coppia
   task–architettura, per un totale pianificato di 54 esecuzioni ufficiali.
-- **Stato:** proposta progettuale da revisionare; nessuna implementazione o
+- **Stato:** proposta progettuale approvata; nessuna implementazione o
   esecuzione sperimentale autorizzata da questo documento.
 - **Vincoli ereditati:** criteri di successo e valutazione indipendente di B3;
   equità, budget globale, contabilizzazione dei token e formula di costo di B4.
