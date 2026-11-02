@@ -33,12 +33,34 @@ Questa decisione riguarda esclusivamente i dati applicativi del gestionale. Log,
 metriche, risultati dei test e altri dati sperimentali dovranno essere salvati in
 modo persistente dall'infrastruttura sperimentale.
 
+## Baseline funzionale minima approvata
+
+La baseline iniziale dovrà comprendere soltanto le funzionalità necessarie a
+costituire un gestionale minimo ma operativo:
+
+- catalogo dei prodotti;
+- gestione delle quantità disponibili in magazzino;
+- creazione degli ordini con righe prodotto;
+- aggiornamento delle scorte alla conferma di un ordine;
+- consultazione di prodotti, scorte e ordini;
+- dati iniziali deterministici;
+- test pubblici essenziali.
+
+La baseline dovrà rimanere il più semplice possibile e non dovrà includere
+funzionalità prive di una necessità sperimentale. Prima della sua implementazione
+definitiva saranno definiti i 6 task T1–T6, così da verificare che le funzionalità
+iniziali siano sufficienti senza anticipare il lavoro richiesto agli agenti.
+
+Ogni esecuzione sperimentale dovrà partire dallo stesso commit pulito della
+baseline e da condizioni iniziali equivalenti.
+
 ## Decisioni non introdotte in questo aggiornamento
 
 Questo documento non stabilisce ancora:
 
 - struttura interna, entità, attributi o API della libreria;
 - contenuto e difficoltà dei task T1–T6;
+- implementazione definitiva della baseline funzionale;
 - framework e organizzazione dei test;
 - formato o percorso di persistenza dei dati sperimentali;
 - eventuale tecnologia della futura componente web.
