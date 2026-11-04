@@ -129,7 +129,8 @@ mostrato con il denominatore effettivo e marcato incompleto.
 ### Identità e condizioni della run
 
 - `runId`, task, architettura, ripetizione e indicatore ufficiale/pilota;
-- commit della baseline, hash del task prompt e delle istruzioni architetturali;
+- commit di provenienza della baseline, hash dei materiali autorizzati copiati,
+  hash del task prompt e delle istruzioni architetturali;
 - modello esatto osservabile, versione Claude CLI e configurazione;
 - versioni di ambiente, valutatore, suite e manifest;
 - seed e posizione nell'ordine di esecuzione;
@@ -456,6 +457,8 @@ la semantica dei record in sessioni cumulative o con processi padre e figli.
 - controllore dei budget globali e gestione uniforme delle eccedenze;
 - cronometro monotono di `agentTaskDurationMs` e separazione degli overhead;
 - valutatore indipendente, isolamento, manifest e report B3;
+- preparazione verificata delle copie agenti senza `.git`, collegamenti o
+  credenziali riservate e registrazione esterna di provenienza e hash secondo B3;
 - classificazione strutturata di errori, deleghe e ripianificazioni;
 - acquisizione e validazione di tariffe autorevoli;
 - normalizzazione, aggregazioni e report delle 3 e 18 run;

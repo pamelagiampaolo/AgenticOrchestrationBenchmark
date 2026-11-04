@@ -27,6 +27,27 @@ La sola separazione tra file o configurazioni Vitest non è sufficiente: i test
 riservati devono essere assenti dall'ambiente dell'agente e protetti dai permessi
 del sistema operativo.
 
+### Separazione dal repository del benchmark e provenienza
+
+È approvato che tutti i materiali riservati siano conservati e versionati
+separatamente, nell'area fidata inaccessibile agli agenti. Non devono mai essere
+inseriti nel repository del benchmark, neppure temporaneamente: la loro rimozione
+dal solo albero di lavoro non eliminerebbe infatti l'accesso tramite cronologia,
+ref od oggetti Git eventualmente disponibili agli agenti.
+
+Il controllore esterno prepara ciascun ambiente agente a partire dal commit
+stabilito copiando esclusivamente i materiali autorizzati. La copia non contiene
+la directory `.git`, collegamenti al repository originale o credenziali che
+consentano di raggiungere l'area riservata. Il controllore registra il commit di
+provenienza e gli hash dei materiali copiati; registra inoltre, nella propria area
+fidata, gli identificatori di versione e gli hash dei materiali riservati usati
+dalla valutazione, senza esporli all'ambiente agente.
+
+Questa è una decisione progettuale approvata, non un meccanismo già disponibile.
+L'assenza di `.git` riduce la superficie informativa ma non costituisce da sola
+isolamento: restano necessari il confine di esecuzione, i permessi del sistema
+operativo e le prove negative previste prima delle run ufficiali.
+
 ## Tre insiemi distinti di test
 
 ### 1. Test pubblici di riferimento
@@ -71,7 +92,7 @@ La struttura logica proposta è la seguente; i percorsi reali saranno scelti e
 verificati durante l'implementazione:
 
 ```text
-area-fidata-controllore/                accesso: solo controllore fidato
+area-fidata-controllore/                accesso: solo controllore fidato; separata dal repository benchmark
 ├── config/
 │   ├── vitest.public.config.*
 │   └── vitest.reserved.config.*
@@ -167,9 +188,12 @@ devono creare istanze applicative nuove.
 
 ## Flusso completo di una esecuzione
 
-1. L'orchestratore seleziona il commit approvato della baseline.
+1. L'orchestratore seleziona il commit approvato della baseline e il controllore
+   ne registra la provenienza.
 2. Crea una nuova area di esecuzione con identificatore univoco.
-3. Copia i sorgenti ammessi e applica lo stato iniziale del task.
+3. Copia soltanto i materiali autorizzati, senza `.git`, collegamenti al
+   repository originale o credenziali per l'area riservata; applica lo stato
+   iniziale del task e registra gli hash della copia.
 4. Espone i test pubblici di riferimento in sola lettura e una directory separata
    per i test aggiuntivi dell'agente.
 5. Registra hash, versioni, task, architettura, ripetizione e orario iniziale.
@@ -177,7 +201,8 @@ devono creare istanze applicative nuove.
 7. Al termine blocca la soluzione e genera il manifest della submission.
 8. Controlla integrità dei test pubblici, file consentiti e configurazioni.
 9. Il controllore crea una nuova area temporanea e vi copia submission, test
-   canonici e configurazioni autorizzate, senza esporre gli archivi originali.
+   canonici e configurazioni autorizzate, registrandone versioni e hash senza
+   esporre gli archivi originali.
 10. Avvia un worker isolato senza rete, credenziali o accesso alle altre aree.
 11. Il worker riesegue i test pubblici canonici con la configurazione fidata.
 12. Il worker esegue i test riservati con la configurazione fidata.
@@ -372,16 +397,20 @@ Prima di dichiarare operativa la strategia sarà necessario dimostrare che:
 
 1. l'identità dell'agente legge ma non modifica o elimina i test pubblici;
 2. l'identità dell'agente non può elencare, leggere o raggiungere l'area riservata;
-3. il codice della submission, eseguito dal worker, non può leggere gli archivi
+3. l'ambiente agente contiene soltanto i materiali autorizzati e non contiene
+   `.git`, collegamenti al repository originale o credenziali per l'area riservata;
+4. nessun materiale riservato è presente nella cronologia, nelle ref o negli
+   oggetti del repository del benchmark accessibile agli agenti;
+5. il codice della submission, eseguito dal worker, non può leggere gli archivi
    originali o i risultati di altre esecuzioni;
-4. il worker non può usare la rete né accedere a credenziali o variabili sensibili;
-5. una modifica ai test pubblici viene rilevata dagli hash;
-6. il valutatore usa le proprie configurazioni anche se la submission ne contiene
+6. il worker non può usare la rete né accedere a credenziali o variabili sensibili;
+7. una modifica ai test pubblici viene rilevata dagli hash;
+8. il valutatore usa le proprie configurazioni anche se la submission ne contiene
    altre;
-7. due valutazioni della stessa soluzione producono gli stessi esiti;
-8. il JSON generato è valido rispetto allo schema approvato;
-9. un errore infrastrutturale è distinto da un test fallito;
-10. nessun dato di una esecuzione raggiunge quella successiva.
+9. due valutazioni della stessa soluzione producono gli stessi esiti;
+10. il JSON generato è valido rispetto allo schema approvato;
+11. un errore infrastrutturale è distinto da un test fallito;
+12. nessun dato di una esecuzione raggiunge quella successiva.
 
 Queste sono verifiche pianificate, non ancora eseguite.
 
@@ -408,15 +437,23 @@ Sono approvati a livello progettuale:
 2. esclusione dei test aggiuntivi dal punteggio ufficiale;
 3. metriche temporali separate;
 4. criterio di successo e formule dei risultati parziali;
-5. scelta proporzionata del meccanismo di isolamento.
+5. scelta proporzionata del meccanismo di isolamento;
+6. conservazione e versionamento separati dei materiali riservati, con divieto di
+   inserirli nel repository del benchmark anche temporaneamente;
+7. preparazione dell'ambiente agente mediante copia dei soli materiali
+   autorizzati, senza `.git`, collegamenti all'originale o credenziali riservate;
+8. registrazione esterna di commit di provenienza, versioni e hash dei materiali.
 
 Restano attività di implementazione e verifica, non proprietà già dimostrate:
 
 - selezionare e approvare la versione esatta di Vitest;
 - individuare il meccanismo Windows più semplice disponibile;
 - definire percorsi fisici e politica di eliminazione delle aree temporanee;
+- implementare e verificare la copia basata su materiali autorizzati e la
+  registrazione di provenienza e hash;
 - implementare controllore, worker, configurazioni e report;
-- eseguire le prove negative di accesso a file, risultati, credenziali e rete;
+- eseguire le prove negative di accesso a file, cronologia Git, repository
+  originale, risultati, credenziali e rete;
 - dimostrare con test concreti l'isolamento prima della sperimentazione.
 
 L'approvazione conclude B3 soltanto a livello progettuale e non autorizza

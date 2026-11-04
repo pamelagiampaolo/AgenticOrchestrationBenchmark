@@ -27,6 +27,8 @@ significativo.
 Per una stessa combinazione task–ripetizione devono essere uguali:
 
 - commit della baseline e stato iniziale dei dati;
+- insieme autorizzato dei materiali copiati nell'ambiente agente, preparato senza
+  `.git`, collegamenti al repository originale o credenziali riservate secondo B3;
 - specifica ufficiale del task e test pubblici canonici;
 - modello Claude Sonnet e identificatore esatto della versione disponibile;
 - configurazione del modello esposta e controllabile;
@@ -325,7 +327,8 @@ Il risultato mantiene separati:
 ## Ripetizioni, ordine e contaminazione
 
 - Ogni coppia task–architettura ha 3 ripetizioni, per 54 run totali.
-- Ogni run usa una copia pulita della stessa baseline.
+- Ogni run usa una copia pulita degli stessi materiali autorizzati della baseline,
+  preparata dal commit stabilito secondo B3.
 - Non vengono riutilizzate sessioni, memoria conversazionale o file modificati.
 - I dettagli dei test riservati non vengono restituiti tra le ripetizioni.
 - L'ordine delle condizioni viene bilanciato o randomizzato con seed registrato.
@@ -355,15 +358,17 @@ Il risultato mantiene separati:
 Prima delle 54 run ufficiali dovrà essere dimostrato che:
 
 1. tutte le architetture ricevono realmente lo stesso commit e task prompt;
-2. modello, strumenti e permessi coincidono salvo le differenze architetturali;
-3. coordinatore e lavoratori consumano lo stesso budget globale;
-4. i record di uso non vengono duplicati tra padre, figli o sessioni cumulative;
-5. cache read e cache creation restano separate e sono incluse nel totale;
-6. timeout e limite token interrompono tutti i processi con la stessa regola;
-7. la workspace congelata non cambia durante la valutazione;
-8. una run con metriche mancanti viene riconosciuta come non valida;
-9. ordine e seed sono registrati e riproducibili;
-10. i valori definitivi derivano esclusivamente dai piloti documentati.
+2. le copie agenti contengono gli stessi materiali autorizzati e sono prive di
+   `.git`, collegamenti al repository originale e credenziali riservate;
+3. modello, strumenti e permessi coincidono salvo le differenze architetturali;
+4. coordinatore e lavoratori consumano lo stesso budget globale;
+5. i record di uso non vengono duplicati tra padre, figli o sessioni cumulative;
+6. cache read e cache creation restano separate e sono incluse nel totale;
+7. timeout e limite token interrompono tutti i processi con la stessa regola;
+8. la workspace congelata non cambia durante la valutazione;
+9. una run con metriche mancanti viene riconosciuta come non valida;
+10. ordine e seed sono registrati e riproducibili;
+11. i valori definitivi derivano esclusivamente dai piloti documentati.
 
 Queste sono proprietà progettate, non ancora verificate.
 
