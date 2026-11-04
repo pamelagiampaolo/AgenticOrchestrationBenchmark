@@ -8,6 +8,8 @@
   nessuna implementazione ancora autorizzata
 - **Origine:** consolidamento delle decisioni, della proposta preliminare e delle
   specifiche concrete approvate
+- **Integrazione T1:** firma, tipo del risultato e codice di errore approvati il
+  4 novembre 2026
 
 ## Decisioni progettuali approvate
 
@@ -205,16 +207,31 @@ più circoscritti costituisce un risultato sperimentale valido.
 
 ### Funzionalità richiesta
 
-Aggiungere l'operazione pubblica proposta
-`findProductsBelowStock(threshold)`, che restituisce snapshot di prodotto con
-`productId`, `name` e `availableQuantity` quando la quantità è strettamente
-inferiore alla soglia.
+Aggiungere il tipo e l'operazione pubblici seguenti:
+
+```ts
+type ProductStockSnapshot = {
+  productId: string;
+  name: string;
+  availableQuantity: number;
+};
+
+class InventoryManagement {
+  findProductsBelowStock(threshold: number): ProductStockSnapshot[];
+}
+```
+
+`ProductStockSnapshot` contiene soltanto `productId`, `name` e
+`availableQuantity`. L'operazione restituisce questi snapshot quando la quantità
+è strettamente inferiore alla soglia.
 
 ### Requisiti
 
 - `threshold` deve essere un intero maggiore o uguale a zero.
 - Valori negativi, decimali e non numerici devono produrre un errore di
-  validazione.
+  validazione con proprietà stabile `code` uguale a `INVALID_THRESHOLD`, secondo
+  la convenzione degli errori della baseline. Il messaggio testuale non è parte
+  del contratto.
 - Un prodotto con quantità uguale alla soglia è escluso.
 - Il risultato è ordinato per `productId` crescente.
 - Una chiamata senza corrispondenze restituisce una collezione vuota.
@@ -625,3 +642,5 @@ baseline e della strategia di test, non la loro implementazione automatica.
   contratti osservabili e i casi di verifica.
 - **2 novembre 2026:** consolidati i tre documenti B2 in questo documento unico,
   senza modificare le decisioni scientifiche approvate.
+- **4 novembre 2026:** congelati firma, tipo pubblico del risultato e codice di
+  errore di validazione di T1.
