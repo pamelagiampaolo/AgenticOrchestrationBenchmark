@@ -1,32 +1,32 @@
-/** Describes a product exposed by the public catalog. */
+/** Descrive un prodotto esposto dal catalogo pubblico. */
 export type Product = {
-  /** Stable textual identifier of the product. */
+  /** Identificatore testuale stabile del prodotto. */
   productId: string;
-  /** Display name of the product. */
+  /** Nome visualizzato del prodotto. */
   name: string;
 };
 
-/** Describes a product and its stock when initializing the system. */
+/** Descrive un prodotto e la relativa scorta durante l'inizializzazione del sistema. */
 export type InitialProduct = Product & {
-  /** Quantity initially available in stock. */
+  /** Quantità inizialmente disponibile in magazzino. */
   availableQuantity: number;
 };
 
-/** Describes one requested product quantity in an order. */
+/** Descrive la quantità richiesta di un prodotto in un ordine. */
 export type OrderLine = {
-  /** Identifier of the requested product. */
+  /** Identificatore del prodotto richiesto. */
   productId: string;
-  /** Number of product units requested. */
+  /** Numero di unità del prodotto richieste. */
   quantity: number;
 };
 
-/** Describes an order snapshot exposed by the public API. */
+/** Descrive un'istantanea di un ordine esposta dall'API pubblica. */
 export type Order = {
-  /** Instance-local sequential identifier of the order. */
+  /** Identificatore sequenziale dell'ordine, locale all'istanza. */
   orderId: string;
-  /** Current lifecycle state of the order. */
+  /** Stato corrente del ciclo di vita dell'ordine. */
   status: "draft" | "confirmed";
-  /** Product quantities retained in their original order. */
+  /** Quantità dei prodotti conservate nel loro ordine originale. */
   lines: OrderLine[];
 };
 
@@ -49,8 +49,8 @@ class InventoryManagementError extends Error {
 }
 
 /**
- * Provides in-memory access to the product catalog and current stock.
- * Each instance owns independent copies of all supplied data.
+ * Fornisce accesso in memoria al catalogo dei prodotti e alle scorte correnti.
+ * Ogni istanza possiede copie indipendenti di tutti i dati forniti.
  */
 export class InventoryManagement {
   private readonly products: Product[];
@@ -59,9 +59,9 @@ export class InventoryManagement {
   private nextOrderNumber = 1;
 
   /**
-   * Creates an inventory initialized with copies of the supplied products.
+   * Crea un inventario inizializzato con copie dei prodotti forniti.
    *
-   * @param initialProducts Products and quantities used as initial state.
+   * @param initialProducts Prodotti e quantità usati come stato iniziale.
    */
   public constructor(initialProducts: InitialProduct[]) {
     this.products = initialProducts.map(({ productId, name }) => ({
@@ -77,9 +77,9 @@ export class InventoryManagement {
   }
 
   /**
-   * Returns product snapshots ordered by ascending textual identifier.
+   * Restituisce istantanee dei prodotti ordinate per identificatore testuale crescente.
    *
-   * @returns New product objects that do not expose internal state.
+   * @returns Nuovi oggetti prodotto che non espongono lo stato interno.
    */
   public listProducts(): Product[] {
     return this.products
@@ -88,11 +88,11 @@ export class InventoryManagement {
   }
 
   /**
-   * Returns the currently available quantity for a product.
+   * Restituisce la quantità attualmente disponibile di un prodotto.
    *
-   * @param productId Identifier of the product to inspect.
-   * @returns The available stock quantity.
-   * @throws An error with code `PRODUCT_NOT_FOUND` when the product is absent.
+   * @param productId Identificatore del prodotto da esaminare.
+   * @returns La quantità disponibile in magazzino.
+   * @throws Un errore con codice `PRODUCT_NOT_FOUND` quando il prodotto è assente.
    */
   public getAvailableQuantity(productId: string): number {
     const availableQuantity = this.availableQuantities.get(productId);
@@ -108,12 +108,12 @@ export class InventoryManagement {
   }
 
   /**
-   * Creates a draft order without changing stock quantities.
+   * Crea un ordine in bozza senza modificare le quantità in magazzino.
    *
-   * @param lines Product quantities to retain in their supplied order.
-   * @returns A detached snapshot of the newly created draft order.
-   * @throws An error with code `EMPTY_ORDER`, `PRODUCT_NOT_FOUND`, or
-   * `INVALID_QUANTITY` when the supplied lines are invalid.
+   * @param lines Quantità dei prodotti da conservare nell'ordine in cui sono state fornite.
+   * @returns Un'istantanea indipendente dell'ordine in bozza appena creato.
+   * @throws Un errore con codice `EMPTY_ORDER`, `PRODUCT_NOT_FOUND` oppure
+   * `INVALID_QUANTITY` quando le righe fornite non sono valide.
    */
   public createOrder(lines: OrderLine[]): Order {
     this.validateOrderLines(lines);
@@ -132,20 +132,20 @@ export class InventoryManagement {
   }
 
   /**
-   * Returns an order by identifier.
+   * Restituisce un ordine in base all'identificatore.
    *
-   * @param orderId Identifier of the order to inspect.
-   * @returns A detached snapshot of the order.
-   * @throws An error with code `ORDER_NOT_FOUND` when the order is absent.
+   * @param orderId Identificatore dell'ordine da esaminare.
+   * @returns Un'istantanea indipendente dell'ordine.
+   * @throws Un errore con codice `ORDER_NOT_FOUND` quando l'ordine è assente.
    */
   public getOrder(orderId: string): Order {
     return copyOrder(this.requireOrder(orderId));
   }
 
   /**
-   * Returns all orders ordered by ascending textual identifier.
+   * Restituisce tutti gli ordini ordinati per identificatore testuale crescente.
    *
-   * @returns Detached order snapshots, including detached line objects.
+   * @returns Istantanee indipendenti degli ordini, incluse copie indipendenti delle righe.
    */
   public listOrders(): Order[] {
     return [...this.orders.values()]
@@ -154,14 +154,14 @@ export class InventoryManagement {
   }
 
   /**
-   * Confirms a draft order and decrements stock for each retained line.
-   * Availability is intentionally checked per line without aggregating duplicate
-   * products, preserving the defect used by experimental task T3.
+   * Conferma un ordine in bozza e decrementa le scorte per ogni riga conservata.
+   * La disponibilità viene intenzionalmente verificata riga per riga senza aggregare
+   * i prodotti duplicati, preservando il difetto usato dal task sperimentale T3.
    *
-   * @param orderId Identifier of the draft order to confirm.
-   * @returns A detached snapshot of the confirmed order.
-   * @throws An error with code `ORDER_NOT_FOUND`, `INSUFFICIENT_STOCK`, or
-   * `ORDER_ALREADY_CONFIRMED` when confirmation cannot be completed.
+   * @param orderId Identificatore dell'ordine in bozza da confermare.
+   * @returns Un'istantanea indipendente dell'ordine confermato.
+   * @throws Un errore con codice `ORDER_NOT_FOUND`, `INSUFFICIENT_STOCK` oppure
+   * `ORDER_ALREADY_CONFIRMED` quando la conferma non può essere completata.
    */
   public confirmOrder(orderId: string): Order {
     const order = this.requireOrder(orderId);
