@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.public.config.ts",
     "test:public:t1": "vitest run --config vitest.public.t1.config.ts",
-    "test:public:t2": "vitest run --config vitest.public.t2.config.ts"
+    "test:public:t2": "vitest run --config vitest.public.t2.config.ts",
+    "test:public:t3": "vitest run --config vitest.public.t3.config.ts"
   },
   "keywords": [],
   "author": "",

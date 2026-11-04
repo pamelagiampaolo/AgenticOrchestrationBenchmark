@@ -12,6 +12,8 @@
   4 novembre 2026
 - **Integrazione T2:** firma, validazione delle quantità e codici di errore
   approvati il 4 novembre 2026
+- **Integrazione T3:** gestione sicura del totale delle righe duplicate approvata
+  il 4 novembre 2026
 
 ## Decisioni progettuali approvate
 
@@ -344,6 +346,11 @@ intenzionalmente presente nella baseline esclusivamente come oggetto di T3.
 ### Requisiti
 
 - Le quantità duplicate sono aggregate per identificatore del prodotto.
+- Se il totale delle quantità duplicate supera `Number.MAX_SAFE_INTEGER`,
+  `confirmOrder` produce un errore con proprietà stabile `code` uguale a
+  `INSUFFICIENT_STOCK`, senza modificare lo stato e lasciando l'ordine `draft`.
+  Il superamento deve essere riconosciuto senza perdita di precisione; il
+  contratto non prescrive una specifica implementazione.
 - La disponibilità è controllata sulla somma richiesta per ogni prodotto.
 - Tutte le validazioni terminano prima del primo aggiornamento di magazzino.
 - Se un prodotto è insufficiente, nessuna scorta viene modificata e l'ordine non
@@ -660,3 +667,5 @@ baseline e della strategia di test, non la loro implementazione automatica.
   errore di validazione di T1.
 - **4 novembre 2026:** congelati firma, regole sugli interi sicuri e codici di
   errore di T2.
+- **4 novembre 2026:** congelato il comportamento di T3 quando il totale delle
+  righe duplicate supera `Number.MAX_SAFE_INTEGER`.
