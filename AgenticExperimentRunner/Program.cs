@@ -2,6 +2,13 @@
 const string claudeCliPath = @"C:\Users\Utente\.local\bin\claude.exe";
 const string requestedModel = "claude-sonnet-5-5";
 
+if (!TryPrepareResultsFile(args, out string percorsoRisultati, out string? erroreConfigurazione))
+{
+    Console.Error.WriteLine($"Errore di configurazione: {erroreConfigurazione}");
+    Environment.ExitCode = 2;
+    return;
+}
+
 Console.Write("Inserisci una richiesta per Claude: ");
 string? prompt = Console.ReadLine();
 
@@ -37,7 +44,6 @@ Console.WriteLine($"Token creazione cache: {FormatMetric(result.CacheCreationInp
 Console.WriteLine($"Token input totali (inclusa cache): {FormatMetric(result.TotalInputTokens)}");
 Console.WriteLine($"Token complessivi: {FormatMetric(result.TotalTokens)}");
 
-string percorsoRisultati = Path.Combine("results", "esecuzioni.jsonl");
 var metriche = new
 {
     dataOraUtc = DateTimeOffset.UtcNow,
@@ -83,3 +89,101 @@ if (!string.IsNullOrWhiteSpace(result.ParsingError))
 }
 
 static string FormatMetric(long? value) => value?.ToString() ?? "non disponibile";
+
+static bool TryPrepareResultsFile(
+    string[] arguments,
+    out string resultsFilePath,
+    out string? errorMessage)
+{
+    const string optionName = "--results-file";
+    resultsFilePath = string.Empty;
+    errorMessage = null;
+    string? configuredPath = null;
+
+    for (int index = 0; index < arguments.Length; index++)
+    {
+        string argument = arguments[index];
+        if (!string.Equals(argument, optionName, StringComparison.Ordinal))
+        {
+            errorMessage = $"Argomento non riconosciuto: '{argument}'. Uso: {optionName} <percorso-assoluto.jsonl>.";
+            return false;
+        }
+
+        if (configuredPath is not null)
+        {
+            errorMessage = $"L'argomento {optionName} non può essere specificato più di una volta.";
+            return false;
+        }
+
+        if (++index >= arguments.Length || string.IsNullOrWhiteSpace(arguments[index]))
+        {
+            errorMessage = $"L'argomento obbligatorio {optionName} richiede un percorso assoluto a un file JSONL.";
+            return false;
+        }
+
+        configuredPath = arguments[index];
+    }
+
+    if (configuredPath is null)
+    {
+        errorMessage = $"Argomento obbligatorio mancante. Uso: {optionName} <percorso-assoluto.jsonl>.";
+        return false;
+    }
+
+    if (!Path.IsPathFullyQualified(configuredPath))
+    {
+        errorMessage = $"Il percorso fornito a {optionName} deve essere assoluto: '{configuredPath}'.";
+        return false;
+    }
+
+    try
+    {
+        string normalizedPath = Path.GetFullPath(configuredPath);
+        if (!string.Equals(Path.GetExtension(normalizedPath), ".jsonl", StringComparison.OrdinalIgnoreCase))
+        {
+            errorMessage = $"Il percorso fornito a {optionName} deve identificare un file con estensione .jsonl.";
+            return false;
+        }
+
+        if (Directory.Exists(normalizedPath))
+        {
+            errorMessage = $"Il percorso fornito a {optionName} identifica una directory, non un file JSONL.";
+            return false;
+        }
+
+        string? parentDirectory = Path.GetDirectoryName(normalizedPath);
+        if (string.IsNullOrWhiteSpace(parentDirectory))
+        {
+            errorMessage = $"Impossibile determinare la directory padre del percorso '{normalizedPath}'.";
+            return false;
+        }
+
+        Directory.CreateDirectory(parentDirectory);
+        VerifyDirectoryIsWritable(parentDirectory);
+        resultsFilePath = normalizedPath;
+        return true;
+    }
+    catch (Exception exception) when (exception is ArgumentException
+        or IOException
+        or NotSupportedException
+        or UnauthorizedAccessException)
+    {
+        errorMessage = $"Il percorso dei risultati non è utilizzabile: {exception.Message}";
+        return false;
+    }
+}
+
+static void VerifyDirectoryIsWritable(string directoryPath)
+{
+    string probePath = Path.Combine(directoryPath, $".write-test-{Guid.NewGuid():N}.tmp");
+    using var probe = new FileStream(
+        probePath,
+        FileMode.CreateNew,
+        FileAccess.Write,
+        FileShare.None,
+        bufferSize: 1,
+        FileOptions.DeleteOnClose);
+
+    probe.WriteByte(0);
+    probe.Flush(flushToDisk: true);
+}
