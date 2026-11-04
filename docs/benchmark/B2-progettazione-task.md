@@ -77,6 +77,56 @@ i dati forniti al costruttore non espongono riferimenti modificabili allo stato
 interno. Questo incremento non introduce stato globale o repository e non
 comprende ancora ordini né le funzionalità riservate a T1–T6.
 
+### Contratto pubblico approvato per il secondo incremento
+
+Il secondo incremento aggiunge all'entry point pubblico i tipi `OrderLine` e
+`Order` e le seguenti operazioni a `InventoryManagement`:
+
+```ts
+type OrderLine = {
+  productId: string;
+  quantity: number;
+};
+
+type Order = {
+  orderId: string;
+  status: "draft" | "confirmed";
+  lines: OrderLine[];
+};
+
+class InventoryManagement {
+  createOrder(lines: OrderLine[]): Order;
+  getOrder(orderId: string): Order;
+  listOrders(): Order[];
+  confirmOrder(orderId: string): Order;
+}
+```
+
+Gli identificatori sono `O-001`, `O-002` e successivi, generati da un contatore
+proprio dell'istanza. Un ordine nasce `draft`, contiene almeno una riga e conserva
+righe duplicate nell'ordine ricevuto. Ogni riga deve riferirsi a un prodotto
+esistente e avere una quantità positiva per cui `Number.isSafeInteger` è vero.
+Una creazione non valida non registra l'ordine né consuma un identificatore e la
+creazione valida non modifica le scorte.
+
+La conferma valida decrementa le scorte per ogni riga e imposta lo stato a
+`confirmed`. Una conferma con scorta insufficiente lascia ordine e magazzino
+invariati; una seconda conferma fallisce senza ulteriori decrementi. Le letture
+restituiscono copie profonde delle righe e `listOrders` ordina per `orderId`
+testuale crescente. Dati, contatori e collezioni restano isolati per istanza,
+senza stato globale o repository.
+
+I codici di errore stabili di questo contratto sono `PRODUCT_NOT_FOUND`,
+`ORDER_NOT_FOUND`, `EMPTY_ORDER`, `INVALID_QUANTITY`, `INSUFFICIENT_STOCK` e
+`ORDER_ALREADY_CONFIRMED`.
+
+Per preservare il difetto intenzionale oggetto di T3, la conferma controlla tutte
+le righe separatamente rispetto alle scorte correnti prima di qualsiasi
+decremento e non aggrega quantità duplicate. Soltanto dopo i controlli decrementa
+la scorta per ogni riga. Di conseguenza, con scorta `5` per `P-002` e due righe
+`P-002 × 3`, l'ordine risulta `confirmed` e la scorta diventa `-1`. Una singola
+riga superiore alla disponibilità fallisce invece prima di ogni mutazione.
+
 ## Scopo e limiti
 
 Questo documento traduce la struttura preliminare in comportamenti osservabili e
