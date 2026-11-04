@@ -10,6 +10,8 @@
   specifiche concrete approvate
 - **Integrazione T1:** firma, tipo del risultato e codice di errore approvati il
   4 novembre 2026
+- **Integrazione T2:** firma, validazione delle quantità e codici di errore
+  approvati il 4 novembre 2026
 
 ## Decisioni progettuali approvate
 
@@ -272,15 +274,27 @@ validazione della soglia può essere verificata anche unitariamente.
 
 ### Funzionalità richiesta
 
-Aggiungere l'operazione pubblica proposta
-`receiveStock(productId, quantity)`, che incrementa la scorta di un prodotto e
-restituisce la nuova quantità disponibile.
+Aggiungere a `InventoryManagement` l'operazione pubblica seguente:
+
+```ts
+receiveStock(productId: string, quantity: number): number;
+```
+
+L'operazione incrementa la scorta del prodotto e restituisce la nuova quantità
+disponibile. Più carichi successivi sullo stesso prodotto si sommano.
 
 ### Requisiti
 
 - `productId` deve identificare un prodotto esistente.
-- `quantity` deve essere un intero strettamente positivo.
-- Più carichi sullo stesso prodotto si sommano.
+- `quantity` deve essere un intero sicuro strettamente positivo, verificato con
+  `Number.isSafeInteger`.
+- Anche la scorta risultante deve essere un intero sicuro.
+- Un prodotto inesistente produce un errore con proprietà stabile `code` uguale
+  a `PRODUCT_NOT_FOUND`.
+- Una quantità ricevuta non valida o una somma non sicura produce un errore con
+  proprietà stabile `code` uguale a `INVALID_QUANTITY`.
+- Gli errori riutilizzano la struttura della baseline e il loro messaggio
+  testuale non è parte del contratto.
 - Un errore non modifica catalogo, magazzino o ordini.
 - Un carico modifica soltanto la scorta del prodotto indicato.
 - I dati di due istanze della libreria rimangono indipendenti.
@@ -644,3 +658,5 @@ baseline e della strategia di test, non la loro implementazione automatica.
   senza modificare le decisioni scientifiche approvate.
 - **4 novembre 2026:** congelati firma, tipo pubblico del risultato e codice di
   errore di validazione di T1.
+- **4 novembre 2026:** congelati firma, regole sugli interi sicuri e codici di
+  errore di T2.
