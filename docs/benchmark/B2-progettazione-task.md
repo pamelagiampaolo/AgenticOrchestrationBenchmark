@@ -18,6 +18,8 @@
   delle transizioni e codici di errore approvati il 4 novembre 2026
 - **Integrazione T5:** contratti minimi dei repository, implementazioni in memoria
   e factory di composizione approvati il 4 novembre 2026
+- **Integrazione T6:** tipi, ciclo di evasione, carico scorte, errori e regressione
+  applicabile approvati il 4 novembre 2026
 
 ## Decisioni progettuali approvate
 
@@ -577,26 +579,56 @@ repository.
 
 Estendere il ciclo di vita degli ordini affinché la conferma assegni la scorta
 disponibile, anche se insufficiente, e permetta tentativi successivi tramite
-l'operazione proposta `fulfillOrder(orderId)`. Il task include
-`receiveStock(productId, quantity)` perché non può dipendere da T2.
+l'operazione `fulfillOrder`. Il task include autonomamente `receiveStock` perché
+non può dipendere da T2.
+
+L'input `OrderLine` resta invariato. L'entry point esporta inoltre:
+
+```ts
+type FulfillmentOrderLine = {
+  productId: string;
+  requestedQuantity: number;
+  fulfilledQuantity: number;
+  remainingQuantity: number;
+};
+
+type Order = {
+  orderId: string;
+  status: "draft" | "waiting" | "partially-fulfilled" | "fulfilled";
+  lines: FulfillmentOrderLine[];
+};
+
+class InventoryManagement {
+  confirmOrder(orderId: string): Order;
+  fulfillOrder(orderId: string): Order;
+  receiveStock(productId: string, quantity: number): number;
+}
+```
 
 ### Requisiti
 
-- Per ogni riga sono esposte `requestedQuantity`, `fulfilledQuantity` e
-  `remainingQuantity`.
+- Alla creazione ogni riga conserva il proprio `productId`, espone la quantità
+  richiesta, una quantità evasa pari a zero e un residuo uguale alla richiesta;
+  l'ordine è `draft`.
+- `confirmOrder` opera soltanto su ordini `draft` e compie la prima assegnazione.
 - Alla conferma viene assegnata al massimo la scorta disponibile per ogni riga.
 - Lo stato è `waiting` se nulla è stato evaso, `partially-fulfilled` se almeno una
   unità è evasa ma resta una quantità residua, `fulfilled` se tutto è completo.
 - La scorta non diventa mai negativa.
 - `fulfillOrder` tenta di assegnare le sole quantità residue usando la scorta
-  corrente e aggiorna cumulativamente ordine e magazzino.
-- `receiveStock` accetta soltanto prodotti esistenti e quantità intere positive;
-  gli errori non modificano lo stato.
-- Chiamare `fulfillOrder` su un ordine inesistente o già `fulfilled` produce un
-  errore senza mutazioni.
+  corrente e aggiorna cumulativamente ordine e magazzino. Opera soltanto su
+  ordini `waiting` o `partially-fulfilled`; se non è disponibile nuova scorta,
+  restituisce uno snapshot invariato senza errore.
+- Le righe duplicate restano separate nell'ordine originale e ricevono scorta
+  progressivamente in tale ordine.
+- `receiveStock` accetta soltanto prodotti esistenti e quantità intere sicure
+  strettamente positive; anche la somma risultante deve essere sicura. Usa
+  `PRODUCT_NOT_FOUND` e `INVALID_QUANTITY` secondo la struttura esistente.
+- Una seconda conferma produce `ORDER_ALREADY_CONFIRMED`; evadere un `draft`
+  produce `ORDER_NOT_CONFIRMED`; evadere un ordine completo produce
+  `ORDER_ALREADY_FULFILLED`; un ordine inesistente produce `ORDER_NOT_FOUND`.
 - Un errore durante un'operazione non lascia aggiornamenti parziali.
-- Le righe del riepilogo sono ordinate secondo il contratto deterministico della
-  baseline.
+- Risultati e righe sono snapshot indipendenti.
 - Ordini diversi consumano la scorta nell'ordine esplicito delle chiamate; non
   sono introdotte concorrenza o casualità.
 
@@ -623,6 +655,11 @@ regrediscono.
 
 I test includono unità per allocazione e macchina a stati, integrazione
 ordine–magazzino e accettazione su flussi completi in più passaggi.
+
+I cinque casi pubblici sono indipendenti e ricostruiscono dall'inizio il proprio
+percorso. La regressione T6 riusa senza modificarli i 21 casi comuni ancora
+compatibili; i sei casi incompatibili con il nuovo modello degli ordini non sono
+applicabili a T6 e restano invariati nei file comuni.
 
 ### Ipotesi separate
 
@@ -747,3 +784,5 @@ baseline e della strategia di test, non la loro implementazione automatica.
   `ProductWithStatus`, la query separata e i contratti completi delle transizioni.
 - **4 novembre 2026:** congelati contratti, implementazioni in memoria, factory e
   responsabilità di composizione di T5.
+- **4 novembre 2026:** congelati modello di evasione, API, errori e sottoinsieme
+  di regressione applicabile di T6.

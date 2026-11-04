@@ -257,6 +257,32 @@ controllare costo e stabilità dell'infrastruttura.
 
 ## Tipi di test e loro ruolo
 
+### Regressione applicabile a T6
+
+T6 modifica intenzionalmente forma e stati pubblici degli ordini e il
+comportamento della conferma con scorta insufficiente. I 27 casi comuni originali
+restano invariati, ma per T6 sono canonici soltanto i 21 casi integralmente
+compatibili individuati prima della costruzione del pacchetto.
+
+I sei casi comuni non applicabili a T6 sono:
+
+| Test | Motivo |
+| --- | --- |
+| `creates and reads a draft order without changing stock` | confronta il vecchio formato delle righe |
+| `confirms an order and decrements stock` | richiede lo stato `confirmed` |
+| `keeps a failed confirmation atomic` | richiede errore per scorta insufficiente anziché evasione parziale |
+| `does not decrement an earlier product when a later product is insufficient` | esclude l'allocazione parziale richiesta da T6 |
+| `deeply copies input lines and returned order snapshots` | confronta il vecchio formato delle righe |
+| `retains duplicate lines and confirms them when total stock is sufficient` | richiede stato e formato righe precedenti |
+
+La suite pubblica T6 contiene quindi 26 casi applicabili: 21 regressioni comuni e
+cinque casi T6. Nessuno di questi 26 casi può essere saltato. Gli eventuali sei
+elementi mostrati come `skipped` dal reporter per effetto del filtro sui file
+comuni rappresentano esclusioni non applicabili, non casi canonici T6 saltati.
+Questa classificazione deve essere identica per tutte le architetture e fissata
+prima delle esecuzioni. In questo passo non viene creato un manifest o un
+valutatore.
+
 ### Test unitari
 
 Verificano regole isolate come validazioni, aggregazione delle righe e transizioni
