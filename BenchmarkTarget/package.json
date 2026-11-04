@@ -11,7 +11,8 @@
     "test:public:t1": "vitest run --config vitest.public.t1.config.ts",
     "test:public:t2": "vitest run --config vitest.public.t2.config.ts",
     "test:public:t3": "vitest run --config vitest.public.t3.config.ts",
-    "test:public:t4": "vitest run --config vitest.public.t4.config.ts"
+    "test:public:t4": "vitest run --config vitest.public.t4.config.ts",
+    "test:public:t5": "vitest run --config vitest.public.t5.config.ts"
   },
   "keywords": [],
   "author": "",

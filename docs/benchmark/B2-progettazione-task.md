@@ -16,6 +16,8 @@
   il 4 novembre 2026
 - **Integrazione T4:** tipo e query separati per lo stato dei prodotti, firme
   delle transizioni e codici di errore approvati il 4 novembre 2026
+- **Integrazione T5:** contratti minimi dei repository, implementazioni in memoria
+  e factory di composizione approvati il 4 novembre 2026
 
 ## Decisioni progettuali approvate
 
@@ -468,10 +470,41 @@ catalogo–ordini–magazzino.
 
 ### Funzionalità richiesta
 
-Rifattorizzare la baseline introducendo i contratti proposti
-`ProductRepository`, `InventoryRepository` e `OrderRepository`, con relative
-implementazioni in memoria. Il comportamento pubblico della libreria deve restare
-invariato.
+Rifattorizzare la baseline introducendo i contratti pubblici seguenti:
+
+```ts
+export interface ProductRepository {
+  findById(productId: string): Product | undefined;
+  list(): Product[];
+}
+
+export interface InventoryRepository {
+  getAvailableQuantity(productId: string): number | undefined;
+  setAvailableQuantity(productId: string, availableQuantity: number): void;
+}
+
+export interface OrderRepository {
+  findById(orderId: string): Order | undefined;
+  list(): Order[];
+  save(order: Order): void;
+}
+```
+
+L'entry point esporta inoltre `InMemoryProductRepository`, costruito con
+`readonly Product[]`; `InMemoryInventoryRepository`, costruito con
+`readonly InitialProduct[]`; e `InMemoryOrderRepository`, costruito senza
+argomenti. La factory pubblica è:
+
+```ts
+createInventoryManagementWithRepositories(
+  productRepository: ProductRepository,
+  inventoryRepository: InventoryRepository,
+  orderRepository: OrderRepository,
+): InventoryManagement;
+```
+
+Il costruttore originale di `InventoryManagement` e tutto il comportamento
+pubblico restano invariati, incluso il difetto intenzionale T3.
 
 ### Requisiti
 
@@ -479,11 +512,23 @@ invariato.
   realmente richieste dalla baseline.
 - La logica applicativa dipende dai contratti, non da `Map`, array o
   implementazioni concrete.
+- Le implementazioni in memoria sono selezionate dalla composizione predefinita.
 - Le implementazioni in memoria non condividono stato modificabile tra istanze.
 - La composizione predefinita della libreria continua a creare un sistema pronto
   all'uso con dati controllati.
 - I servizi possono essere costruiti con implementazioni di prova dei contratti.
-- Le letture restituiscono snapshot o copie che non espongono lo stato interno.
+- `save` inserisce o aggiorna un ordine in base a `orderId`.
+- I repository non applicano validazioni o errori di dominio; una ricerca senza
+  risultato restituisce `undefined`.
+- Gli input sono copiati e le letture restituiscono copie indipendenti; per gli
+  ordini la copia comprende anche ogni oggetto riga.
+- Validazioni, errori, ordinamenti, generazione degli identificatori e
+  comportamento della conferma appartengono alla logica applicativa.
+- La factory richiede come precondizioni repository coerenti per prodotti e
+  scorte e un repository ordini inizialmente vuoto; non introduce nuove
+  validazioni per queste precondizioni.
+- La composizione predefinita produce istanze indipendenti. Le istanze create
+  tramite factory sono indipendenti quando ricevono repository distinti.
 - API pubblica, errori, regole, ordinamenti e risultati della baseline restano
   compatibili.
 - Non vengono introdotti database, file applicativi o nuove dipendenze.
@@ -500,9 +545,9 @@ mutazioni indirette.
 | ID | Visibilità | Verifica | Risultato atteso |
 | --- | --- | --- | --- |
 | `T5-P01` | Pubblico | suite completa baseline | tutti i casi passano invariati |
-| `T5-P02` | Pubblico | costruzione di due sistemi | stati indipendenti |
-| `T5-P03` | Pubblico | mutazione di un risultato letto | stato interno invariato |
-| `T5-P04` | Pubblico | servizi con archivi di prova | costruzione e flusso riusciti |
+| `T5-P02` | Pubblico | conferma `P-002 × 2` nel primo di due sistemi | primo ordine confermato; secondo sistema con scorta `5` e nessun ordine |
+| `T5-P03` | Pubblico | mutazione di prodotti e ordini letti, incluse le righe | letture successive mostrano lo stato interno invariato |
+| `T5-P04` | Pubblico | repository di prova distinti, factory, creazione e conferma `P-002 × 2` | `O-001` confermato; scorta `3`; dati conservati e tre repository effettivamente usati |
 | `T5-R01` | Riservato | controllo dipendenze dei servizi | nessun accesso a collezioni concrete |
 | `T5-R02` | Riservato | implementazioni alternative minime | sostituzione riuscita |
 | `T5-R03` | Riservato | regressione di errori e ordinamenti | comportamento invariato |
@@ -511,6 +556,11 @@ I test includono compilazione TypeScript, regressione, integrazione con test
 double e controlli strutturali indipendenti. I controlli strutturali saranno
 definiti in modo da verificare il contratto senza imporre dettagli irrilevanti
 della soluzione.
+
+I test funzionali pubblici non dimostrano da soli l'intera separazione
+strutturale. La verifica dedicata della dipendenza dai contratti sarà definita in
+un passo successivo, senza imporre numero o sequenza esatti delle chiamate ai
+repository.
 
 ### Ipotesi separate
 
@@ -695,3 +745,5 @@ baseline e della strategia di test, non la loro implementazione automatica.
   righe duplicate supera `Number.MAX_SAFE_INTEGER`.
 - **4 novembre 2026:** sostituita la proposta T4 incompatibile con il tipo
   `ProductWithStatus`, la query separata e i contratti completi delle transizioni.
+- **4 novembre 2026:** congelati contratti, implementazioni in memoria, factory e
+  responsabilità di composizione di T5.
