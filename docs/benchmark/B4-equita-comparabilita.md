@@ -33,6 +33,8 @@ Per una stessa combinazione task–ripetizione devono essere uguali:
 - modello Claude Sonnet e identificatore esatto della versione disponibile;
 - configurazione del modello esposta e controllabile;
 - strumenti, privilegi, accesso alla rete e permessi sui file;
+- versione e hash della configurazione Claude CLI, del server MCP e dell'insieme
+  di strumenti comuni autorizzati;
 - macchina, sistema operativo e versioni di Node.js, npm e dipendenze;
 - limite massimo di tempo del task;
 - budget totale di token dell'esecuzione;
@@ -53,6 +55,12 @@ fornitore non consente di fissare o verificare un identificatore più specifico,
 questa limitazione sarà registrata e sottoposta ad approvazione prima delle run
 ufficiali; non verrà sostituita con un valore presunto né descritta come versione
 controllata.
+
+Gli strumenti di lavoro comuni saranno esposti tramite il server MCP locale
+controllato previsto da B3. La loro semantica, i permessi effettivi e il confine
+applicato ai processi avviati devono essere identici tra le condizioni. Gli
+strumenti di coordinamento potranno differire soltanto quanto necessario a
+realizzare l'architettura dichiarata e saranno progettati in un passo successivo.
 
 ## Differenze architetturali ammesse
 
@@ -342,6 +350,7 @@ Il risultato mantiene separati:
 - `runId`, task, architettura e numero di ripetizione;
 - commit della baseline e hash dei prompt;
 - identificatore esatto di Claude Sonnet, versione CLI e configurazione;
+- versioni e hash di configurazione CLI, server MCP e catalogo strumenti;
 - budget temporale e budget token approvati;
 - orari di avvio e fine, `agentTaskDurationMs` e overhead;
 - per ogni chiamata: agente, ruolo, identificatore e quattro categorie di token;
@@ -361,14 +370,16 @@ Prima delle 54 run ufficiali dovrà essere dimostrato che:
 2. le copie agenti contengono gli stessi materiali autorizzati e sono prive di
    `.git`, collegamenti al repository originale e credenziali riservate;
 3. modello, strumenti e permessi coincidono salvo le differenze architetturali;
-4. coordinatore e lavoratori consumano lo stesso budget globale;
-5. i record di uso non vengono duplicati tra padre, figli o sessioni cumulative;
-6. cache read e cache creation restano separate e sono incluse nel totale;
-7. timeout e limite token interrompono tutti i processi con la stessa regola;
-8. la workspace congelata non cambia durante la valutazione;
-9. una run con metriche mancanti viene riconosciuta come non valida;
-10. ordine e seed sono registrati e riproducibili;
-11. i valori definitivi derivano esclusivamente dai piloti documentati.
+4. nessuna condizione riceve strumenti nativi, hook, plugin, MCP o delegazioni
+   alternativi non previsti dal proprio profilo approvato;
+5. coordinatore e lavoratori consumano lo stesso budget globale;
+6. i record di uso non vengono duplicati tra padre, figli o sessioni cumulative;
+7. cache read e cache creation restano separate e sono incluse nel totale;
+8. timeout e limite token interrompono tutti i processi con la stessa regola;
+9. la workspace congelata non cambia durante la valutazione;
+10. una run con metriche mancanti viene riconosciuta come non valida;
+11. ordine e seed sono registrati e riproducibili;
+12. i valori definitivi derivano esclusivamente dai piloti documentati.
 
 Queste sono proprietà progettate, non ancora verificate.
 

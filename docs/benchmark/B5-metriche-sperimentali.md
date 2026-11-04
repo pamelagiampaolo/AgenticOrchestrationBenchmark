@@ -132,6 +132,8 @@ mostrato con il denominatore effettivo e marcato incompleto.
 - commit di provenienza della baseline, hash dei materiali autorizzati copiati,
   hash del task prompt e delle istruzioni architetturali;
 - modello esatto osservabile, versione Claude CLI e configurazione;
+- versioni e hash della configurazione CLI, del server MCP e del catalogo degli
+  strumenti autorizzati;
 - versioni di ambiente, valutatore, suite e manifest;
 - seed e posizione nell'ordine di esecuzione;
 - budget temporale e budget token approvati;
@@ -159,6 +161,15 @@ rifiutati, non sommati. Record cumulativi vengono trasformati in delta; record
 padre e figli non vengono conteggiati insieme se descrivono lo stesso consumo.
 Un record necessario senza usage è marcato `usage-missing` e rende incompleta la
 relativa misura, non pari a zero.
+
+### Eventi degli strumenti
+
+Per ogni richiesta MCP saranno registrati almeno `runId`, agente e ruolo, nome
+dello strumento, identificatore della chiamata, istanti di inizio e fine, esito,
+codice diagnostico stabile e quantità di output restituito. Gli argomenti saranno
+normalizzati o omessi quando potrebbero contenere sorgenti o dati sensibili. I
+rifiuti del confine di workspace sono eventi osservabili distinti dagli errori
+interni dello strumento.
 
 ### Tempi
 
@@ -459,6 +470,10 @@ la semantica dei record in sessioni cumulative o con processi padre e figli.
 - valutatore indipendente, isolamento, manifest e report B3;
 - preparazione verificata delle copie agenti senza `.git`, collegamenti o
   credenziali riservate e registrazione esterna di provenienza e hash secondo B3;
+- launcher Claude CLI con superficie esclusiva verificata e server MCP locale
+  controllato;
+- raccolta degli eventi MCP e verifica del confine per processi che eseguono codice
+  modificabile dagli agenti;
 - classificazione strutturata di errori, deleghe e ripianificazioni;
 - acquisizione e validazione di tariffe autorevoli;
 - normalizzazione, aggregazioni e report delle 3 e 18 run;

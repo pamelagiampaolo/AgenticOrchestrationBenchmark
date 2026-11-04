@@ -155,6 +155,89 @@ accettabili soltanto insieme a un confine di esecuzione che impedisca rete e
 accessi esterni. Se gli strumenti già presenti non superano le prove previste, non
 verrà installata infrastruttura aggiuntiva senza una nuova approvazione.
 
+### Direzione tecnica approvata per l'harness degli agenti
+
+La direzione approvata è usare Claude CLI come interfaccia con il modello, un
+server MCP locale controllato come unica superficie degli strumenti, l'orchestratore
+.NET per sessioni, condizioni sperimentali e metriche, e il valutatore esterno
+descritto in questo documento. L'elenco completo degli strumenti MCP non è ancora
+approvato né congelato e le strategie agentiche non sono implementate.
+
+La configurazione Claude CLI di ogni run dovrà esporre soltanto gli strumenti MCP
+autorizzati per quella condizione. Dovranno essere esclusi o neutralizzati almeno:
+
+- strumenti nativi alternativi per file, shell, esecuzione di codice, web e
+  delegazione;
+- hook, plugin, skill, comandi e agenti personalizzati ereditati;
+- server MCP non dichiarati esplicitamente dal controllore;
+- configurazioni utente, progetto o locali non previste e persistenza di sessione
+  capace di trasferire stato tra run.
+
+Configurazione Claude CLI, configurazione MCP e implementazione del server degli
+strumenti sono artefatti fidati esterni alla workspace modificabile dagli agenti.
+Il controllore ne registra versioni e hash. Le opzioni della CLI costituiscono una
+difesa soltanto dopo che la loro combinazione è stata osservata sulla versione
+fissata e sono state escluse altre superfici effettivamente disponibili.
+
+La ricognizione del 4 novembre 2026 sulla Claude CLI installata `2.1.312` ha
+osservato nel relativo help locale le opzioni `--tools`, `--allowedTools`,
+`--disallowedTools`, `--restricted`, `--safe-mode`, `--strict-mcp-config`,
+`--mcp-config`, `--settings`, `--setting-sources`, `--disable-slash-commands`,
+`--no-session-persistence` e `--no-chrome`. Sono inoltre presenti funzioni native
+per agenti e delegazioni. Questa evidenza rende fattibile un prototipo, ma non
+dimostra ancora che la configurazione combinata esponga esclusivamente i due
+strumenti previsti. Le impostazioni gestite esternamente possono avere precedenza
+e dovranno essere rilevate o escluse prima delle run ufficiali.
+
+### Esecuzione indiretta di codice modificabile dagli agenti
+
+La validazione dei percorsi nel server MCP protegge le operazioni implementate dal
+server, ma non confina automaticamente un processo che esegue codice modificabile
+dall'agente. Test pubblici, build, script, plugin e relativi processi figli possono
+aprire percorsi direttamente e devono quindi essere eseguiti con un confine che
+non possieda permessi di lettura su materiali riservati, configurazioni fidate o
+risultati. Non viene presupposta una macchina virtuale: il meccanismo minimo
+Windows, l'identità effettiva, le ACL, la politica dei processi figli e l'eventuale
+blocco di rete restano scelte tecniche da provare prima di introdurre strumenti
+MCP che eseguono codice.
+
+La prova futura dovrà usare codice controllato che tenti accessi diretti e tramite
+processi figli a ciascuna area vietata, oltre a rete, credenziali e risultati di
+run precedenti. Il successo della prima iterazione sui soli strumenti di lettura
+non fornirà evidenza su questa proprietà.
+
+### Prima iterazione pianificata: prototipo MCP di sola lettura
+
+**Obiettivo:** dimostrare che una sessione Claude CLI può usare soltanto un server
+MCP locale fidato con `list_files` e `read_file`, entro una root assegnata dal
+controllore.
+
+**Componenti coinvolti:** launcher Claude CLI del prototipo, configurazione CLI
+esterna alla workspace, server MCP locale minimale e directory temporanee di prova.
+Non sono coinvolti valutatore, strategie multi-agente, test riservati reali o
+strumenti che eseguono codice.
+
+**Comportamento atteso:** la CLI vede esclusivamente i due strumenti MCP; elenca e
+legge file interni alla root; il server normalizza i percorsi e rifiuta percorsi
+assoluti esterni, attraversamenti `..` e collegamenti che risolvono fuori root.
+
+**Criteri oggettivi di accettazione:**
+
+1. l'inventario osservato della sessione contiene soltanto `list_files` e
+   `read_file` come strumenti invocabili;
+2. non risultano caricati strumenti nativi, hook, plugin, skill, altri MCP o
+   delegazioni;
+3. un file interno noto viene elencato e letto con contenuto atteso;
+4. tentativi controllati tramite percorso assoluto esterno, `..` e
+   symlink/junction esterno vengono rifiutati e registrati senza restituire il
+   contenuto;
+5. configurazione e server MCP sono esterni e non modificabili dalla workspace;
+6. versione CLI, argomenti effettivi, configurazione, chiamate MCP ed esiti sono
+   registrati in modo verificabile.
+
+Il superamento di questi criteri certificherà soltanto il confinamento osservato
+dei due strumenti di lettura nella configurazione provata.
+
 ## Versionamento e configurazione bloccata
 
 Quando Vitest verrà installato:
@@ -442,7 +525,9 @@ Sono approvati a livello progettuale:
    inserirli nel repository del benchmark anche temporaneamente;
 7. preparazione dell'ambiente agente mediante copia dei soli materiali
    autorizzati, senza `.git`, collegamenti all'originale o credenziali riservate;
-8. registrazione esterna di commit di provenienza, versioni e hash dei materiali.
+8. registrazione esterna di commit di provenienza, versioni e hash dei materiali;
+9. direzione tecnica Claude CLI, server MCP locale controllato, orchestratore .NET
+   e valutatore esterno, sviluppata per iterazioni verificabili.
 
 Restano attività di implementazione e verifica, non proprietà già dimostrate:
 
@@ -452,6 +537,10 @@ Restano attività di implementazione e verifica, non proprietà già dimostrate:
 - implementare e verificare la copia basata su materiali autorizzati e la
   registrazione di provenienza e hash;
 - implementare controllore, worker, configurazioni e report;
+- verificare la configurazione esclusiva della Claude CLI e l'assenza di strumenti,
+  hook, plugin, MCP e delegazioni alternativi;
+- scegliere e provare il confine minimo per gli strumenti MCP che eseguono codice
+  modificabile dagli agenti e per tutti i relativi processi figli;
 - eseguire le prove negative di accesso a file, cronologia Git, repository
   originale, risultati, credenziali e rete;
 - dimostrare con test concreti l'isolamento prima della sperimentazione.

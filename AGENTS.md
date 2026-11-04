@@ -43,6 +43,21 @@ Non implementare in anticipo le soluzioni dei task sperimentali.
     e attendere la risposta, senza introdurre assunzioni. Non richiedere nuovamente
     informazioni già definite nel repository o confermate dall'utente.
 
+### Regola permanente delle iterazioni di sviluppo
+
+Ogni implementazione deve essere suddivisa in una sola iterazione circoscritta e
+verificabile alla volta. Prima di modificare il codice, documentare:
+
+1. obiettivo dell'iterazione;
+2. componenti coinvolti;
+3. comportamento atteso;
+4. criteri oggettivi di accettazione.
+
+Al termine documentare verifiche realmente eseguite, output osservati, limiti e
+punti non verificati, quindi fermarsi e attendere la revisione prima di iniziare
+l'iterazione successiva. Una prova parziale certifica soltanto la proprietà
+direttamente osservata e non l'intero isolamento, harness o sistema sperimentale.
+
 ## Confini e autorizzazioni
 
 - Non creare commit, effettuare push, pubblicare dati o modificare servizi esterni
