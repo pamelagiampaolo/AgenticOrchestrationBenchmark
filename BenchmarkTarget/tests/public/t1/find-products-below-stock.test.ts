@@ -29,27 +29,34 @@ describe("T1 - findProductsBelowStock", () => {
     expect(inventory.findProductsBelowStock(0)).toEqual([]);
   });
 
-  test("T1-P03 rejects a negative threshold without changing stock", () => {
-    const quantitiesBefore = readQuantities(inventory);
+  test("T1-P03 rejects a negative threshold without changing observable state", () => {
+    const stateBefore = readObservableState(inventory);
 
     expect(() => inventory.findProductsBelowStock(-1)).toThrowError(
       expect.objectContaining({ code: "INVALID_THRESHOLD" }),
     );
-    expect(readQuantities(inventory)).toEqual(quantitiesBefore);
+    expect(readObservableState(inventory)).toEqual(stateBefore);
   });
 
-  test("T1-P04 rejects a decimal threshold without changing stock", () => {
-    const quantitiesBefore = readQuantities(inventory);
+  test("T1-P04 rejects a decimal threshold without changing observable state", () => {
+    const stateBefore = readObservableState(inventory);
 
     expect(() => inventory.findProductsBelowStock(2.5)).toThrowError(
       expect.objectContaining({ code: "INVALID_THRESHOLD" }),
     );
-    expect(readQuantities(inventory)).toEqual(quantitiesBefore);
+    expect(readObservableState(inventory)).toEqual(stateBefore);
   });
 });
 
-function readQuantities(inventory: InventoryManagement): number[] {
-  return ["P-001", "P-002", "P-003"].map((productId) =>
-    inventory.getAvailableQuantity(productId),
-  );
+function readObservableState(inventory: InventoryManagement) {
+  const products = inventory.listProducts();
+
+  return {
+    products,
+    availableQuantities: products.map(({ productId }) => ({
+      productId,
+      availableQuantity: inventory.getAvailableQuantity(productId),
+    })),
+    orders: inventory.listOrders(),
+  };
 }
