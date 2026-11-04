@@ -47,6 +47,36 @@ La baseline resterà il più semplice possibile e non includerà in anticipo le
 soluzioni di T1–T6. Ogni esecuzione partirà dallo stesso commit pulito e da
 condizioni iniziali equivalenti.
 
+### Contratto pubblico approvato per il primo incremento
+
+Il primo incremento della baseline espone dall'entry point `src/index.ts`:
+
+```ts
+type Product = {
+  productId: string;
+  name: string;
+};
+
+type InitialProduct = Product & {
+  availableQuantity: number;
+};
+
+class InventoryManagement {
+  constructor(initialProducts: InitialProduct[]);
+  listProducts(): Product[];
+  getAvailableQuantity(productId: string): number;
+}
+```
+
+Ogni istanza conserva in memoria copie proprie dei dati iniziali.
+`listProducts` restituisce nuove copie contenenti soltanto `productId` e `name`,
+ordinate per identificatore testuale crescente. `getAvailableQuantity`
+restituisce la scorta corrente oppure solleva un errore con proprietà stabile
+`code` uguale a `PRODUCT_NOT_FOUND` quando il prodotto non esiste. I risultati e
+i dati forniti al costruttore non espongono riferimenti modificabili allo stato
+interno. Questo incremento non introduce stato globale o repository e non
+comprende ancora ordini né le funzionalità riservate a T1–T6.
+
 ## Scopo e limiti
 
 Questo documento traduce la struttura preliminare in comportamenti osservabili e
