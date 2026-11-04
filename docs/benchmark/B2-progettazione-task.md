@@ -14,6 +14,8 @@
   approvati il 4 novembre 2026
 - **Integrazione T3:** gestione sicura del totale delle righe duplicate approvata
   il 4 novembre 2026
+- **Integrazione T4:** tipo e query separati per lo stato dei prodotti, firme
+  delle transizioni e codici di errore approvati il 4 novembre 2026
 
 ## Decisioni progettuali approvate
 
@@ -394,22 +396,44 @@ dalla struttura interna scelta.
 
 ### Funzionalità richiesta
 
-Aggiungere le operazioni pubbliche proposte `suspendProduct(productId)` e
-`reactivateProduct(productId)`. Le consultazioni devono esporre lo stato
-`active` oppure `suspended` del prodotto.
+`Product` e `listProducts()` restano invariati. L'entry point pubblico aggiunge il
+tipo e le operazioni seguenti:
+
+```ts
+type ProductWithStatus = {
+  productId: string;
+  name: string;
+  status: "active" | "suspended";
+};
+
+class InventoryManagement {
+  listProductsWithStatus(): ProductWithStatus[];
+  suspendProduct(productId: string): ProductWithStatus;
+  reactivateProduct(productId: string): ProductWithStatus;
+}
+```
+
+`ProductWithStatus` è esportato e contiene soltanto i tre campi indicati.
+`listProductsWithStatus()` restituisce copie indipendenti ordinate per
+`productId` testuale crescente e non modifica lo stato. Anche le due transizioni
+restituiscono snapshot indipendenti del prodotto aggiornato.
 
 ### Requisiti
 
-- Tutti i prodotti iniziali sono `active`.
+- Tutti i prodotti iniziali sono `active`, senza richiedere lo stato nell'input
+  iniziale.
 - Solo un prodotto attivo può essere sospeso e solo uno sospeso può essere
   riattivato.
-- Prodotto inesistente o transizione ripetuta producono un errore senza mutazioni.
-- La sospensione non elimina il prodotto e non modifica la sua scorta.
+- Un prodotto inesistente produce `PRODUCT_NOT_FOUND`; sospendere un prodotto già
+  sospeso produce `PRODUCT_ALREADY_SUSPENDED`; riattivare un prodotto già attivo
+  produce `PRODUCT_ALREADY_ACTIVE`. Gli errori seguono la struttura esistente e
+  non lasciano mutazioni.
+- Sospensione e riattivazione non modificano scorte o ordini.
+- La creazione di un ordine `draft` con un prodotto sospeso è consentita. La sua
+  conferma produce `PRODUCT_SUSPENDED` senza modificare ordine, scorte, catalogo
+  o stati dei prodotti.
 - Un ordine già confermato resta consultabile e invariato.
-- Qualsiasi nuova conferma contenente almeno un prodotto sospeso fallisce
-  atomicamente: nessun ordine confermato e nessuna scorta modificata.
-- Dopo la riattivazione il prodotto può essere nuovamente ordinato.
-- Le query restituiscono stato e ordinamento deterministici.
+- Dopo la riattivazione il prodotto può essere nuovamente confermato.
 
 ### Criteri di successo
 
@@ -421,7 +445,7 @@ storico restano coerenti; nessun comportamento non collegato viene modificato.
 | ID | Visibilità | Sequenza | Risultato atteso |
 | --- | --- | --- | --- |
 | `T4-P01` | Pubblico | sospendi `P-002` | stato `suspended`; scorta `5` |
-| `T4-P02` | Pubblico | sospendi `P-002`, crea ordine con `P-002` | errore; scorta e ordini invariati |
+| `T4-P02` | Pubblico | sospendi `P-002`, crea ordine con `P-002`, tenta la conferma | `PRODUCT_SUSPENDED`; stato precedente alla conferma invariato |
 | `T4-P03` | Pubblico | sospendi e riattiva `P-002`, poi ordina `P-002 × 1` | confermato; scorta `4` |
 | `T4-P04` | Pubblico | sospendi due volte `P-003` | secondo tentativo in errore |
 | `T4-R01` | Riservato | sospendi `P-999` | errore; stato invariato |
@@ -669,3 +693,5 @@ baseline e della strategia di test, non la loro implementazione automatica.
   errore di T2.
 - **4 novembre 2026:** congelato il comportamento di T3 quando il totale delle
   righe duplicate supera `Number.MAX_SAFE_INTEGER`.
+- **4 novembre 2026:** sostituita la proposta T4 incompatibile con il tipo
+  `ProductWithStatus`, la query separata e i contratti completi delle transizioni.
