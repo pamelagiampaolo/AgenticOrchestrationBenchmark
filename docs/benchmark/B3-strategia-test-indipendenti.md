@@ -243,6 +243,11 @@ stato osservato direttamente e attraverso Claude CLI; l'assenza di ogni
 personalizzazione non è stata interamente dimostrata perché la CLI dichiara
 agenti e plugin built-in e non espone hook o fonti effettive nell'evento iniziale.
 La prova successiva sull'esecuzione indiretta di codice non è stata avviata.
+Il chiarimento successivo su agenti, plugin, configurazioni e hook è documentato
+in [P1.1 — Limiti residui della configurazione Claude
+CLI](P1.1-limiti-configurazione-claude-cli.md): i subagenti sono stati rimossi e
+gli hook non managed disabilitati, mentre i plugin built-in restano dichiarati e
+le managed settings rimangono un controllo obbligatorio per ambiente.
 
 **Obiettivo:** dimostrare che una sessione Claude CLI può usare soltanto un server
 MCP locale fidato con `list_files` e `read_file`, entro una root assegnata dal

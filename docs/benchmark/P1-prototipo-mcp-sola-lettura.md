@@ -45,6 +45,7 @@ Il launcher usa:
 -p
 --output-format stream-json
 --verbose
+--include-hook-events
 --restricted
 --strict-mcp-config
 --mcp-config <trusted/configuration/mcp.json>
@@ -59,6 +60,11 @@ Il launcher usa:
 --permission-mode dontAsk
 --permission-prompts none
 ```
+
+La configurazione fidata passata a `--settings` imposta inoltre
+`disableAllHooks: true` e `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1`. La relativa
+verifica di approfondimento è documentata in [P1.1 — Limiti residui della
+configurazione Claude CLI](P1.1-limiti-configurazione-claude-cli.md).
 
 `--bare` non è usato perché la versione installata esclude OAuth e keychain in
 quella modalità. `--safe-mode` è stato provato e scartato: la relativa esecuzione
@@ -104,8 +110,7 @@ L'evento `system/init` ha riportato:
 - un solo server MCP, `readonly`, con stato `connected`;
 - nessuno slash command e nessuna skill;
 - modalità permessi `dontAsk`;
-- agenti built-in dichiarati: `claude`, `Explore`, `general-purpose`, `Plan` e
-  `statusline-setup`;
+- nessun tipo di subagente dichiarato dopo il rafforzamento P1.1;
 - tre plugin built-in dichiarati.
 
 La sessione ha eseguito esattamente cinque chiamate MCP. Elenco e lettura interna
@@ -130,7 +135,7 @@ L'evento `system/init` non espone l'elenco delle fonti effettive né gli hook.
 | --- | --- | --- |
 | Inventario invocabile limitato ai due strumenti | Superato | `system/init.tools` contiene esattamente i due nomi MCP. |
 | Nessuno strumento nativo o altro MCP invocabile | Superato | Inventario esatto e unico server connesso. |
-| Nessun hook, plugin, skill o agente alternativo caricato | Non superato come formulato | Skill e slash command sono vuoti, ma agenti e plugin built-in sono dichiarati; gli hook non sono osservabili. Nessuna delegazione è avvenuta. |
+| Nessun hook, plugin, skill o agente alternativo caricato | Parzialmente superato dopo P1.1 | Subagenti rimossi, skill/slash command vuoti e hook non managed disabilitati con controllo positivo. I plugin built-in restano dichiarati e la loro totale inattività interna non è dimostrata. |
 | Lettura interna | Superato | Elenco e contenuto atteso osservati direttamente e via CLI. |
 | Rifiuto assoluto, traversal e junction senza divulgazione | Superato | Tre errori osservati direttamente e via CLI; sentinella esterna assente dalle evidenze. |
 | Server e configurazione separati dalla workspace agente | Superato per il layout | Percorsi distinti verificati nel manifest. ACL e immutabilità OS non dimostrate. |

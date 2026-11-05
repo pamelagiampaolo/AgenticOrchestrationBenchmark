@@ -27,6 +27,15 @@ $claudeErrorPath = Join-Path $evidenceRoot 'claude-stderr.txt'
 $claudeChecksPath = Join-Path $evidenceRoot 'claude-checks.json'
 $claudeDoctorPath = Join-Path $evidenceRoot 'claude-doctor.txt'
 $manifestPath = Join-Path $evidenceRoot 'run-manifest.json'
+$projectHookSentinelPath = Join-Path $evidenceRoot 'project-hook-fired.txt'
+$trustedHookSentinelPath = Join-Path $evidenceRoot 'trusted-hook-fired.txt'
+$hookControlSentinelPath = Join-Path $evidenceRoot 'hook-positive-control-fired.txt'
+$hookControlSettingsPath = Join-Path $configurationRoot 'hook-positive-control-settings.json'
+$hookControlOutputPath = Join-Path $evidenceRoot 'hook-positive-control-stream.jsonl'
+$projectClaudeRoot = Join-Path $agentRoot '.claude'
+$projectSettingsPath = Join-Path $projectClaudeRoot 'settings.json'
+$projectHookPath = Join-Path $projectClaudeRoot 'project-hook.ps1'
+$trustedHookPath = Join-Path $configurationRoot 'trusted-hook.ps1'
 
 function New-JsonRpcRequest {
     param(
@@ -132,6 +141,7 @@ function Invoke-ClaudeVerification {
         '-p',
         '--output-format', 'stream-json',
         '--verbose',
+        '--include-hook-events',
         '--restricted',
         '--strict-mcp-config',
         '--mcp-config', $mcpConfigurationPath,
@@ -191,6 +201,7 @@ function Invoke-ClaudeVerification {
         ForEach-Object { $_.message.content } |
         Where-Object { $_.type -eq 'tool_result' })
     $finalResult = $events | Where-Object { $_.type -eq 'result' } | Select-Object -Last 1
+    $hookEvents = @($events | Where-Object { $_.type -eq 'system' -and $_.subtype -match 'hook' })
     $expectedTools = 'mcp__readonly__list_files,mcp__readonly__read_file'
     $checks = [ordered]@{
         exitCodeZero = ($exitCode -eq 0)
@@ -206,12 +217,17 @@ function Invoke-ClaudeVerification {
         junctionRejected = ($toolResults.Count -eq 5 -and $toolResults[4].is_error)
         externalContentNotDisclosed = ($standardOutput -notmatch $externalSentinel -and $standardError -notmatch $externalSentinel)
         noDelegationObserved = ($finalResult.subagent_stats.spawned -eq 0)
+        builtInSubagentsRemoved = (($initialization.agents | Where-Object { $_ -ne 'claude' }).Count -eq 0)
+        noHookEventsObserved = ($hookEvents.Count -eq 0)
+        projectHookDidNotExecute = (-not (Test-Path $projectHookSentinelPath))
+        trustedHookDidNotExecute = (-not (Test-Path $trustedHookSentinelPath))
     }
     $observations = [ordered]@{
         declaredAgents = @($initialization.agents)
         declaredPlugins = @($initialization.plugins)
         configurationSourcesEffective = 'Non esposte dall evento system/init; non dimostrate.'
         managedPolicy = 'Registrata separatamente da claude doctor; il diagnostico non prova quali sorgenti effettive siano state applicate alla sessione già conclusa.'
+        hookEvents = $hookEvents
     }
     [ordered]@{ checks = $checks; observations = $observations } |
         ConvertTo-Json -Depth 20 |
@@ -248,7 +264,61 @@ function Invoke-ClaudeVerification {
     }
 }
 
-New-Item -ItemType Directory -Path $serverRoot, $configurationRoot, $agentRoot, $externalRoot, $evidenceRoot -Force | Out-Null
+function Invoke-HookPositiveControl {
+    $claudePath = (Get-Command claude -ErrorAction Stop).Source
+    $controlArguments = @(
+        '-p',
+        '--output-format', 'stream-json',
+        '--verbose',
+        '--include-hook-events',
+        '--restricted',
+        '--strict-mcp-config',
+        '--mcp-config', $mcpConfigurationPath,
+        '--settings', $hookControlSettingsPath,
+        '--setting-sources', '',
+        '--tools', '',
+        '--disable-slash-commands',
+        '--no-session-persistence',
+        '--no-chrome',
+        '--permission-mode', 'dontAsk',
+        '--permission-prompts', 'none',
+        'Rispondi soltanto OK.'
+    )
+
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = $claudePath
+    $startInfo.WorkingDirectory = $agentRoot
+    $startInfo.Arguments = ($controlArguments | ForEach-Object { ConvertTo-QuotedProcessArgument $_ }) -join ' '
+    $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $startInfo.CreateNoWindow = $true
+
+    $process = [System.Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    if (-not $process.Start()) {
+        throw 'Avvio del controllo positivo hook non riuscito.'
+    }
+    $controlOutput = $process.StandardOutput.ReadToEnd()
+    $controlError = $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
+    $controlExitCode = $process.ExitCode
+    $process.Dispose()
+    ($controlOutput + $controlError) | Set-Content -Encoding utf8 $hookControlOutputPath
+
+    if ($controlExitCode -ne 0) {
+        throw "Il controllo positivo hook è terminato con codice $controlExitCode."
+    }
+
+    if (-not (Test-Path $hookControlSentinelPath)) {
+        throw 'Il controllo positivo non ha osservato l esecuzione dell hook fidato.'
+    }
+    if (Test-Path $projectHookSentinelPath) {
+        throw 'Il controllo positivo ha caricato un hook progetto che --restricted doveva ignorare.'
+    }
+}
+
+New-Item -ItemType Directory -Path $serverRoot, $configurationRoot, $agentRoot, $externalRoot, $evidenceRoot, $projectClaudeRoot -Force | Out-Null
 Set-Content -NoNewline -Encoding utf8 (Join-Path $agentRoot 'internal.txt') $internalSentinel
 Set-Content -NoNewline -Encoding utf8 (Join-Path $externalRoot 'external.txt') $externalSentinel
 New-Item -ItemType Junction -Path $junctionPath -Target $externalRoot | Out-Null
@@ -283,13 +353,74 @@ $mcpConfiguration = [ordered]@{
     }
 }
 $mcpConfiguration | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $mcpConfigurationPath
-@{} | ConvertTo-Json | Set-Content -Encoding utf8 $settingsPath
+
+@"
+Set-Content -NoNewline -Encoding utf8 '$projectHookSentinelPath' 'PROJECT_HOOK_EXECUTED'
+"@ | Set-Content -Encoding utf8 $projectHookPath
+@"
+Set-Content -NoNewline -Encoding utf8 '$trustedHookSentinelPath' 'TRUSTED_HOOK_EXECUTED'
+"@ | Set-Content -Encoding utf8 $trustedHookPath
+
+$projectSettings = [ordered]@{
+    hooks = [ordered]@{
+        SessionStart = @(
+            [ordered]@{
+                hooks = @(
+                    [ordered]@{
+                        type = 'command'
+                        command = "powershell -NoProfile -ExecutionPolicy Bypass -File `"$projectHookPath`""
+                    }
+                )
+            }
+        )
+    }
+}
+$trustedSettings = [ordered]@{
+    disableAllHooks = $true
+    env = [ordered]@{
+        CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS = '1'
+    }
+    hooks = [ordered]@{
+        SessionStart = @(
+            [ordered]@{
+                hooks = @(
+                    [ordered]@{
+                        type = 'command'
+                        command = "powershell -NoProfile -ExecutionPolicy Bypass -File `"$trustedHookPath`""
+                    }
+                )
+            }
+        )
+    }
+}
+$hookControlSettings = [ordered]@{
+    disableAllHooks = $false
+    env = [ordered]@{
+        CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS = '1'
+    }
+    hooks = [ordered]@{
+        SessionStart = @(
+            [ordered]@{
+                hooks = @(
+                    [ordered]@{
+                        type = 'command'
+                        command = "powershell -NoProfile -Command `"Set-Content -NoNewline -Encoding utf8 '$hookControlSentinelPath' 'HOOK_POSITIVE_CONTROL_EXECUTED'`""
+                    }
+                )
+            }
+        )
+    }
+}
+$projectSettings | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $projectSettingsPath
+$trustedSettings | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $settingsPath
+$hookControlSettings | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $hookControlSettingsPath
 
 try {
     if ($Mode -in @('Direct', 'All')) {
         Invoke-DirectVerification
     }
     if ($Mode -in @('Claude', 'All')) {
+        Invoke-HookPositiveControl
         Invoke-ClaudeVerification
     }
 
