@@ -179,7 +179,8 @@ Il controllore ne registra versioni e hash. Le opzioni della CLI costituiscono u
 difesa soltanto dopo che la loro combinazione è stata osservata sulla versione
 fissata e sono state escluse altre superfici effettivamente disponibili.
 
-La ricognizione del 4 novembre 2026 sulla Claude CLI installata `2.1.312` ha
+La ricognizione ripetuta il 5 novembre 2026 sulla Claude CLI installata `2.1.312`
+ha
 osservato nel relativo help locale le opzioni `--tools`, `--allowedTools`,
 `--disallowedTools`, `--restricted`, `--safe-mode`, `--strict-mcp-config`,
 `--mcp-config`, `--settings`, `--setting-sources`, `--disable-slash-commands`,
@@ -188,6 +189,33 @@ per agenti e delegazioni. Questa evidenza rende fattibile un prototipo, ma non
 dimostra ancora che la configurazione combinata esponga esclusivamente i due
 strumenti previsti. Le impostazioni gestite esternamente possono avere precedenza
 e dovranno essere rilevate o escluse prima delle run ufficiali.
+
+L'help locale precisa inoltre tre limiti progettuali. `--safe-mode` disabilita le
+personalizzazioni, ma lascia disponibili strumenti e plugin incorporati e
+impostazioni amministrate. `--restricted` rimuove gli strumenti incorporati che
+eseguono comandi o codice e `WebFetch`, ma conserva strumenti file confinati alle
+directory di lavoro salvo ulteriore selezione tramite `--tools`. `--bare` salta
+molte fonti implicite, ma non può essere assunto come soluzione per questo
+progetto perché non legge autenticazione OAuth o keychain: ammette soltanto
+`ANTHROPIC_API_KEY` o `apiKeyHelper` esplicito, in contrasto con la decisione di
+conservare l'autenticazione della CLI. La prima iterazione dovrà quindi provare
+una combinazione esplicita dei controlli compatibili, senza dichiararla sicura in
+base alla sola presenza dei flag.
+
+La documentazione ufficiale conferma che `--strict-mcp-config` limita i server a
+quelli passati con `--mcp-config`, mentre le impostazioni hanno più origini e le
+impostazioni amministrate hanno precedenza su riga di comando, progetto e utente.
+Conferma anche che `~/.claude.json` può contenere configurazioni MCP e decisioni
+di fiducia. Di conseguenza, inventario effettivo della sessione, origini caricate
+e configurazione amministrata devono essere osservati nella prova; non basta
+ispezionare il solo file fornito al launcher.
+
+Fonti consultate il 5 novembre 2026:
+
+- help locale: `claude --version`, `claude --help`, `claude mcp --help`;
+- [Claude Code CLI reference](https://code.claude.com/docs/en/cli-reference);
+- [Connect Claude Code to tools via MCP](https://code.claude.com/docs/en/mcp);
+- [Settings files and precedence](https://code.claude.com/docs/en/settings).
 
 ### Esecuzione indiretta di codice modificabile dagli agenti
 
@@ -226,7 +254,8 @@ assoluti esterni, attraversamenti `..` e collegamenti che risolvono fuori root.
 1. l'inventario osservato della sessione contiene soltanto `list_files` e
    `read_file` come strumenti invocabili;
 2. non risultano caricati strumenti nativi, hook, plugin, skill, altri MCP o
-   delegazioni;
+   delegazioni; la verifica include le origini di configurazione effettivamente
+   caricate e l'eventuale policy amministrata;
 3. un file interno noto viene elencato e letto con contenuto atteso;
 4. tentativi controllati tramite percorso assoluto esterno, `..` e
    symlink/junction esterno vengono rifiutati e registrati senza restituire il
