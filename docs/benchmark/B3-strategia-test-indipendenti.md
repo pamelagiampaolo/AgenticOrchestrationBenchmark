@@ -236,6 +236,14 @@ non fornirà evidenza su questa proprietà.
 
 ### Prima iterazione pianificata: prototipo MCP di sola lettura
 
+**Stato al 5 novembre 2026:** iterazione eseguita. Risultati, comandi, evidenze e
+limiti sono documentati in [P1 — Prototipo Claude CLI con MCP di sola
+lettura](P1-prototipo-mcp-sola-lettura.md). Il confinamento dei due strumenti è
+stato osservato direttamente e attraverso Claude CLI; l'assenza di ogni
+personalizzazione non è stata interamente dimostrata perché la CLI dichiara
+agenti e plugin built-in e non espone hook o fonti effettive nell'evento iniziale.
+La prova successiva sull'esecuzione indiretta di codice non è stata avviata.
+
 **Obiettivo:** dimostrare che una sessione Claude CLI può usare soltanto un server
 MCP locale fidato con `list_files` e `read_file`, entro una root assegnata dal
 controllore.
