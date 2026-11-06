@@ -154,7 +154,7 @@ clipboard come abilitate per default. Se la CLI `wsb` non consente controllo
 deterministico, exit code e arresto forzato, Windows Sandbox non supera i
 prerequisiti e si rivaluta il fallback Windows con identità dedicata.
 
-## Futura prova P2.1 — non implementata
+## Specifica della prova P2.1
 
 ### Fixture fittizie
 
@@ -264,8 +264,20 @@ riavvio manuale completato prima delle verifiche successive.
 ha fornito `wsb` `0.8.107.0`: il ciclo vuoto start/list/stop è stato completato
 con identificazione e arresto verificati. Comandi, versioni, esiti e limiti
 sono documentati in [P2.0 — Disponibilità e gestione di Windows
-Sandbox](P2.0-disponibilita-windows-sandbox.md). P2.1 resta separata e non
-avviata.
+Sandbox](P2.0-disponibilita-windows-sandbox.md).
+
+## Esito della prova P2.1
+
+P2.1 è stata eseguita separatamente il 6 novembre 2026 con sentinelle fittizie,
+un progetto C# minimo offline e tre istanze nuove: prova principale, arresto per
+timeout e controllo di non persistenza. Nove criteri risultano superati; il
+riutilizzo effettivo degli stessi artefatti nelle tre condizioni sperimentali
+resta non dimostrato perché agenti e strategie multi-agente erano fuori ambito.
+
+Comandi, artefatti, distinzione tra output guest ed evidenze PC, esiti e limiti
+sono documentati in [P2.1 — Prova di isolamento in Windows
+Sandbox](P2.1-prova-isolamento-windows-sandbox.md). La sintesi stabile è in
+[`evidence/P2.1-isolation-summary.json`](evidence/P2.1-isolation-summary.json).
 
 ## Riferimenti ufficiali
 

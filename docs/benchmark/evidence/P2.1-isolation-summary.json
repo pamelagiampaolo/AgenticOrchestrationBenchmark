@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-11-06",
+  "secretsIncluded": false,
+  "scope": "Windows Sandbox isolation probe without MCP, agents or evaluator",
+  "observedVersions": {
+    "wsb": "0.8.107.0",
+    "windowsPowerShell": "5.1.26100.9711"
+  },
+  "configuration": {
+    "networking": "Disable",
+    "clipboardRedirection": "Disable",
+    "printerRedirection": "Disable",
+    "audioInput": "Disable",
+    "videoInput": "Disable",
+    "vGpu": "Disable",
+    "protectedClient": "Enable",
+    "mappedFolders": [
+      { "purpose": "authorized input", "readOnly": true },
+      { "purpose": "phase-specific untrusted output", "readOnly": false }
+    ]
+  },
+  "finalRun": {
+    "scriptExitCode": 0,
+    "inputFileCount": 7,
+    "endpointPositiveControlConnectionCount": 1,
+    "endpointTotalConnectionCountAfterSandboxTests": 1,
+    "buildSucceeded": true,
+    "testsSucceeded": true,
+    "parentChecksPassed": true,
+    "childChecksPassed": true,
+    "exactEnvironmentAllowlistObserved": true,
+    "protectedFilesUnchanged": true,
+    "protectedSentinelsDisclosed": false,
+    "hostOnlyExecutableRun": false,
+    "wholeSandboxStoppedForTimeout": true,
+    "timeoutExecProcessExited": true,
+    "previousInternalMarkerAbsentInFreshInstance": true,
+    "finalRunningSandboxCount": 0
+  },
+  "acceptance": [
+    { "criterion": 1, "status": "passed" },
+    { "criterion": 2, "status": "passed" },
+    { "criterion": 3, "status": "passed" },
+    { "criterion": 4, "status": "passed" },
+    { "criterion": 5, "status": "passed" },
+    { "criterion": 6, "status": "passed" },
+    { "criterion": 7, "status": "passed" },
+    { "criterion": 8, "status": "passed" },
+    { "criterion": 9, "status": "passed" },
+    { "criterion": 10, "status": "not-demonstrated" }
+  ],
+  "limitations": [
+    "The result applies only to the observed Windows Sandbox, wsb and host build.",
+    "The exact environment allowlist is established by the trusted guest wrapper before build, tests and probes; it does not describe earlier Windows Sandbox bootstrap processes.",
+    "Failed network attempts are corroborated by adapter state and a working host endpoint positive control, but do not prove every possible Windows networking mechanism.",
+    "Reuse of identical artifacts and policy across all three experimental conditions was not exercised."
+  ]
+}
