@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-11-06",
+  "secretsIncluded": false,
+  "scope": "Claude CLI to controlled MCP to public Windows Sandbox runner",
+  "versions": {
+    "claudeCli": "2.1.312",
+    "node": "v24.17.0",
+    "npm": "11.13.0"
+  },
+  "cliControls": {
+    "restricted": true,
+    "strictMcpConfig": true,
+    "settingSourcesRequested": [],
+    "nativeToolsRequested": [],
+    "allowedTools": [
+      "mcp__readonly__list_files",
+      "mcp__readonly__read_file",
+      "mcp__readonly__run_public_suite"
+    ],
+    "slashCommandsDisabled": true,
+    "sessionPersistenceDisabled": true,
+    "permissionMode": "dontAsk",
+    "permissionPrompts": "none"
+  },
+  "observedInitialization": {
+    "tools": [
+      "mcp__readonly__list_files",
+      "mcp__readonly__read_file",
+      "mcp__readonly__run_public_suite"
+    ],
+    "mcpServers": [
+      { "name": "readonly", "status": "connected", "source": "dynamic" }
+    ],
+    "agents": [],
+    "skills": [],
+    "slashCommands": [],
+    "builtinPluginCount": 3
+  },
+  "observedToolExchange": {
+    "toolCallCount": 1,
+    "toolName": "mcp__readonly__run_public_suite",
+    "inputPropertyCount": 0,
+    "toolResultIsError": false,
+    "totalTests": 27,
+    "passedTests": 27,
+    "failedTests": 0,
+    "pendingTests": 0,
+    "isSuccessful": true
+  },
+  "hostEvidence": {
+    "newSandboxObservedDuringCall": true,
+    "authoritativeReportCount": 1,
+    "authoritativeTotalTests": 27,
+    "authoritativePassedTests": 27,
+    "authoritativeSandboxStopped": true,
+    "finalRunningSandboxCount": 0,
+    "serverOutsideAgentWorkspace": true,
+    "configurationOutsideAgentWorkspace": true
+  },
+  "acceptance": [
+    { "criterion": 1, "status": "passed-with-limitation" },
+    { "criterion": 2, "status": "passed" },
+    { "criterion": 3, "status": "passed-with-limitation" },
+    { "criterion": 4, "status": "passed" },
+    { "criterion": 5, "status": "passed" },
+    { "criterion": 6, "status": "passed" },
+    { "criterion": 7, "status": "passed" },
+    { "criterion": 8, "status": "passed" },
+    { "criterion": 9, "status": "passed" },
+    { "criterion": 10, "status": "passed" }
+  ],
+  "limitations": [
+    "system/init does not expose the effective configuration-source list; P1.1 controls were reused but not expanded.",
+    "Three builtin plugins remain declared; they added no observed tools, skills, agents, slash commands, MCP servers or hook events in this session, but their complete internal inactivity is not demonstrated.",
+    "Existing authentication and global account state were intentionally retained.",
+    "The result applies only to the observed Claude CLI version and one session."
+  ]
+}

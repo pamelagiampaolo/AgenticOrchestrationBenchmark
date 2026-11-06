@@ -120,3 +120,7 @@ Questa prova non congela l'API MCP completa, non designa la baseline definitiva 
 non verifica Claude, autorizzazioni per agente, concorrenza, cancellazione MCP o
 valutazione riservata. La sintesi stabile e priva di segreti è in
 [`evidence/P3-mcp-sandbox-bridge-summary.json`](evidence/P3-mcp-sandbox-bridge-summary.json).
+
+Il percorso successivo attraverso Claude CLI è stato provato separatamente in
+[P4 — Percorso Claude CLI–MCP–Windows
+Sandbox](P4-claude-mcp-windows-sandbox.md), senza modificare il contratto P3.
