@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-11-06",
+  "secretsIncluded": false,
+  "scope": "Public Node.js benchmark baseline in Windows Sandbox",
+  "baseline": {
+    "sourceCommit": "b7a681ccad7c28a4fab7e5c01594a7073aef282c",
+    "branch": "main",
+    "definitiveExperimentalBaselineDesignated": false,
+    "inputFileCount": 3073,
+    "inputTreeSha256Before": "FB2049A90FCF0D6268627E47AF040C6FC92C6F2874DD640937E381669AA7866E",
+    "inputTreeSha256After": "FB2049A90FCF0D6268627E47AF040C6FC92C6F2874DD640937E381669AA7866E"
+  },
+  "versions": {
+    "node": "v24.17.0",
+    "npm": "11.13.0",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  },
+  "commands": [
+    { "command": "npm run build", "exitCode": 0 },
+    { "command": "npm run typecheck", "exitCode": 0 },
+    {
+      "command": "npm test -- --reporter=json --outputFile=public-test-report.json",
+      "exitCode": 0
+    }
+  ],
+  "publicTestResult": {
+    "total": 27,
+    "passed": 27,
+    "failed": 0,
+    "pending": 0
+  },
+  "isolation": {
+    "networking": "Disable",
+    "redirectionsDisabled": true,
+    "inputReadOnly": true,
+    "dedicatedOutputWritable": true,
+    "noUpNonLoopbackAdapters": true,
+    "inputIntegrityPreserved": true,
+    "sandboxExecExitCode": 0,
+    "finalRunningSandboxCount": 0,
+    "guestOutputAndHostEvidenceSeparated": true
+  },
+  "packageExclusionsVerified": [
+    ".git",
+    ".gitconfig",
+    ".npmrc",
+    ".env",
+    "tests/reserved"
+  ],
+  "acceptance": [
+    { "criterion": 1, "status": "passed-with-limitation" },
+    { "criterion": 2, "status": "passed" },
+    { "criterion": 3, "status": "passed" },
+    { "criterion": 4, "status": "passed" },
+    { "criterion": 5, "status": "passed" },
+    { "criterion": 6, "status": "passed" },
+    { "criterion": 7, "status": "passed" },
+    { "criterion": 8, "status": "passed" },
+    { "criterion": 9, "status": "passed" },
+    { "criterion": 10, "status": "passed" }
+  ],
+  "limitations": [
+    "The clean current HEAD is recorded as the source commit for this probe, but the definitive experimental baseline has not been formally designated.",
+    "The probe copied the already-installed dependency tree; npm ci was not run inside the network-disabled Sandbox.",
+    "The result applies to the observed Windows Sandbox, Node, npm and dependency versions."
+  ]
+}

@@ -279,6 +279,17 @@ sono documentati in [P2.1 — Prova di isolamento in Windows
 Sandbox](P2.1-prova-isolamento-windows-sandbox.md). La sintesi stabile è in
 [`evidence/P2.1-isolation-summary.json`](evidence/P2.1-isolation-summary.json).
 
+## Esito della verifica della baseline Node.js
+
+Una successiva iterazione circoscritta ha eseguito la baseline pubblica Node.js
+in una nuova Sandbox con la stessa policy di P2.1. Build, typecheck e suite comune
+sono terminati con exit code zero e Vitest ha riportato 27 test superati su 27.
+L'input host è rimasto integro e l'istanza è stata arrestata. Il commit corrente
+è registrato come sorgente della prova, senza designarlo autonomamente come
+baseline sperimentale definitiva. Dettagli e limiti sono in
+[P2.2 — Baseline Node.js in Windows
+Sandbox](P2.2-baseline-node-windows-sandbox.md).
+
 ## Riferimenti ufficiali
 
 - [Install Windows Sandbox](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-install)
