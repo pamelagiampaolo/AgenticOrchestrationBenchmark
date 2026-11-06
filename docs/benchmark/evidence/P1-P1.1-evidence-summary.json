@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-11-05",
+  "source": "Sanitized summary of the final P1/P1.1 temporary evidence",
+  "secretsIncluded": false,
+  "sessionIdentifiersIncluded": false,
+  "absoluteTemporaryPathsIncluded": false,
+  "claudeCli": {
+    "version": "2.1.312",
+    "mode": "non-interactive",
+    "effectiveTools": [
+      "mcp__readonly__list_files",
+      "mcp__readonly__read_file"
+    ],
+    "connectedMcpServers": [
+      "readonly"
+    ],
+    "declaredAgents": [],
+    "declaredSkills": [],
+    "declaredSlashCommands": [],
+    "declaredBuiltinPlugins": [
+      "cc-plugin-agents-md",
+      "cc-plugin-telemetry",
+      "cc-plugin-plugin-authoring"
+    ]
+  },
+  "directServerChecks": {
+    "exactToolInventory": true,
+    "internalListed": true,
+    "internalRead": true,
+    "absolutePathRejected": true,
+    "traversalRejected": true,
+    "junctionRejected": true,
+    "externalContentNotDisclosed": true
+  },
+  "claudeCliChecks": {
+    "exactToolInventory": true,
+    "singleMcpServerConnected": true,
+    "fiveExpectedCallsObserved": true,
+    "internalListSucceeded": true,
+    "internalReadSucceeded": true,
+    "absolutePathRejected": true,
+    "traversalRejected": true,
+    "junctionRejected": true,
+    "externalContentNotDisclosed": true,
+    "noDelegationObserved": true,
+    "builtinSubagentsRemoved": true,
+    "noHookEventsObservedInP1": true,
+    "projectHookDidNotExecute": true,
+    "trustedHookDidNotExecuteWhenDisabled": true
+  },
+  "hookPositiveControl": {
+    "sentinelCreated": true,
+    "hookStartedEventObserved": true,
+    "hookResponseEventObserved": true
+  },
+  "managedPolicyDiagnostic": {
+    "remoteManagedSettings": "not fetched; requires an Enterprise or Team subscription",
+    "organizationPolicy": "not applicable to the observed Pro/Max account"
+  },
+  "knownLimits": [
+    "Builtin plugins remained declared.",
+    "Complete inactivity of internal builtin-plugin behavior was not demonstrated.",
+    "Managed settings on a different host or account were not excluded.",
+    "Operating-system isolation was not tested by P1 or P1.1."
+  ]
+}

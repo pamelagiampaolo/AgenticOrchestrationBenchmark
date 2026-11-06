@@ -234,6 +234,14 @@ processi figli a ciascuna area vietata, oltre a rete, credenziali e risultati di
 run precedenti. Il successo della prima iterazione sui soli strumenti di lettura
 non fornirà evidenza su questa proprietà.
 
+La ricognizione P2 del 5 novembre 2026 è documentata in [P2 — Ricognizione per
+l'isolamento dei processi che eseguono codice
+agente](P2-isolamento-processi-codice-agente.md). Propone Windows Sandbox come
+confine candidato proporzionato, ma la funzionalità e la CLI `wsb` non sono
+attualmente disponibili e richiedono una decisione esplicita prima di qualsiasi
+abilitazione o installazione. Nessuna prova di isolamento OS è stata ancora
+eseguita.
+
 ### Prima iterazione pianificata: prototipo MCP di sola lettura
 
 **Stato al 5 novembre 2026:** iterazione eseguita. Risultati, comandi, evidenze e
