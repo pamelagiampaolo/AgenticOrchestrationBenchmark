@@ -255,6 +255,18 @@ approvata, il passo alternativo è progettare e provare identità Windows dedica
 ACL NTFS e firewall; non va adottato implicitamente perché modifica più stato
 persistente del computer e richiede una matrice di prove più ampia.
 
+## Esito della verifica di disponibilità P2.0
+
+La proposta Windows Sandbox è stata approvata e la feature
+`Containers-DisposableClientVM` è stata abilitata il 6 novembre 2026, con
+riavvio manuale completato prima delle verifiche successive.
+`WindowsSandbox.exe` è ora presente e l'aggiornamento ufficiale Microsoft Store
+ha fornito `wsb` `0.8.107.0`: il ciclo vuoto start/list/stop è stato completato
+con identificazione e arresto verificati. Comandi, versioni, esiti e limiti
+sono documentati in [P2.0 — Disponibilità e gestione di Windows
+Sandbox](P2.0-disponibilita-windows-sandbox.md). P2.1 resta separata e non
+avviata.
+
 ## Riferimenti ufficiali
 
 - [Install Windows Sandbox](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-install)

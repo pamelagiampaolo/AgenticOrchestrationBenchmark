@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-11-06",
+  "secretsIncluded": false,
+  "systemChanges": [
+    {
+      "component": "Containers-DisposableClientVM",
+      "action": "enabled with official Windows optional-feature command",
+      "online": true,
+      "restartNeeded": true,
+      "restartPerformedByUser": true
+    },
+    {
+      "component": "MicrosoftWindows.WindowsSandbox",
+      "action": "updated through the official Microsoft Store path triggered by launching the inbox app",
+      "packageVersion": "0.8.107.0",
+      "restartNeeded": false
+    }
+  ],
+  "postRestartObservation": {
+    "classicExecutable": {
+      "available": true,
+      "path": "C:\\Windows\\System32\\WindowsSandbox.exe",
+      "commandVersion": "10.0.26100.9549",
+      "fileVersion": "10.0.26100.9949"
+    },
+    "wsbCli": {
+      "available": true,
+      "version": "0.8.107.0",
+      "distribution": "official Microsoft Store Windows Sandbox package",
+      "packageVersion": "0.8.107.0"
+    },
+    "windowsSandboxStorePackage": {
+      "observedViaRunningExecutablePath": true,
+      "packageFullName": "MicrosoftWindows.WindowsSandbox_0.8.107.0_x64__cw5n1h2txyewy"
+    },
+    "featureStateQueryAsNonAdministrator": {
+      "succeeded": false,
+      "reason": "administrative privileges required"
+    }
+  },
+  "lifecycleVerification": {
+    "configurationFileUsed": "scripts/WindowsSandboxEmptyLifecycle.wsb",
+    "startFromWsbFileContent": true,
+    "startExitCodeZero": true,
+    "nonEmptyInstanceIdReturned": true,
+    "startedIdPresentInList": true,
+    "stopExitCodeZero": true,
+    "stoppedIdAbsentFromFinalList": true,
+    "finalRunningInstanceCount": 0,
+    "ephemeralInstanceIdRetained": false
+  },
+  "outOfScopeActionsNotPerformed": [
+    "P2.1 isolation test",
+    "agent-controlled code execution",
+    "account changes",
+    "ACL changes",
+    "firewall changes",
+    "evaluator implementation",
+    "multi-agent strategy implementation"
+  ]
+}
