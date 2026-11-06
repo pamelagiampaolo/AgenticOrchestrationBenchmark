@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-11-06",
+  "secretsIncluded": false,
+  "scope": "Experimental MCP call to the public P2.2 Windows Sandbox runner",
+  "server": {
+    "version": "0.1.0",
+    "tools": ["list_files", "read_file", "run_public_suite"],
+    "runPublicSuiteInputProperties": 0,
+    "runPublicSuiteAdditionalProperties": false
+  },
+  "validCall": {
+    "baselineSourceCommit": "3231ca6ca4012c52b4f6cfe12c74d19ed70f8172",
+    "nodeVersion": "v24.17.0",
+    "npmVersion": "11.13.0",
+    "buildExitCode": 0,
+    "typecheckExitCode": 0,
+    "testExitCode": 0,
+    "totalTests": 27,
+    "passedTests": 27,
+    "failedTests": 0,
+    "pendingTests": 0,
+    "newSandboxObservedDuringCall": true,
+    "finalRunningSandboxCount": 0
+  },
+  "rejections": {
+    "unexpectedParameter": { "jsonRpcErrorCode": -32602, "sandboxCountBefore": 0, "sandboxCountAfter": 0 },
+    "controlledTimeout": { "jsonRpcErrorCode": -32002, "reportedAsSuccess": false, "sandboxCountAfter": 0 },
+    "controlledMissingReport": { "jsonRpcErrorCode": -32002, "reportedAsSuccess": false, "sandboxCountAfter": 0 }
+  },
+  "acceptance": [
+    { "criterion": 1, "status": "passed" },
+    { "criterion": 2, "status": "passed" },
+    { "criterion": 3, "status": "passed" },
+    { "criterion": 4, "status": "passed" },
+    { "criterion": 5, "status": "passed" },
+    { "criterion": 6, "status": "passed" },
+    { "criterion": 7, "status": "passed-with-limitation" },
+    { "criterion": 8, "status": "passed-with-limitation" },
+    { "criterion": 9, "status": "passed" },
+    { "criterion": 10, "status": "passed" }
+  ],
+  "limitations": [
+    "Only the valid MCP call used the real P2.2 runner and launched Windows Sandbox.",
+    "Timeout and missing-report behavior used controlled runner fixtures; they prove MCP error handling but do not re-test Sandbox isolation or an in-Sandbox failure.",
+    "The operation is experimental and does not freeze the complete MCP API or the definitive baseline.",
+    "Claude, evaluator and reserved tests were not involved."
+  ]
+}

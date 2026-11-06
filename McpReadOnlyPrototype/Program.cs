@@ -1,18 +1,33 @@
 using System.Text.Json;
 using McpReadOnlyPrototype;
 
-if (args.Length != 1 || !Path.IsPathFullyQualified(args[0]))
+if (args.Length is < 1 or > 2
+    || !Path.IsPathFullyQualified(args[0])
+    || (args.Length == 2 && !Path.IsPathFullyQualified(args[1])))
 {
-    Console.Error.WriteLine("Uso: McpReadOnlyPrototype <root-assoluta-consentita>");
+    Console.Error.WriteLine("Uso: McpReadOnlyPrototype <root-assoluta-consentita> [runner-P2.2-assoluto]");
     return 2;
 }
 
 RootedFileAccess fileAccess;
+PublicSuiteRunner? publicSuiteRunner = null;
 try
 {
     fileAccess = new RootedFileAccess(args[0]);
+    if (args.Length == 2)
+    {
+        int timeoutSeconds = int.TryParse(
+            Environment.GetEnvironmentVariable("MCP_PUBLIC_SUITE_TIMEOUT_SECONDS"),
+            out int configuredTimeoutSeconds)
+            ? configuredTimeoutSeconds
+            : 300;
+        publicSuiteRunner = new PublicSuiteRunner(args[1], TimeSpan.FromSeconds(timeoutSeconds));
+    }
 }
-catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException or IOException)
+catch (Exception exception) when (exception is ArgumentException
+    or DirectoryNotFoundException
+    or FileNotFoundException
+    or IOException)
 {
     Console.Error.WriteLine($"Configurazione non valida: {exception.Message}");
     return 2;
@@ -25,14 +40,17 @@ while (await Console.In.ReadLineAsync() is { } line)
         continue;
     }
 
-    string response = HandleRequest(line, fileAccess);
+    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner);
     await Console.Out.WriteLineAsync(response);
     await Console.Out.FlushAsync();
 }
 
 return 0;
 
-static string HandleRequest(string requestJson, RootedFileAccess fileAccess)
+static async Task<string> HandleRequestAsync(
+    string requestJson,
+    RootedFileAccess fileAccess,
+    PublicSuiteRunner? publicSuiteRunner)
 {
     JsonElement responseId = default;
     try
@@ -60,8 +78,8 @@ static string HandleRequest(string requestJson, RootedFileAccess fileAccess)
                 serverInfo = new { name = "readonly-prototype", version = "0.1.0" }
             },
             "ping" => new { },
-            "tools/list" => CreateToolList(),
-            "tools/call" => CallTool(root, fileAccess),
+            "tools/list" => CreateToolList(publicSuiteRunner is not null),
+            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner),
             _ => throw new McpRequestException(-32601, "Metodo MCP non supportato.")
         };
 
@@ -75,6 +93,10 @@ static string HandleRequest(string requestJson, RootedFileAccess fileAccess)
     {
         return SerializeError(responseId, exception.Code, exception.Message);
     }
+    catch (PublicSuiteRunException exception)
+    {
+        return SerializeError(responseId, -32002, exception.Message);
+    }
     catch (Exception exception) when (exception is AccessDeniedException
         or FileNotFoundException
         or DirectoryNotFoundException
@@ -85,9 +107,9 @@ static string HandleRequest(string requestJson, RootedFileAccess fileAccess)
     }
 }
 
-static object CreateToolList() => new
+static object CreateToolList(bool includePublicSuiteRunner)
 {
-    tools = new object[]
+    object[] readOnlyTools =
     {
         new
         {
@@ -119,18 +141,60 @@ static object CreateToolList() => new
                 additionalProperties = false
             }
         }
-    }
-};
+    };
+    object publicSuiteTool = new
+    {
+        name = "run_public_suite",
+        description = "Avvia la suite pubblica comune nel runner Windows Sandbox P2.2 predefinito.",
+        inputSchema = new
+        {
+            type = "object",
+            properties = new { },
+            additionalProperties = false
+        }
+    };
 
-static object CallTool(JsonElement request, RootedFileAccess fileAccess)
+    return new
+    {
+        tools = includePublicSuiteRunner
+            ? readOnlyTools.Append(publicSuiteTool).ToArray()
+            : readOnlyTools
+    };
+}
+
+static async Task<object> CallToolAsync(
+    JsonElement request,
+    RootedFileAccess fileAccess,
+    PublicSuiteRunner? publicSuiteRunner)
 {
     JsonElement parameters = GetRequiredProperty(request, "params");
     string toolName = GetRequiredProperty(parameters, "name").GetString()
         ?? throw new McpRequestException(-32602, "Nome dello strumento mancante.");
     JsonElement arguments = GetRequiredProperty(parameters, "arguments");
+    if (arguments.ValueKind != JsonValueKind.Object)
+    {
+        throw new McpRequestException(-32602, "Gli argomenti devono essere un oggetto JSON.");
+    }
+
+    if (toolName == "run_public_suite")
+    {
+        EnsureExactProperties(arguments, Array.Empty<string>());
+        if (publicSuiteRunner is null)
+        {
+            throw new McpRequestException(-32602, "Strumento non disponibile.");
+        }
+        PublicSuiteResult result = await publicSuiteRunner.RunAsync();
+        return new
+        {
+            content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
+            structuredContent = result,
+            isError = false
+        };
+    }
+
+    EnsureExactProperties(arguments, new[] { "path" });
     string path = GetRequiredProperty(arguments, "path").GetString()
         ?? throw new McpRequestException(-32602, "Percorso mancante.");
-
     string text = toolName switch
     {
         "list_files" => JsonSerializer.Serialize(fileAccess.ListFiles(path)),
@@ -139,6 +203,16 @@ static object CallTool(JsonElement request, RootedFileAccess fileAccess)
     };
 
     return new { content = new[] { new { type = "text", text } }, isError = false };
+}
+
+static void EnsureExactProperties(JsonElement element, IReadOnlyCollection<string> expectedNames)
+{
+    string[] actualNames = element.EnumerateObject().Select(property => property.Name).ToArray();
+    if (actualNames.Length != expectedNames.Count
+        || actualNames.Any(name => !expectedNames.Contains(name, StringComparer.Ordinal)))
+    {
+        throw new McpRequestException(-32602, "La richiesta contiene parametri non ammessi.");
+    }
 }
 
 static JsonElement GetRequiredProperty(JsonElement element, string propertyName)

@@ -595,6 +595,15 @@ Restano attività di implementazione e verifica, non proprietà già dimostrate:
   originale, risultati, credenziali e rete;
 - dimostrare con test concreti l'isolamento prima della sperimentazione.
 
+Una prova circoscritta ha successivamente collegato il prototipo MCP al runner
+pubblico P2.2 senza coinvolgere Claude o il valutatore. L'operazione sperimentale
+`run_public_suite`, priva di parametri, ha avviato una nuova Windows Sandbox e ha
+restituito 27 test pubblici superati, lasciando zero istanze residue. Parametri
+estranei, timeout e report mancante sono stati riportati come errori. Esiti e
+limiti sono documentati in [P3 — Collegamento sperimentale MCP–Windows
+Sandbox](P3-collegamento-mcp-windows-sandbox.md); la prova non congela l'API MCP
+completa.
+
 L'approvazione conclude B3 soltanto a livello progettuale e non autorizza
 installazioni o implementazioni. Le proprietà di isolamento non dovranno essere
 descritte come verificate finché le prove pianificate non saranno state eseguite
