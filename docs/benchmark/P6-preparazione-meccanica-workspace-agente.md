@@ -1,5 +1,13 @@
 # P6 — Preparazione meccanica della workspace agente
 
+> **Prototipo sostituito da A1/A2.** Lo script PowerShell sperimentale P6 è
+> stato ritirato dopo l'integrazione di A1, che costituisce l'unica
+> implementazione autorevole della preparazione delle run. A2 estenderà A1 con
+> il layout `agent-root/`, `session/`, materiali pubblici separati e manifest
+> persistente esterno; al momento di questa nota A2 è pianificato, non ancora
+> implementato. Le evidenze e i risultati storici P6 riportati sotto restano
+> invariati e non autorizzano l'uso di una root di run interna al repository.
+
 ## Stato e perimetro
 
 - **Data:** 8 novembre 2026.
@@ -13,7 +21,7 @@ scrittura MCP. Non certifica quindi la protezione completa dei test pubblici.
 
 ## Componente introdotto
 
-[`scripts/New-AgentWorkspace.ps1`](../../scripts/New-AgentWorkspace.ps1) riceve:
+Il prototipo storico `scripts/New-AgentWorkspace.ps1`, ora ritirato, riceveva:
 
 - root assoluta del repository;
 - commit sorgente;
