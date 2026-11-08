@@ -1,0 +1,122 @@
+[CmdletBinding()]
+param()
+
+$ErrorActionPreference = 'Stop'
+$repositoryRoot = Split-Path -Parent $PSScriptRoot
+$serverProject = Join-Path $repositoryRoot 'McpReadOnlyPrototype\McpReadOnlyPrototype.csproj'
+$serverDll = Join-Path $repositoryRoot 'McpReadOnlyPrototype\bin\Debug\net10.0\McpReadOnlyPrototype.dll'
+$benchmarkRoot = Join-Path $repositoryRoot 'BenchmarkTarget'
+$nodePath = (Get-Command node.exe -ErrorAction Stop).Source
+$vitestPath = Join-Path $benchmarkRoot 'node_modules\vitest\vitest.mjs'
+$probeRoot = Join-Path $repositoryRoot ('TestResults\mcp-public-tests-' + [guid]::NewGuid().ToString('N'))
+$agentRoot = Join-Path $probeRoot 'agent-root'
+$workspace = Join-Path $agentRoot 'workspace'
+$agentTests = Join-Path $agentRoot 'agent-tests'
+$publicReference = Join-Path $agentRoot 'public-reference\tests\public'
+$workerRoot = Join-Path $probeRoot 'worker'
+$resultsRoot = Join-Path $probeRoot 'results'
+$auditPath = Join-Path $resultsRoot 'command-audit.jsonl'
+
+try {
+    & dotnet build $serverProject --no-restore
+    if ($LASTEXITCODE -ne 0) {
+        throw "Build del server MCP fallita con exit code $LASTEXITCODE."
+    }
+
+    if (-not (Test-Path -LiteralPath $vitestPath -PathType Leaf)) {
+        throw "Entry point Vitest non trovato: $vitestPath"
+    }
+
+    New-Item -ItemType Directory -Path $workspace, $agentTests, $publicReference, $workerRoot, $resultsRoot -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'src') -Destination $workspace -Recurse
+    Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'tsconfig.json') -Destination $workspace
+    Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'tests\public\inventory-management.test.ts') -Destination $publicReference
+    Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'tests\public\order-management.test.ts') -Destination $publicReference
+
+    $environment = [ordered]@{
+        MCP_WRITABLE_DIRECTORIES = 'workspace;agent-tests'
+        MCP_PUBLIC_TEST_NODE = $nodePath
+        MCP_PUBLIC_TEST_VITEST = $vitestPath
+        MCP_PUBLIC_TEST_WORKER_ROOT = $workerRoot
+        MCP_COMMAND_AUDIT_PATH = $auditPath
+        MCP_PUBLIC_TEST_TIMEOUT_SECONDS = '30'
+    }
+    $previousEnvironment = @{}
+    foreach ($entry in $environment.GetEnumerator()) {
+        $previousEnvironment[$entry.Key] = [Environment]::GetEnvironmentVariable($entry.Key, 'Process')
+        [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value, 'Process')
+    }
+    try {
+        $requests = @(
+            ([ordered]@{ jsonrpc = '2.0'; id = 1; method = 'initialize'; params = @{} } | ConvertTo-Json -Depth 10 -Compress)
+            ([ordered]@{ jsonrpc = '2.0'; id = 2; method = 'tools/list'; params = @{} } | ConvertTo-Json -Depth 10 -Compress)
+            ([ordered]@{ jsonrpc = '2.0'; id = 3; method = 'tools/call'; params = @{ name = 'run_public_tests'; arguments = @{ command = 'arbitrary' } } } | ConvertTo-Json -Depth 10 -Compress)
+            ([ordered]@{ jsonrpc = '2.0'; id = 4; method = 'tools/call'; params = @{ name = 'run_public_tests'; arguments = @{} } } | ConvertTo-Json -Depth 10 -Compress)
+        )
+        $stderrPath = Join-Path $resultsRoot 'server-stderr.txt'
+        $previousErrorPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        $responseLines = @($requests | & dotnet $serverDll $agentRoot 2> $stderrPath)
+        $serverExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorPreference
+    }
+    finally {
+        foreach ($entry in $previousEnvironment.GetEnumerator()) {
+            [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value, 'Process')
+        }
+    }
+
+    if ($serverExitCode -ne 0 -or $responseLines.Count -ne 4) {
+        $diagnostic = if (Test-Path -LiteralPath $stderrPath) { Get-Content -LiteralPath $stderrPath -Raw } else { '' }
+        throw "Server MCP terminato con exit code $serverExitCode e $($responseLines.Count) risposte. $diagnostic"
+    }
+
+    $initialize, $toolsResponse, $invalidResponse, $runResponse = @($responseLines | ForEach-Object { $_ | ConvertFrom-Json })
+    $standardError = if (Test-Path -LiteralPath $stderrPath) { Get-Content -LiteralPath $stderrPath -Raw } else { '' }
+    if ($null -eq $runResponse.result -or $null -eq $runResponse.result.structuredContent) {
+        throw "Risposta MCP di esecuzione inattesa: $($responseLines -join ' | '). Stderr: $standardError"
+    }
+
+    $toolNames = @($toolsResponse.result.tools | ForEach-Object name)
+    $expectedTools = @('list_files', 'read_file', 'write_file', 'delete_file', 'move_file', 'run_public_tests')
+    $auditLines = @(Get-Content -LiteralPath $auditPath)
+    $remainingWorkerEntries = @(Get-ChildItem -LiteralPath $workerRoot -Force)
+    $counts = $runResponse.result.structuredContent.Tests
+    $normalizedStandardError = if ([string]::IsNullOrEmpty($standardError)) { '' } else { $standardError.Trim() }
+    $summary = [ordered]@{
+        protocolVersion = $initialize.result.protocolVersion
+        tools = $toolNames
+        exactToolInventory = (($toolNames -join ',') -eq ($expectedTools -join ','))
+        arbitraryParameterRejected = ($invalidResponse.error.code -eq -32602)
+        status = $runResponse.result.structuredContent.Status
+        exitCode = $runResponse.result.structuredContent.ExitCode
+        totalTests = $counts.Total
+        passedTests = $counts.Passed
+        failedTests = $counts.Failed
+        pendingTests = $counts.Pending
+        auditRecordCount = $auditLines.Count
+        workerResidualEntryCount = $remainingWorkerEntries.Count
+        serverStandardError = $normalizedStandardError
+    }
+
+    $failures = [Collections.Generic.List[string]]::new()
+    if (-not $summary.exactToolInventory) { $failures.Add('inventario strumenti inatteso') }
+    if (-not $summary.arbitraryParameterRejected) { $failures.Add('parametro arbitrario non rifiutato') }
+    if ($summary.status -ne 'completed' -or $summary.exitCode -ne 0) { $failures.Add('esecuzione pubblica non completata') }
+    if ($summary.totalTests -ne 27 -or $summary.passedTests -ne 27 -or $summary.failedTests -ne 0 -or $summary.pendingTests -ne 0) {
+        $failures.Add('conteggi pubblici diversi da 27/27')
+    }
+    if ($summary.auditRecordCount -ne 1) { $failures.Add('audit diverso da una invocazione') }
+    if ($summary.workerResidualEntryCount -ne 0) { $failures.Add('residui nella worker root') }
+    if (-not [string]::IsNullOrEmpty($summary.serverStandardError)) { $failures.Add('stderr del server non vuoto') }
+
+    $summary | ConvertTo-Json -Depth 10
+    if ($failures.Count -gt 0) {
+        throw ('Probe MCP fallita: ' + ($failures -join '; '))
+    }
+}
+finally {
+    if (Test-Path -LiteralPath $probeRoot) {
+        Remove-Item -LiteralPath $probeRoot -Recurse -Force
+    }
+}
