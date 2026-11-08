@@ -73,10 +73,21 @@ public sealed class RealCliHierarchyProbes
         // Il coordinatore deve ricevere come risultato dello strumento il riepilogo del lavoratore,
         // non una notifica di esecuzione in background.
         string workerSummary = record.Agents[1].Result!.ResultText!;
-        string coordinatorStream = await File.ReadAllTextAsync(
-            Path.Combine(prepared.ResultsDirectory, "agents", "coordinator", "stream.jsonl"), TestContext.Current.CancellationToken);
-        Assert.Contains(JsonSerializer.Serialize(workerSummary).Trim('"'), coordinatorStream);
+        string toolResult = Assert.Single(ToolResultTexts(
+            Path.Combine(prepared.ResultsDirectory, "agents", "coordinator", "stream.jsonl")));
+        Assert.Equal(workerSummary, toolResult);
     }
+
+    /// <summary>Testi dei <c>tool_result</c> ricevuti dall'agente, interpretando lo stream come JSON.</summary>
+    private static IReadOnlyList<string> ToolResultTexts(string streamPath) =>
+        File.ReadLines(streamPath)
+            .Select(line => JsonDocument.Parse(line).RootElement)
+            .Where(root => root.TryGetProperty("type", out JsonElement type) && type.GetString() == "user")
+            .SelectMany(root => root.GetProperty("message").GetProperty("content").EnumerateArray())
+            .Where(block => block.ValueKind == JsonValueKind.Object
+                && block.TryGetProperty("type", out JsonElement blockType) && blockType.GetString() == "tool_result")
+            .Select(block => string.Concat(block.GetProperty("content").EnumerateArray().Select(part => part.GetProperty("text").GetString())))
+            .ToList();
 
     private static async Task<PrepareRunOutput> PrepareAsync(string repositoryPath, string runId)
     {
