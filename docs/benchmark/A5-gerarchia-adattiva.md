@@ -3,7 +3,7 @@
 - **Data:** 8 novembre 2026
 - **Fase:** realizzazione delle architetture sperimentali (dopo A4, canale di coordinamento)
 - **Branch:** `feat/single-agent` (worktree `C:\repos\TesiAgenticAI-agent`)
-- **Stato:** pianificato; le sezioni dei risultati sono completate a fine iterazione
+- **Stato:** completata; test automatici e due prove reali eseguiti (risultati sotto)
 
 ## Decisioni dell'utente (8 novembre 2026)
 
@@ -137,3 +137,138 @@ build del commit indicato nei risultati.
    Osservazione, non criterio: se e come il coordinatore delega. L'agente non può
    eseguire i test (manca lo strumento): la qualità della soluzione non viene
    valutata.
+
+## Realizzazione
+
+Commit: `a2656fc` (implementazione), `497bdce`, `ec48d97`, `6889525` (prova R1).
+
+- **Estrazione senza cambiamenti di comportamento.** `AgentProcess` (una sessione
+  CLI), `RunLimitController` (budget e tempo della run) e `RunInputs` (lettura dei
+  documenti della run, istruzioni, hash) sono stati estratti da
+  `SingleAgentSessionRunner`, sceso da 548 a 306 righe. I 21 test del single-agent
+  sono passati senza modifiche dopo ogni passo dell'estrazione.
+- **Controllore unico.** Ogni agente riporta il proprio uso cumulativo; il
+  controllore somma gli agenti e, al budget, al tempo o a una configurazione non
+  conforme di qualunque agente, annulla `Stopping`: ogni `AgentProcess` termina il
+  proprio albero di processi. L'annullamento avviene in modo sincrono fuori dal
+  lock, così nessun processo continua dopo che la fermata è decisa.
+- **Lavoratore terminato a fine coordinatore.** Se il coordinatore termina mentre
+  un lavoratore è attivo (per esempio se la CLI spostasse la chiamata in
+  background), la chiusura dell'host termina il lavoratore e la delega è
+  registrata `failed` con motivo esplicito.
+- **Concorrenza misurata.** `maxConcurrentWorkers` è calcolato dalle sovrapposizioni
+  reali degli intervalli dei lavoratori, non assunto dalla regola.
+- **Testo finale del `result`.** Aggiunto a `SessionResult` (`resultText`); è il
+  riepilogo restituito al coordinatore. Il record single-agent acquisisce il campo.
+- **Impostazioni comuni.** `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS=0` è nelle
+  impostazioni fidate di tutte le architetture: l'hash di `cli-settings.json` del
+  single-agent cambia rispetto alla run di A3.
+- **Punto d'aggancio per le prove.** `HierarchicalRunRunner.DelegationDecorator` è
+  `internal`, non è mai impostato dal comando ed è usato solo dalla prova R1.
+- **Istruzioni (bozze da approvare):** `Instructions/coordinator.md` e
+  `Instructions/worker.md`. Non indicano il numero massimo di deleghe: il
+  coordinatore lo scopre da un eventuale rifiuto.
+
+## Verifiche eseguite
+
+```powershell
+dotnet format AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --verify-no-changes --no-restore
+dotnet build  AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-restore
+dotnet test   AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-build --no-restore
+dotnet test   AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-build --no-restore --filter-class "*HierarchicalRunRunnerTests"
+```
+
+- `dotnet format`: codice di uscita 0 (dopo `dotnet format whitespace` su due righe
+  di un test);
+- build: `Avvisi: 0`, `Errori: 0`;
+- suite completa: 271 superati, 1 ignorato (la prova reale esplicita), 0 falliti;
+- test della gerarchia con CLI finta, relay e pipe reali: 9/9, ripetuti 3 volte;
+- controllo di sensibilità: con la segnalazione dell'uso al controllore rimossa,
+  `RunAsync_BudgetReachedBySumOfAgents_StopsWorkerAndCoordinatorPromptly` fallisce;
+  ripristinato il codice, la suite torna verde.
+
+| Criterio | Test |
+| --- | --- |
+| una delega completata, totali, prompt, configurazioni, hash | `RunAsync_OneDelegation_CompletesAndRecordsAgentsDelegationAndTotals` |
+| rifiuto oltre il tetto | `RunAsync_DelegationsBeyondMaximum_AreRejectedWithoutStartingWorkers` |
+| lavoratore fallito, misura incompleta | `RunAsync_WorkerWithoutResult_DelegationFailsAndMeasurementIsIncomplete` |
+| budget superato dalla somma degli agenti | `RunAsync_BudgetReachedBySumOfAgents_StopsWorkerAndCoordinatorPromptly` |
+| tempo scaduto durante una delega | `RunAsync_TimeLimitDuringDelegation_StopsAllAgents` |
+| configurazione non conforme di un lavoratore / del coordinatore | `RunAsync_WorkerWithUnexpectedConfiguration_RejectsRunAndStopsCoordinator`, `RunAsync_CoordinatorWithoutDelegateTool_IsRejected` |
+| risultati già presenti | `RunAsync_ResultsDirectoryAlreadyUsed_IsRefusedWithoutStarting` |
+| controllore, profilo, comando | `RunLimitControllerTests`, `CoordinatorLaunchProfileTests`, `RunAdaptiveHierarchyCommandTests`, `MaxConcurrent_*` |
+
+## Risultati delle prove reali
+
+CLI `2.1.312 (Claude Code)`, modello dichiarato in `system/init`:
+`claude-sonnet-5-5` per tutti gli agenti. Nessuna violazione di configurazione.
+
+### R1 — delega lunga
+
+Tre esecuzioni, tutte con lo stesso comportamento della CLI; le prime due sono
+fallite per errori del test, non dell'harness:
+
+| Esecuzione | Commit | Esito del test | Causa |
+| --- | --- | --- | --- |
+| `a5-probe-long-delegation-20261108T211446Z` | `497bdce` | fallito | gli istanti dell'evento sono presi dal gestore interno, dopo il ritardo: misurava 3,6 s |
+| `a5-probe-long-delegation-20261108T211844Z` | `ec48d97` | fallito | confronto testuale con il JSON serializzato da .NET (backtick come `\u0060`) |
+| `a5-probe-long-delegation-20261108T212205Z` | `6889525` | **superato** | — |
+
+Prima della terza esecuzione la nuova verifica è stata applicata alle evidenze delle
+prime due: in entrambe un solo `tool_result`, identico al riepilogo del lavoratore.
+Un primo lancio del comando di test con `--diagnostic-output-directory` era stato
+rifiutato dalla piattaforma di test senza eseguire alcun test né chiamate LLM.
+
+Esecuzione superata (`C:\AgenticAIResults\a5-probe-long-delegation-20261108T212205Z\`):
+
+- run `completed`, `agentTaskDurationMs` 157885;
+- una delega `completed`; durata vista dal relay ≥ 150 s (asserzione superata);
+  coordinatore 157879 ms, lavoratore 3647 ms (una `read_file`);
+- il coordinatore ha ricevuto come `tool_result` esattamente il riepilogo del
+  lavoratore e lo ha riportato; nello stream "background" compare solo nelle
+  statistiche dei subagenti, tutte a zero;
+- token: coordinatore 8853, lavoratore 7564, totale 16432; stream e `result`
+  coincidono per entrambi gli agenti.
+
+### R2 — T1 reale
+
+Run `20261108T212457Z-2ea4895d` (commit `6889525`), risultati in
+`C:\AgenticAIResults\20261108T212457Z-2ea4895d\`:
+
+- stato `completed`, `agentTaskDurationMs` 25030, 4 turni;
+- **nessuna delega**: il coordinatore ha usato `list_files`, `read_file` e
+  `write_file` su `workspace/src/index.ts` e ha concluso da solo;
+- token 35174 (input 8, cache read 21854, cache creation 8777, output 4535),
+  stream uguale al `result`; costo riportato dalla CLI 0,0827 USD;
+- materiali protetti invariati; nel riepilogo l'agente dichiara di non aver potuto
+  eseguire i test.
+
+Interpretazione (non misura): su un task semplice come T1 il coordinatore adattivo
+può scegliere di non delegare; per B5 zero deleghe è un valore significativo della
+condizione adattiva, non un errore. Una sola run non dice nulla sulla frequenza.
+
+## Limiti e punti non verificati
+
+- **Contromisure non isolate.** R1 mostra che, con `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS=0`
+  e il `timeout` per server, una delega di circa 154 s viene attesa. Non è stata
+  eseguita una prova di controllo senza queste impostazioni: non è dimostrato che
+  senza di esse la chiamata verrebbe spostata in background, né che la finestra di
+  inattività di 30 minuti venga davvero alzata (nessuna delega ha superato 30 minuti).
+- **Terminazione forzata con la CLI reale** non provata: budget, tempo e
+  configurazione non conforme sono verificati solo con la CLI finta.
+- **Istruzioni di coordinatore e lavoratore**: bozze, da approvare dall'utente;
+  ogni modifica cambia gli hash. Anche la descrizione di `delegate_task` va rivista.
+- **Esecuzione dei test** ancora assente: nessuna run vale come pilota B4.
+- **Confine della pipe** (A4): limitata all'utente corrente, non ai processi della
+  run.
+- **Gerarchia statica** non realizzata: userà `HierarchicalRunRunner` con un'altra
+  politica di delega e altre istruzioni (lavoro di Codex sul livello condiviso).
+
+## Prossimo passo proposto
+
+- revisione e approvazione delle istruzioni (single-agent, coordinatore,
+  lavoratore) e della descrizione di `delegate_task`;
+- integrazione dello strumento di test di Codex appena disponibile, che sblocca i
+  piloti B4;
+- eventuale prova di controllo senza le contromisure MCP, se si vuole dimostrarne la
+  necessità.

@@ -302,12 +302,12 @@ Queste regole sono state date soltanto a Claude e non si estendono a Codex.
 
 ## Stato all'8 novembre 2026 e punti aperti
 
-- Claude: A1–A4 completati su `feat/single-agent` (ultimo commit A4 `e92c08d`).
-  Prossimo passo A5: avvio reale di coordinatore e lavoratori, controllore unico
-  di budget, record per agente e ruolo. Servono decisioni dell'utente sul numero
-  massimo di deleghe e sul testo delle istruzioni di coordinatore e lavoratore, e
-  una breve prova reale (autorizzata) del timeout della CLI sulle chiamate MCP
-  lunghe.
+- Claude: A1–A5 completati su `feat/single-agent`. A5: comando
+  `run-adaptive-hierarchy` (`HierarchicalRunRunner`, controllore unico
+  `RunLimitController`, `AgentProcess` condiviso con il single-agent), tetto
+  `--max-delegations` (10 proposto), istruzioni `coordinator.md`/`worker.md` in
+  bozza. Prove reali: delega di circa 154 s attesa correttamente; T1 completato
+  senza deleghe. La gerarchia statica va costruita su `HierarchicalRunRunner`.
 - Codex: worker confinato per build e test in corso (`P9`–`P14`).
 - Bloccante per i piloti B4: finché il worker non esiste l'agente non può
   eseguire typecheck e test, quindi le sessioni non rappresentano il ciclo di
