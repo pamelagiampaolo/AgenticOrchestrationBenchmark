@@ -1,7 +1,7 @@
 namespace McpReadOnlyPrototype;
 
 /// <summary>
-/// Fornisce accesso in sola lettura a file e directory contenuti in una root fissata.
+/// Fornisce accesso a file e directory contenuti in una root fissata.
 /// </summary>
 public sealed class RootedFileAccess
 {
@@ -71,6 +71,78 @@ public sealed class RootedFileAccess
         }
 
         return File.ReadAllText(filePath);
+    }
+
+    /// <summary>
+    /// Crea o sostituisce un file UTF-8 contenuto nella root consentita.
+    /// </summary>
+    /// <param name="relativePath">Percorso relativo non vuoto del file.</param>
+    /// <param name="content">Contenuto testuale completo da scrivere.</param>
+    /// <exception cref="AccessDeniedException">Il percorso è assoluto, attraversa la root o risolve fuori root.</exception>
+    /// <exception cref="IOException">Una componente del percorso esistente non è una directory.</exception>
+    public void WriteFile(string relativePath, string content)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            throw new AccessDeniedException("Accesso rifiutato: il percorso del file non può essere vuoto.");
+        }
+
+        if (Path.IsPathFullyQualified(relativePath))
+        {
+            throw new AccessDeniedException("Accesso rifiutato: sono ammessi soltanto percorsi relativi.");
+        }
+
+        string combinedPath = Path.GetFullPath(Path.Combine(rootPath, relativePath));
+        EnsureWithinRoot(combinedPath);
+        string? requestedParent = Path.GetDirectoryName(combinedPath);
+        if (string.IsNullOrWhiteSpace(requestedParent))
+        {
+            throw new AccessDeniedException("Accesso rifiutato: directory padre non valida.");
+        }
+
+        string resolvedParent = EnsureWritableDirectory(requestedParent);
+        string destinationPath = Path.Combine(resolvedParent, Path.GetFileName(combinedPath));
+        EnsureWithinRoot(destinationPath);
+
+        if (File.Exists(destinationPath) || Directory.Exists(destinationPath))
+        {
+            string resolvedDestination = ResolveExistingPath(destinationPath);
+            EnsureWithinRoot(resolvedDestination);
+            if (Directory.Exists(resolvedDestination))
+            {
+                throw new IOException("Il percorso richiesto identifica una directory.");
+            }
+
+            destinationPath = resolvedDestination;
+        }
+
+        File.WriteAllText(destinationPath, content, new System.Text.UTF8Encoding(false));
+    }
+
+    private string EnsureWritableDirectory(string requestedDirectory)
+    {
+        string relativeDirectory = Path.GetRelativePath(rootPath, requestedDirectory);
+        string currentDirectory = rootPath;
+        foreach (string segment in relativeDirectory.Split(
+            Path.DirectorySeparatorChar,
+            StringSplitOptions.RemoveEmptyEntries))
+        {
+            string nextPath = Path.Combine(currentDirectory, segment);
+            if (File.Exists(nextPath))
+            {
+                throw new IOException("Una componente del percorso non è una directory.");
+            }
+
+            if (!Directory.Exists(nextPath))
+            {
+                Directory.CreateDirectory(nextPath);
+            }
+
+            currentDirectory = ResolveExistingPath(nextPath);
+            EnsureWithinRoot(currentDirectory);
+        }
+
+        return currentDirectory;
     }
 
     private string ResolveAllowedPath(string requestedPath, bool requireExisting)

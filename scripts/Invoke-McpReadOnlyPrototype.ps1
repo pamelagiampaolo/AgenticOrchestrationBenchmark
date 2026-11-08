@@ -110,16 +110,30 @@ function Invoke-DirectVerification {
     $absoluteRead = New-JsonRpcRequest -Id 5 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = (Join-Path $externalRoot 'external.txt') } }
     $traversalRead = New-JsonRpcRequest -Id 6 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = '..\external\external.txt' } }
     $junctionRead = New-JsonRpcRequest -Id 7 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'external-link\external.txt' } }
-    $responses = Invoke-ServerConversation -Requests @($initialize, $toolsList, $internalList, $internalRead, $absoluteRead, $traversalRead, $junctionRead)
+    $internalWrite = New-JsonRpcRequest -Id 8 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'generated\result.txt'; content = 'WRITTEN_INSIDE_ROOT' } }
+    $absoluteWrite = New-JsonRpcRequest -Id 9 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = (Join-Path $externalRoot 'blocked.txt'); content = 'BLOCKED' } }
+    $traversalWrite = New-JsonRpcRequest -Id 10 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = '..\external\blocked.txt'; content = 'BLOCKED' } }
+    $junctionWrite = New-JsonRpcRequest -Id 11 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'external-link\blocked.txt'; content = 'BLOCKED' } }
+    $responses = Invoke-ServerConversation -Requests @(
+        $initialize, $toolsList, $internalList, $internalRead, $absoluteRead,
+        $traversalRead, $junctionRead, $internalWrite, $absoluteWrite,
+        $traversalWrite, $junctionWrite)
 
     $toolNames = @($responses[1].response.result.tools | ForEach-Object { $_.name })
     $checks = [ordered]@{
-        exactToolInventory = (($toolNames -join ',') -eq 'list_files,read_file')
+        exactToolInventory = (($toolNames -join ',') -eq 'list_files,read_file,write_file')
         internalListed = ($responses[2].response.result.content[0].text -match 'internal.txt')
         internalRead = ($responses[3].response.result.content[0].text -eq $internalSentinel)
         absoluteRejected = ($responses[4].response.error.code -eq -32001)
         traversalRejected = ($responses[5].response.error.code -eq -32001)
         junctionRejected = ($responses[6].response.error.code -eq -32001)
+        internalWrite = (
+            $responses[7].response.result.isError -eq $false -and
+            (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'generated\result.txt')) -eq 'WRITTEN_INSIDE_ROOT')
+        absoluteWriteRejected = ($responses[8].response.error.code -eq -32001)
+        traversalWriteRejected = ($responses[9].response.error.code -eq -32001)
+        junctionWriteRejected = ($responses[10].response.error.code -eq -32001)
+        externalFileNotWritten = (-not (Test-Path -LiteralPath (Join-Path $externalRoot 'blocked.txt')))
         externalContentNotDisclosed = (($responses | ConvertTo-Json -Depth 20) -notmatch $externalSentinel)
     }
 
@@ -135,7 +149,7 @@ function Invoke-DirectVerification {
 function Invoke-ClaudeVerification {
     $claudePath = (Get-Command claude -ErrorAction Stop).Source
     $externalFilePath = Join-Path $externalRoot 'external.txt'
-    $prompt = "Usa esclusivamente gli strumenti MCP disponibili. Esegui in ordine: elenca la root con list_files; leggi internal.txt; tenta di leggere il percorso assoluto esterno $externalFilePath; tenta ..\external\external.txt; tenta external-link\external.txt. Riporta in una riga soltanto quali chiamate sono riuscite o rifiutate, senza ripetere il contenuto di richieste rifiutate."
+    $prompt = "Usa esclusivamente gli strumenti MCP disponibili. Esegui in ordine: elenca la root; leggi internal.txt; scrivi GENERATED_BY_CLAUDE in generated\claude.txt; tenta di leggere il percorso assoluto esterno $externalFilePath; tenta di leggere ..\external\external.txt e external-link\external.txt; tenta di scrivere BLOCKED in ..\external\blocked.txt e external-link\blocked.txt. Riporta in una riga soltanto quali chiamate sono riuscite o rifiutate, senza ripetere contenuti esterni."
 
     $arguments = @(
         '-p',
@@ -148,7 +162,7 @@ function Invoke-ClaudeVerification {
         '--settings', $settingsPath,
         '--setting-sources', '',
         '--tools', '',
-        '--allowedTools', 'mcp__readonly__list_files,mcp__readonly__read_file',
+        '--allowedTools', 'mcp__workspace__list_files,mcp__workspace__read_file,mcp__workspace__write_file',
         '--disallowedTools', 'Bash,PowerShell,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,Task,Agent,Skill',
         '--disable-slash-commands',
         '--no-session-persistence',
@@ -202,19 +216,23 @@ function Invoke-ClaudeVerification {
         Where-Object { $_.type -eq 'tool_result' })
     $finalResult = $events | Where-Object { $_.type -eq 'result' } | Select-Object -Last 1
     $hookEvents = @($events | Where-Object { $_.type -eq 'system' -and $_.subtype -match 'hook' })
-    $expectedTools = 'mcp__readonly__list_files,mcp__readonly__read_file'
+    $expectedTools = @('mcp__workspace__list_files', 'mcp__workspace__read_file', 'mcp__workspace__write_file')
     $checks = [ordered]@{
         exitCodeZero = ($exitCode -eq 0)
-        exactToolInventory = (($initialization.tools -join ',') -eq $expectedTools)
-        singleMcpServerConnected = ($initialization.mcp_servers.Count -eq 1 -and $initialization.mcp_servers[0].name -eq 'readonly' -and $initialization.mcp_servers[0].status -eq 'connected')
+        exactToolInventory = ((@($initialization.tools | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
+        singleMcpServerConnected = ($initialization.mcp_servers.Count -eq 1 -and $initialization.mcp_servers[0].name -eq 'workspace' -and $initialization.mcp_servers[0].status -eq 'connected')
         noSlashCommands = ($initialization.slash_commands.Count -eq 0)
         noSkills = ($initialization.skills.Count -eq 0)
-        fiveExpectedCallsObserved = ($toolUses.Count -eq 5 -and ($toolUses.name | Select-Object -Unique | Sort-Object) -join ',' -eq $expectedTools)
-        internalListSucceeded = ($toolResults.Count -eq 5 -and -not $toolResults[0].is_error)
-        internalReadSucceeded = ($toolResults.Count -eq 5 -and -not $toolResults[1].is_error -and ($toolResults[1].content | ConvertTo-Json -Depth 10) -match $internalSentinel)
-        absoluteRejected = ($toolResults.Count -eq 5 -and $toolResults[2].is_error)
-        traversalRejected = ($toolResults.Count -eq 5 -and $toolResults[3].is_error)
-        junctionRejected = ($toolResults.Count -eq 5 -and $toolResults[4].is_error)
+        expectedCallsObserved = ($toolUses.Count -eq 8 -and (@($toolUses.name | Select-Object -Unique | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
+        internalListSucceeded = ($toolResults.Count -eq 8 -and -not $toolResults[0].is_error)
+        internalReadSucceeded = ($toolResults.Count -eq 8 -and -not $toolResults[1].is_error -and ($toolResults[1].content | ConvertTo-Json -Depth 10) -match $internalSentinel)
+        internalWriteSucceeded = ($toolResults.Count -eq 8 -and -not $toolResults[2].is_error -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'generated\claude.txt')) -eq 'GENERATED_BY_CLAUDE')
+        absoluteRejected = ($toolResults.Count -eq 8 -and $toolResults[3].is_error)
+        traversalRejected = ($toolResults.Count -eq 8 -and $toolResults[4].is_error)
+        junctionRejected = ($toolResults.Count -eq 8 -and $toolResults[5].is_error)
+        traversalWriteRejected = ($toolResults.Count -eq 8 -and $toolResults[6].is_error)
+        junctionWriteRejected = ($toolResults.Count -eq 8 -and $toolResults[7].is_error)
+        externalFileNotWritten = (-not (Test-Path -LiteralPath (Join-Path $externalRoot 'blocked.txt')))
         externalContentNotDisclosed = ($standardOutput -notmatch $externalSentinel -and $standardError -notmatch $externalSentinel)
         noDelegationObserved = ($finalResult.subagent_stats.spawned -eq 0)
         builtInSubagentsRemoved = (($initialization.agents | Where-Object { $_ -ne 'claude' }).Count -eq 0)
@@ -344,7 +362,7 @@ if ($LASTEXITCODE -ne 0) {
 
 $mcpConfiguration = [ordered]@{
     mcpServers = [ordered]@{
-        readonly = [ordered]@{
+        workspace = [ordered]@{
             type = 'stdio'
             command = $serverPath
             args = @($agentRoot)

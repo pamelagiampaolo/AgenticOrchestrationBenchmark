@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AgenticExperimentRunner\AgenticExperimentRunner.csproj" />
+    <ProjectReference Include="..\McpReadOnlyPrototype\McpReadOnlyPrototype.csproj" />
   </ItemGroup>
 
 </Project>

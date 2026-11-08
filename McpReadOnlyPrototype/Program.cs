@@ -75,7 +75,7 @@ static async Task<string> HandleRequestAsync(
             {
                 protocolVersion = "2025-06-18",
                 capabilities = new { tools = new { } },
-                serverInfo = new { name = "readonly-prototype", version = "0.1.0" }
+                serverInfo = new { name = "workspace-prototype", version = "0.2.0" }
             },
             "ping" => new { },
             "tools/list" => CreateToolList(publicSuiteRunner is not null),
@@ -140,6 +140,22 @@ static object CreateToolList(bool includePublicSuiteRunner)
                 required = new[] { "path" },
                 additionalProperties = false
             }
+        },
+        new
+        {
+            name = "write_file",
+            description = "Crea o sostituisce un file UTF-8 nella root consentita.",
+            inputSchema = new
+            {
+                type = "object",
+                properties = new
+                {
+                    path = new { type = "string", description = "Percorso relativo del file." },
+                    content = new { type = "string", description = "Contenuto testuale completo." }
+                },
+                required = new[] { "path", "content" },
+                additionalProperties = false
+            }
         }
     };
     object publicSuiteTool = new
@@ -188,6 +204,22 @@ static async Task<object> CallToolAsync(
         {
             content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
             structuredContent = result,
+            isError = false
+        };
+    }
+
+    if (toolName == "write_file")
+    {
+        EnsureExactProperties(arguments, new[] { "path", "content" });
+        string writePath = GetRequiredProperty(arguments, "path").GetString()
+            ?? throw new McpRequestException(-32602, "Percorso mancante.");
+        string content = GetRequiredProperty(arguments, "content").GetString()
+            ?? throw new McpRequestException(-32602, "Contenuto mancante.");
+        fileAccess.WriteFile(writePath, content);
+        return new
+        {
+            content = new[] { new { type = "text", text = "File scritto correttamente." } },
+            structuredContent = new { path = writePath, charactersWritten = content.Length },
             isError = false
         };
     }
