@@ -133,7 +133,8 @@ public sealed class ControlledPublicTestRunner
             exitCode,
             stopwatch.ElapsedMilliseconds,
             Limit(standardOutput),
-            Limit(standardError));
+            Limit(standardError),
+            null);
         await AppendAuditAsync(startedAt, result, cancellationToken);
         return result;
     }
@@ -209,4 +210,18 @@ public sealed record ControlledCommandResult(
     int? ExitCode,
     long DurationMilliseconds,
     string StandardOutput,
-    string StandardError);
+    string StandardError,
+    PublicTestCounts? Tests);
+
+/// <summary>
+/// Conteggi non sensibili estratti dal report pubblico di Vitest.
+/// </summary>
+public sealed record PublicTestCounts(
+    int Total,
+    int Passed,
+    int Failed,
+    int Pending,
+    int TotalSuites,
+    int PassedSuites,
+    int FailedSuites,
+    int PendingSuites);

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace McpReadOnlyPrototype;
 
@@ -54,16 +55,19 @@ public sealed class EphemeralPublicTestRunner
         string project = Path.Combine(invocationRoot, "project");
         string configDirectory = Path.Combine(invocationRoot, "config");
         string configPath = Path.Combine(configDirectory, "vitest.public.generated.mjs");
+        string outputDirectory = Path.Combine(invocationRoot, "output");
+        string reportPath = Path.Combine(outputDirectory, "vitest-results.json");
 
         Directory.CreateDirectory(project);
         Directory.CreateDirectory(configDirectory);
+        Directory.CreateDirectory(outputDirectory);
         try
         {
             CopyTree(Path.Combine(agentRoot, "workspace"), project, rejectCollisions: true);
             CopyTree(publicReference, project, rejectCollisions: true);
             await File.WriteAllTextAsync(
                 configPath,
-                "export default { test: { environment: 'node', include: ['tests/public/**/*.test.ts'], exclude: ['tests/reserved/**'] } };\n",
+                "export default { test: { environment: 'node', include: ['tests/public/**/*.test.ts'], exclude: ['tests/reserved/**'], outputFile: '../output/vitest-results.json' } };\n",
                 Encoding.UTF8,
                 cancellationToken);
 
@@ -75,6 +79,7 @@ public sealed class EphemeralPublicTestRunner
                 auditPath,
                 timeout);
             ControlledCommandResult result = await runner.RunAsync(cancellationToken);
+            result = AttachValidatedReport(result, reportPath, invocationRoot);
             string publicHashAfter = ComputeTreeHash(publicReference);
             if (!string.Equals(publicHashBefore, publicHashAfter, StringComparison.Ordinal))
             {
@@ -94,6 +99,89 @@ public sealed class EphemeralPublicTestRunner
                 Directory.Delete(invocationRoot, recursive: true);
             }
         }
+    }
+
+    private ControlledCommandResult AttachValidatedReport(
+        ControlledCommandResult result,
+        string reportPath,
+        string invocationRoot)
+    {
+        string sanitizedOutput = Sanitize(result.StandardOutput, invocationRoot);
+        string sanitizedError = Sanitize(result.StandardError, invocationRoot);
+        if (!File.Exists(reportPath))
+        {
+            return result with
+            {
+                Status = "infrastructure-error",
+                StandardOutput = sanitizedOutput,
+                StandardError = "Vitest non ha prodotto il report JSON pubblico atteso."
+            };
+        }
+
+        try
+        {
+            using JsonDocument report = JsonDocument.Parse(File.ReadAllText(reportPath));
+            JsonElement root = report.RootElement;
+            var counts = new PublicTestCounts(
+                RequiredNonNegative(root, "numTotalTests"),
+                RequiredNonNegative(root, "numPassedTests"),
+                RequiredNonNegative(root, "numFailedTests"),
+                RequiredNonNegative(root, "numPendingTests"),
+                RequiredNonNegative(root, "numTotalTestSuites"),
+                RequiredNonNegative(root, "numPassedTestSuites"),
+                RequiredNonNegative(root, "numFailedTestSuites"),
+                RequiredNonNegative(root, "numPendingTestSuites"));
+            if (counts.Passed + counts.Failed + counts.Pending != counts.Total)
+            {
+                throw new InvalidDataException("I conteggi dei test non sono coerenti.");
+            }
+
+            return result with
+            {
+                StandardOutput = sanitizedOutput,
+                StandardError = sanitizedError,
+                Tests = counts
+            };
+        }
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException or InvalidDataException)
+        {
+            return result with
+            {
+                Status = "infrastructure-error",
+                StandardOutput = sanitizedOutput,
+                StandardError = $"Report Vitest pubblico non valido: {exception.Message}",
+                Tests = null
+            };
+        }
+    }
+
+    private static int RequiredNonNegative(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out JsonElement property)
+            || !property.TryGetInt32(out int value)
+            || value < 0)
+        {
+            throw new InvalidDataException($"Proprieta mancante o non valida: {propertyName}.");
+        }
+
+        return value;
+    }
+
+    private string Sanitize(string diagnostic, string invocationRoot)
+    {
+        var replacements = new[]
+        {
+            (invocationRoot, "<worker>"),
+            (agentRoot, "<agent-root>"),
+            (Path.GetDirectoryName(vitestEntryPoint)!, "<toolchain>"),
+            (nodePath, "<node>")
+        };
+        foreach ((string path, string placeholder) in replacements.OrderByDescending(item => item.Item1.Length))
+        {
+            diagnostic = diagnostic.Replace(path, placeholder, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return diagnostic;
     }
 
     private static void CopyTree(string sourceRoot, string destinationRoot, bool rejectCollisions)

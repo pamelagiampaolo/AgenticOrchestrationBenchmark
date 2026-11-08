@@ -25,7 +25,7 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
         string script = Path.Combine(root, "trusted-vitest.mjs");
         await File.WriteAllTextAsync(
             script,
-            "import fs from 'node:fs'; if (!fs.existsSync('src/value.ts') || !fs.existsSync('tests/public/value.test.ts')) process.exit(9);",
+            "import fs from 'node:fs'; if (!fs.existsSync('src/value.ts') || !fs.existsSync('tests/public/value.test.ts')) process.exit(9); fs.writeFileSync('../output/vitest-results.json', JSON.stringify({numTotalTests:1,numPassedTests:1,numFailedTests:0,numPendingTests:0,numTotalTestSuites:1,numPassedTestSuites:1,numFailedTestSuites:0,numPendingTestSuites:0}));",
             TestContext.Current.CancellationToken);
         string workerRoot = Path.Combine(root, "worker");
         string auditPath = Path.Combine(root, "results", "audit.jsonl");
@@ -40,6 +40,7 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
         ControlledCommandResult result = await runner.RunAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal("completed", result.Status);
+        Assert.Equal(1, result.Tests?.Passed);
         Assert.True(File.Exists(publicSource));
         Assert.Empty(Directory.EnumerateFileSystemEntries(workerRoot));
         Assert.Single(await File.ReadAllLinesAsync(auditPath, TestContext.Current.CancellationToken));
@@ -74,8 +75,33 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
 
         Assert.Equal("completed", result.Status);
         Assert.Equal(0, result.ExitCode);
-        Assert.Contains("JSON report written", result.StandardOutput, StringComparison.Ordinal);
+        Assert.Equal(27, result.Tests?.Total);
+        Assert.Equal(27, result.Tests?.Passed);
+        Assert.DoesNotContain(Path.Combine(root, "real-worker"), result.StandardOutput, StringComparison.OrdinalIgnoreCase);
         Assert.Empty(Directory.EnumerateFileSystemEntries(Path.Combine(root, "real-worker")));
+    }
+
+    [Fact]
+    public async Task RunAsync_ClassifiesMissingReportAsInfrastructureError()
+    {
+        string agentRoot = CreateAgentRoot();
+        string script = Path.Combine(root, "no-report.mjs");
+        await File.WriteAllTextAsync(script, "console.log(process.cwd());", TestContext.Current.CancellationToken);
+        string workerRoot = Path.Combine(root, "missing-report-worker");
+        var runner = new EphemeralPublicTestRunner(
+            agentRoot,
+            workerRoot,
+            FindNode(),
+            script,
+            Path.Combine(root, "results", "missing-report-audit.jsonl"),
+            TimeSpan.FromSeconds(10));
+
+        ControlledCommandResult result = await runner.RunAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal("infrastructure-error", result.Status);
+        Assert.Null(result.Tests);
+        Assert.DoesNotContain(workerRoot, result.StandardOutput, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<worker>", result.StandardOutput, StringComparison.Ordinal);
     }
 
     private string CreateAgentRoot()
