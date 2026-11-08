@@ -128,6 +128,73 @@ public sealed class RootedFileAccess
         File.WriteAllText(destinationPath, content, new System.Text.UTF8Encoding(false));
     }
 
+    /// <summary>
+    /// Elimina un singolo file contenuto in un'area scrivibile.
+    /// </summary>
+    /// <param name="relativePath">Percorso relativo del file esistente.</param>
+    /// <exception cref="AccessDeniedException">Il percorso non appartiene a un'area scrivibile o esce dalla root.</exception>
+    /// <exception cref="FileNotFoundException">Il file richiesto non esiste.</exception>
+    public void DeleteFile(string relativePath)
+    {
+        string filePath = ResolveAllowedPath(relativePath, requireExisting: true);
+        EnsureWithinWritableRoot(filePath);
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException("Il file da eliminare non esiste.");
+        }
+
+        File.Delete(filePath);
+    }
+
+    /// <summary>
+    /// Sposta o rinomina un singolo file tra aree scrivibili senza sovrascrivere file esistenti.
+    /// </summary>
+    /// <param name="sourceRelativePath">Percorso relativo del file sorgente esistente.</param>
+    /// <param name="destinationRelativePath">Nuovo percorso relativo del file.</param>
+    /// <exception cref="AccessDeniedException">Uno dei percorsi non appartiene a un'area scrivibile o esce dalla root.</exception>
+    /// <exception cref="FileNotFoundException">Il file sorgente non esiste.</exception>
+    /// <exception cref="IOException">La destinazione esiste già o identifica una directory.</exception>
+    public void MoveFile(string sourceRelativePath, string destinationRelativePath)
+    {
+        string sourcePath = ResolveAllowedPath(sourceRelativePath, requireExisting: true);
+        EnsureWithinWritableRoot(sourcePath);
+        if (!File.Exists(sourcePath))
+        {
+            throw new FileNotFoundException("Il file sorgente non esiste.");
+        }
+
+        if (string.IsNullOrWhiteSpace(destinationRelativePath)
+            || Path.IsPathFullyQualified(destinationRelativePath))
+        {
+            throw new AccessDeniedException("Accesso rifiutato: la destinazione deve essere un percorso relativo non vuoto.");
+        }
+
+        string requestedDestination = Path.GetFullPath(Path.Combine(rootPath, destinationRelativePath));
+        EnsureWithinRoot(requestedDestination);
+        EnsureWithinWritableRoot(requestedDestination);
+        if (File.Exists(requestedDestination) || Directory.Exists(requestedDestination))
+        {
+            throw new IOException("La destinazione esiste già.");
+        }
+
+        string? requestedParent = Path.GetDirectoryName(requestedDestination);
+        if (string.IsNullOrWhiteSpace(requestedParent))
+        {
+            throw new AccessDeniedException("Accesso rifiutato: directory padre non valida.");
+        }
+
+        string resolvedParent = EnsureWritableDirectory(requestedParent);
+        string destinationPath = Path.Combine(resolvedParent, Path.GetFileName(requestedDestination));
+        EnsureWithinRoot(destinationPath);
+        EnsureWithinWritableRoot(destinationPath);
+        if (File.Exists(destinationPath) || Directory.Exists(destinationPath))
+        {
+            throw new IOException("La destinazione esiste già.");
+        }
+
+        File.Move(sourcePath, destinationPath);
+    }
+
     private WritableRoot ResolveWritableRoot(string relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath) || Path.IsPathFullyQualified(relativePath))
