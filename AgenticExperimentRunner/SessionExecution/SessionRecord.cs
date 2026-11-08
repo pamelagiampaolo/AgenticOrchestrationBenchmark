@@ -40,6 +40,10 @@ public enum SessionStatus
 /// <param name="CliSettings">File <c>--settings</c>.</param>
 /// <param name="McpConfiguration">File <c>--mcp-config</c>.</param>
 /// <param name="McpServerExecutable">Eseguibile del server MCP.</param>
+/// <param name="McpServerAssembly">
+/// Assembly <c>.dll</c> accanto all'eseguibile, se presente: per un'applicazione .NET
+/// l'eseguibile è solo l'apphost e il codice del server è nell'assembly.
+/// </param>
 public sealed record SessionHashes(
     string TaskPrompt,
     string CommonInstructions,
@@ -47,7 +51,8 @@ public sealed record SessionHashes(
     string SystemPromptAppend,
     string CliSettings,
     string McpConfiguration,
-    string McpServerExecutable);
+    string McpServerExecutable,
+    string? McpServerAssembly);
 
 /// <summary>
 /// Documento finale di una sessione, scritto nella directory dei risultati.

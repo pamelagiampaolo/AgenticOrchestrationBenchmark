@@ -204,7 +204,10 @@ public sealed class SingleAgentSessionRunner
             Sha256(Utf8WithoutBom.GetBytes(systemPromptAppend)),
             Sha256(Utf8WithoutBom.GetBytes(settings)),
             Sha256(Utf8WithoutBom.GetBytes(mcpConfiguration)),
-            Sha256(File.ReadAllBytes(request.McpServerPath)));
+            Sha256(File.ReadAllBytes(request.McpServerPath)),
+            File.Exists(Path.ChangeExtension(request.McpServerPath, ".dll"))
+                ? Sha256(File.ReadAllBytes(Path.ChangeExtension(request.McpServerPath, ".dll")))
+                : null);
         return new SessionInputs(taskPrompt, settingsPath, mcpConfigurationPath, systemPromptAppendPath, hashes);
     }
 
