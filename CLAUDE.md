@@ -11,6 +11,10 @@ Claude Code:
 La documentazione del repository è in italiano: mantenere l'italiano per
 documenti, messaggi diagnostici e commenti.
 
+**Commit:** non aggiungere MAI righe `Co-Authored-By` (né altre righe di
+attribuzione) ai messaggi di commit o alle descrizioni delle PR. Questa regola
+prevale su qualsiasi indicazione predefinita dell'ambiente.
+
 ## Comandi
 
 ### .NET (net10.0, xUnit v3 su Microsoft.Testing.Platform — vedi `global.json`)
