@@ -7,14 +7,16 @@ public sealed class RootedFileAccess
 {
     private readonly string rootPath;
     private readonly string rootPrefix;
+    private readonly IReadOnlyList<WritableRoot> writableRoots;
 
     /// <summary>
     /// Inizializza l'accesso confinato alla directory indicata.
     /// </summary>
     /// <param name="rootPath">Directory esistente che delimita tutti gli accessi consentiti.</param>
+    /// <param name="writableDirectoryPaths">Directory relative esistenti nelle quali è consentita la scrittura.</param>
     /// <exception cref="ArgumentException">Il percorso non è assoluto.</exception>
     /// <exception cref="DirectoryNotFoundException">La directory non esiste.</exception>
-    public RootedFileAccess(string rootPath)
+    public RootedFileAccess(string rootPath, IEnumerable<string>? writableDirectoryPaths = null)
     {
         if (!Path.IsPathFullyQualified(rootPath))
         {
@@ -29,6 +31,10 @@ public sealed class RootedFileAccess
 
         this.rootPath = ResolveExistingPath(normalizedRoot);
         rootPrefix = this.rootPath + Path.DirectorySeparatorChar;
+        writableRoots = (writableDirectoryPaths ?? Array.Empty<string>())
+            .Select(ResolveWritableRoot)
+            .DistinctBy(root => root.Path, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     /// <summary>
@@ -94,6 +100,7 @@ public sealed class RootedFileAccess
 
         string combinedPath = Path.GetFullPath(Path.Combine(rootPath, relativePath));
         EnsureWithinRoot(combinedPath);
+        EnsureWithinWritableRoot(combinedPath);
         string? requestedParent = Path.GetDirectoryName(combinedPath);
         if (string.IsNullOrWhiteSpace(requestedParent))
         {
@@ -103,11 +110,13 @@ public sealed class RootedFileAccess
         string resolvedParent = EnsureWritableDirectory(requestedParent);
         string destinationPath = Path.Combine(resolvedParent, Path.GetFileName(combinedPath));
         EnsureWithinRoot(destinationPath);
+        EnsureWithinWritableRoot(destinationPath);
 
         if (File.Exists(destinationPath) || Directory.Exists(destinationPath))
         {
             string resolvedDestination = ResolveExistingPath(destinationPath);
             EnsureWithinRoot(resolvedDestination);
+            EnsureWithinWritableRoot(resolvedDestination);
             if (Directory.Exists(resolvedDestination))
             {
                 throw new IOException("Il percorso richiesto identifica una directory.");
@@ -117,6 +126,38 @@ public sealed class RootedFileAccess
         }
 
         File.WriteAllText(destinationPath, content, new System.Text.UTF8Encoding(false));
+    }
+
+    private WritableRoot ResolveWritableRoot(string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath) || Path.IsPathFullyQualified(relativePath))
+        {
+            throw new ArgumentException(
+                "Le directory scrivibili devono essere percorsi relativi non vuoti.",
+                nameof(relativePath));
+        }
+
+        string combinedPath = Path.GetFullPath(Path.Combine(rootPath, relativePath));
+        EnsureWithinRoot(combinedPath);
+        string resolvedPath = ResolveExistingPath(combinedPath);
+        EnsureWithinRoot(resolvedPath);
+        if (!Directory.Exists(resolvedPath))
+        {
+            throw new DirectoryNotFoundException("La directory scrivibile configurata non esiste.");
+        }
+
+        return new WritableRoot(resolvedPath, resolvedPath + Path.DirectorySeparatorChar);
+    }
+
+    private void EnsureWithinWritableRoot(string candidatePath)
+    {
+        string normalizedCandidate = Path.TrimEndingDirectorySeparator(Path.GetFullPath(candidatePath));
+        bool isAllowed = writableRoots.Any(writableRoot =>
+            normalizedCandidate.StartsWith(writableRoot.Prefix, StringComparison.OrdinalIgnoreCase));
+        if (!isAllowed)
+        {
+            throw new AccessDeniedException("Accesso rifiutato: il percorso non appartiene a un'area scrivibile.");
+        }
     }
 
     private string EnsureWritableDirectory(string requestedDirectory)
@@ -199,6 +240,8 @@ public sealed class RootedFileAccess
 
         return Path.TrimEndingDirectorySeparator(Path.GetFullPath(currentPath));
     }
+
+    private sealed record WritableRoot(string Path, string Prefix);
 }
 
 /// <summary>

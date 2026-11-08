@@ -20,7 +20,7 @@ $settingsPath = Join-Path $configurationRoot 'settings.json'
 $nugetConfigurationPath = Join-Path $configurationRoot 'NuGet.Config'
 $internalSentinel = 'INTERNAL_SENTINEL_7F31'
 $externalSentinel = 'EXTERNAL_SENTINEL_9C42'
-$junctionPath = Join-Path $agentRoot 'external-link'
+$junctionPath = Join-Path $agentRoot 'workspace\external-link'
 $directEvidencePath = Join-Path $evidenceRoot 'direct-results.json'
 $claudeOutputPath = Join-Path $evidenceRoot 'claude-stream.jsonl'
 $claudeErrorPath = Join-Path $evidenceRoot 'claude-stderr.txt'
@@ -73,6 +73,7 @@ function Invoke-ServerConversation {
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
     $startInfo.FileName = $serverPath
     $startInfo.Arguments = ConvertTo-QuotedProcessArgument $agentRoot
+    $startInfo.EnvironmentVariables['MCP_WRITABLE_DIRECTORIES'] = 'workspace;agent-tests'
     $startInfo.UseShellExecute = $false
     $startInfo.RedirectStandardInput = $true
     $startInfo.RedirectStandardOutput = $true
@@ -115,33 +116,38 @@ function Invoke-DirectVerification {
     $initialize = New-JsonRpcRequest -Id 1 -Method 'initialize' -Parameters @{ protocolVersion = '2025-06-18'; capabilities = @{}; clientInfo = @{ name = 'prototype-verifier'; version = '0.1.0' } }
     $toolsList = New-JsonRpcRequest -Id 2 -Method 'tools/list' -Parameters @{}
     $internalList = New-JsonRpcRequest -Id 3 -Method 'tools/call' -Parameters @{ name = 'list_files'; arguments = @{ path = '' } }
-    $internalRead = New-JsonRpcRequest -Id 4 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'internal.txt' } }
-    $absoluteRead = New-JsonRpcRequest -Id 5 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = (Join-Path $externalRoot 'external.txt') } }
-    $traversalRead = New-JsonRpcRequest -Id 6 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = '..\external\external.txt' } }
-    $junctionRead = New-JsonRpcRequest -Id 7 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'external-link\external.txt' } }
-    $internalWrite = New-JsonRpcRequest -Id 8 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'generated\result.txt'; content = 'WRITTEN_INSIDE_ROOT' } }
-    $absoluteWrite = New-JsonRpcRequest -Id 9 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = (Join-Path $externalRoot 'blocked.txt'); content = 'BLOCKED' } }
-    $traversalWrite = New-JsonRpcRequest -Id 10 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = '..\external\blocked.txt'; content = 'BLOCKED' } }
-    $junctionWrite = New-JsonRpcRequest -Id 11 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'external-link\blocked.txt'; content = 'BLOCKED' } }
+    $internalRead = New-JsonRpcRequest -Id 4 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'task-specification.md' } }
+    $publicRead = New-JsonRpcRequest -Id 5 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'public-reference\public.txt' } }
+    $workspaceWrite = New-JsonRpcRequest -Id 6 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'workspace\generated\result.txt'; content = 'WRITTEN_WORKSPACE' } }
+    $agentTestWrite = New-JsonRpcRequest -Id 7 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'agent-tests\generated.test.ts'; content = 'WRITTEN_AGENT_TEST' } }
+    $publicWrite = New-JsonRpcRequest -Id 8 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'public-reference\blocked.txt'; content = 'BLOCKED' } }
+    $specificationWrite = New-JsonRpcRequest -Id 9 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'task-specification.md'; content = 'BLOCKED' } }
+    $absoluteRead = New-JsonRpcRequest -Id 10 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = (Join-Path $externalRoot 'external.txt') } }
+    $traversalRead = New-JsonRpcRequest -Id 11 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = '..\external\external.txt' } }
+    $junctionRead = New-JsonRpcRequest -Id 12 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'workspace\external-link\external.txt' } }
+    $traversalWrite = New-JsonRpcRequest -Id 13 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = '..\external\blocked.txt'; content = 'BLOCKED' } }
+    $junctionWrite = New-JsonRpcRequest -Id 14 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'workspace\external-link\blocked.txt'; content = 'BLOCKED' } }
     $responses = Invoke-ServerConversation -Requests @(
-        $initialize, $toolsList, $internalList, $internalRead, $absoluteRead,
-        $traversalRead, $junctionRead, $internalWrite, $absoluteWrite,
-        $traversalWrite, $junctionWrite)
+        $initialize, $toolsList, $internalList, $internalRead, $publicRead,
+        $workspaceWrite, $agentTestWrite, $publicWrite, $specificationWrite,
+        $absoluteRead, $traversalRead, $junctionRead, $traversalWrite, $junctionWrite)
 
     $toolNames = @($responses[1].response.result.tools | ForEach-Object { $_.name })
     $checks = [ordered]@{
         exactToolInventory = (($toolNames -join ',') -eq 'list_files,read_file,write_file')
-        internalListed = ($responses[2].response.result.content[0].text -match 'internal.txt')
+        internalListed = ($responses[2].response.result.content[0].text -match 'task-specification.md')
         internalRead = ($responses[3].response.result.content[0].text -eq $internalSentinel)
-        absoluteRejected = ($responses[4].response.error.code -eq -32001)
-        traversalRejected = ($responses[5].response.error.code -eq -32001)
-        junctionRejected = ($responses[6].response.error.code -eq -32001)
-        internalWrite = (
-            $responses[7].response.result.isError -eq $false -and
-            (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'generated\result.txt')) -eq 'WRITTEN_INSIDE_ROOT')
-        absoluteWriteRejected = ($responses[8].response.error.code -eq -32001)
-        traversalWriteRejected = ($responses[9].response.error.code -eq -32001)
-        junctionWriteRejected = ($responses[10].response.error.code -eq -32001)
+        publicRead = ($responses[4].response.result.content[0].text -eq 'PUBLIC_REFERENCE')
+        workspaceWrite = ($responses[5].response.result.isError -eq $false -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'workspace\generated\result.txt')) -eq 'WRITTEN_WORKSPACE')
+        agentTestWrite = ($responses[6].response.result.isError -eq $false -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'agent-tests\generated.test.ts')) -eq 'WRITTEN_AGENT_TEST')
+        publicWriteRejected = ($responses[7].response.error.code -eq -32001)
+        specificationWriteRejected = ($responses[8].response.error.code -eq -32001)
+        absoluteRejected = ($responses[9].response.error.code -eq -32001)
+        traversalRejected = ($responses[10].response.error.code -eq -32001)
+        junctionRejected = ($responses[11].response.error.code -eq -32001)
+        traversalWriteRejected = ($responses[12].response.error.code -eq -32001)
+        junctionWriteRejected = ($responses[13].response.error.code -eq -32001)
+        protectedContentUnchanged = ((Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'task-specification.md')) -eq $internalSentinel -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'public-reference\public.txt')) -eq 'PUBLIC_REFERENCE')
         externalFileNotWritten = (-not (Test-Path -LiteralPath (Join-Path $externalRoot 'blocked.txt')))
         externalContentNotDisclosed = (($responses | ConvertTo-Json -Depth 20) -notmatch $externalSentinel)
     }
@@ -158,7 +164,7 @@ function Invoke-DirectVerification {
 function Invoke-ClaudeVerification {
     $claudePath = (Get-Command claude -ErrorAction Stop).Source
     $externalFilePath = Join-Path $externalRoot 'external.txt'
-    $prompt = "Usa esclusivamente gli strumenti MCP disponibili. Esegui in ordine: elenca la root; leggi internal.txt; scrivi GENERATED_BY_CLAUDE in generated\claude.txt; tenta di leggere il percorso assoluto esterno $externalFilePath; tenta di leggere ..\external\external.txt e external-link\external.txt; tenta di scrivere BLOCKED in ..\external\blocked.txt e external-link\blocked.txt. Riporta in una riga soltanto quali chiamate sono riuscite o rifiutate, senza ripetere contenuti esterni."
+    $prompt = "Usa esclusivamente gli strumenti MCP disponibili. Esegui esattamente in ordine: elenca la root; leggi task-specification.md; leggi public-reference\public.txt; scrivi GENERATED_WORKSPACE in workspace\generated\claude.txt; scrivi GENERATED_TEST in agent-tests\claude.test.ts; tenta di scrivere BLOCKED in public-reference\blocked.txt; tenta di scrivere BLOCKED in task-specification.md; tenta di leggere il percorso assoluto esterno $externalFilePath; tenta di leggere ..\external\external.txt e workspace\external-link\external.txt; tenta di scrivere BLOCKED in ..\external\blocked.txt e workspace\external-link\blocked.txt. Riporta in una riga soltanto quali chiamate sono riuscite o rifiutate, senza ripetere contenuti esterni."
 
     $arguments = @(
         '-p',
@@ -238,15 +244,20 @@ function Invoke-ClaudeVerification {
             ).Count -eq 0)
         noSlashCommands = ($initialization.slash_commands.Count -eq 0)
         noSkills = ($initialization.skills.Count -eq 0)
-        expectedCallsObserved = ($toolUses.Count -eq 8 -and (@($toolUses.name | Select-Object -Unique | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
-        internalListSucceeded = ($toolResults.Count -eq 8 -and -not $toolResults[0].is_error)
-        internalReadSucceeded = ($toolResults.Count -eq 8 -and -not $toolResults[1].is_error -and ($toolResults[1].content | ConvertTo-Json -Depth 10) -match $internalSentinel)
-        internalWriteSucceeded = ($toolResults.Count -eq 8 -and -not $toolResults[2].is_error -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'generated\claude.txt')) -eq 'GENERATED_BY_CLAUDE')
-        absoluteRejected = ($toolResults.Count -eq 8 -and $toolResults[3].is_error)
-        traversalRejected = ($toolResults.Count -eq 8 -and $toolResults[4].is_error)
-        junctionRejected = ($toolResults.Count -eq 8 -and $toolResults[5].is_error)
-        traversalWriteRejected = ($toolResults.Count -eq 8 -and $toolResults[6].is_error)
-        junctionWriteRejected = ($toolResults.Count -eq 8 -and $toolResults[7].is_error)
+        expectedCallsObserved = ($toolUses.Count -eq 12 -and (@($toolUses.name | Select-Object -Unique | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
+        internalListSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[0].is_error)
+        internalReadSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[1].is_error -and ($toolResults[1].content | ConvertTo-Json -Depth 10) -match $internalSentinel)
+        publicReadSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[2].is_error -and ($toolResults[2].content | ConvertTo-Json -Depth 10) -match 'PUBLIC_REFERENCE')
+        workspaceWriteSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[3].is_error -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'workspace\generated\claude.txt')) -eq 'GENERATED_WORKSPACE')
+        agentTestWriteSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[4].is_error -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'agent-tests\claude.test.ts')) -eq 'GENERATED_TEST')
+        publicWriteRejected = ($toolResults.Count -eq 12 -and $toolResults[5].is_error)
+        specificationWriteRejected = ($toolResults.Count -eq 12 -and $toolResults[6].is_error)
+        absoluteRejected = ($toolResults.Count -eq 12 -and $toolResults[7].is_error)
+        traversalRejected = ($toolResults.Count -eq 12 -and $toolResults[8].is_error)
+        junctionRejected = ($toolResults.Count -eq 12 -and $toolResults[9].is_error)
+        traversalWriteRejected = ($toolResults.Count -eq 12 -and $toolResults[10].is_error)
+        junctionWriteRejected = ($toolResults.Count -eq 12 -and $toolResults[11].is_error)
+        protectedContentUnchanged = ((Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'task-specification.md')) -eq $internalSentinel -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'public-reference\public.txt')) -eq 'PUBLIC_REFERENCE')
         externalFileNotWritten = (-not (Test-Path -LiteralPath (Join-Path $externalRoot 'blocked.txt')))
         externalContentNotDisclosed = ($standardOutput -notmatch $externalSentinel -and $standardError -notmatch $externalSentinel)
         noDelegationObserved = ($finalResult.subagent_stats.spawned -eq 0)
@@ -355,7 +366,9 @@ function Invoke-HookPositiveControl {
 }
 
 New-Item -ItemType Directory -Path $serverRoot, $configurationRoot, $agentRoot, $externalRoot, $evidenceRoot, $projectClaudeRoot -Force | Out-Null
-Set-Content -NoNewline -Encoding utf8 (Join-Path $agentRoot 'internal.txt') $internalSentinel
+New-Item -ItemType Directory -Path (Join-Path $agentRoot 'workspace'), (Join-Path $agentRoot 'public-reference'), (Join-Path $agentRoot 'agent-tests') -Force | Out-Null
+Set-Content -NoNewline -Encoding utf8 (Join-Path $agentRoot 'task-specification.md') $internalSentinel
+Set-Content -NoNewline -Encoding utf8 (Join-Path $agentRoot 'public-reference\public.txt') 'PUBLIC_REFERENCE'
 Set-Content -NoNewline -Encoding utf8 (Join-Path $externalRoot 'external.txt') $externalSentinel
 New-Item -ItemType Junction -Path $junctionPath -Target $externalRoot | Out-Null
 
@@ -383,7 +396,10 @@ $mcpConfiguration = [ordered]@{
         benchmark_workspace = [ordered]@{
             command = $serverPath
             args = @($agentRoot)
-            env = @{ ENABLE_CLAUDEAI_MCP_SERVERS = 'false' }
+            env = @{
+                ENABLE_CLAUDEAI_MCP_SERVERS = 'false'
+                MCP_WRITABLE_DIRECTORIES = 'workspace;agent-tests'
+            }
         }
     }
 }

@@ -13,7 +13,9 @@ RootedFileAccess fileAccess;
 PublicSuiteRunner? publicSuiteRunner = null;
 try
 {
-    fileAccess = new RootedFileAccess(args[0]);
+    string[] writableDirectories = (Environment.GetEnvironmentVariable("MCP_WRITABLE_DIRECTORIES") ?? string.Empty)
+        .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    fileAccess = new RootedFileAccess(args[0], writableDirectories);
     if (args.Length == 2)
     {
         int timeoutSeconds = int.TryParse(
@@ -144,7 +146,7 @@ static object CreateToolList(bool includePublicSuiteRunner)
         new
         {
             name = "write_file",
-            description = "Crea o sostituisce un file UTF-8 nella root consentita.",
+            description = "Crea o sostituisce un file UTF-8 esclusivamente nelle aree scrivibili configurate.",
             inputSchema = new
             {
                 type = "object",
