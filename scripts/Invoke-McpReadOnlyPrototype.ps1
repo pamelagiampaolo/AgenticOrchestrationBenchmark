@@ -157,7 +157,6 @@ function Invoke-ClaudeVerification {
         '--verbose',
         '--include-hook-events',
         '--restricted',
-        '--strict-mcp-config',
         '--mcp-config', $mcpConfigurationPath,
         '--settings', $settingsPath,
         '--setting-sources', '',
@@ -363,10 +362,9 @@ if ($LASTEXITCODE -ne 0) {
 $mcpConfiguration = [ordered]@{
     mcpServers = [ordered]@{
         workspace = [ordered]@{
-            type = 'stdio'
             command = $serverPath
             args = @($agentRoot)
-            env = @{}
+            env = @{ ENABLE_CLAUDEAI_MCP_SERVERS = 'false' }
         }
     }
 }
@@ -397,6 +395,7 @@ $trustedSettings = [ordered]@{
     disableAllHooks = $true
     env = [ordered]@{
         CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS = '1'
+        ENABLE_CLAUDEAI_MCP_SERVERS = 'false'
     }
     hooks = [ordered]@{
         SessionStart = @(

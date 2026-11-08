@@ -4,7 +4,7 @@
 
 - **Data:** 8 novembre 2026.
 - **Stato:** implementazione e prova diretta completate; prova tramite Claude CLI
-  non eseguita in questa iterazione.
+  eseguita ma non superata per mancato caricamento del server MCP.
 - **Obiettivo:** evolvere il prototipo MCP di sola lettura affinché un agente possa
   creare e aggiornare file soltanto nella propria root di lavoro, senza dipendere
   da Windows Sandbox.
@@ -77,6 +77,34 @@ modificato dall'agente quando viene eseguito come processo host. Per questo P5
 non sostituisce il runner Sandbox con un semplice `npm test` sul computer host:
 una submission malevola potrebbe tentare accessi oltre la root durante import,
 build o test.
+
+## Prova Claude CLI dell'8 novembre 2026
+
+Sono stati eseguiti due tentativi controllati con Claude Code `2.1.312`. Il primo
+ha riusato la configurazione P1.1 con `--restricted`, `--strict-mcp-config` e
+`--tools ''`. La CLI è terminata con exit code `0`, ma l'evento di
+inizializzazione riportava zero server MCP e zero strumenti; Claude non ha
+effettuato tool call e ha dichiarato di non poter eseguire la sequenza.
+
+Nel secondo tentativo il launcher è stato allineato alla configurazione stdio
+documentata dalla versione corrente: rimosso il campo MCP `type`, rimosso
+`--strict-mcp-config` dalla sessione agente e disabilitati i connettori Claude.ai
+tramite `ENABLE_CLAUDEAI_MCP_SERVERS=false`. L'esito è rimasto invariato: zero
+server, zero strumenti e zero tool call. Le evidenze non versionate sono in:
+
+- `%TEMP%\mcp-readonly-prototype-66a2066fd57748c19a49aa50d7cd78e2\evidence`;
+- `%TEMP%\mcp-readonly-prototype-630f3f8e74634faf85e4a8c6e22c9bd5\evidence`.
+
+In entrambi i tentativi sono invece risultati veri i controlli su exit code,
+assenza di slash command, skill, deleghe e hook, mancata scrittura esterna e
+mancata divulgazione del contenuto esterno. Queste proprietà non compensano il
+mancato caricamento dell'MCP e la prova complessiva resta non superata.
+
+La diagnostica locale ha confermato che il server risponde direttamente, mentre
+la CLI non lo include nell'inizializzazione. La prossima ipotesi da verificare è
+l'interazione della CLI `2.1.312` tra `--tools ''` e gli strumenti MCP: il flag
+potrebbe ora eliminare l'intero inventario invece dei soli strumenti built-in.
+Non sono stati eseguiti ulteriori tentativi LLM in questa iterazione.
 
 Non sono ancora verificati:
 
