@@ -116,3 +116,24 @@ della run con identità e ruolo di ogni agente e gli eventi di delega (B5).
 - Prova reale T1 con Sonnet, budget di prova dichiarato prima nel documento,
   e prova reale di una delega più lunga di due minuti con gestore ritardato.
 - `dotnet format --verify-no-changes`, build senza avvisi, suite completa verde.
+
+## Parametri delle prove reali (dichiarati prima dell'esecuzione)
+
+Valori di prova, non i limiti B4 (che si fissano dopo i piloti). Modello
+`claude-sonnet-5-5` per tutti gli agenti, CLI `C:\Users\Utente\.local\bin\claude.exe`,
+server MCP `McpReadOnlyPrototype.exe` e relay `AgenticExperimentRunner.exe` dalla
+build del commit indicato nei risultati.
+
+1. **Prova R1 — delega lunga.** Test esplicito
+   `RealCliHierarchyProbes.LongDelegation_IsAwaitedByRealCoordinator`: baseline
+   sintetica in un repository temporaneo, specifica di prova che chiede una sola
+   delega; l'orchestratore ritarda la delega di 150 s (punto d'aggancio
+   `DelegationDecorator`, solo per prove) e poi avvia il lavoratore reale. Limiti:
+   15 minuti, 300 000 token, al massimo 10 deleghe. Criterio: delega `completed`
+   con durata ≥ 150 s e run `completed`; se la CLI sposta la chiamata in background
+   o la interrompe, la prova fallisce.
+2. **Prova R2 — T1 reale.** `prepare-run` su T1 dal commit del branch, poi
+   `run-adaptive-hierarchy` con 15 minuti, 1 000 000 token, `--max-delegations 10`.
+   Osservazione, non criterio: se e come il coordinatore delega. L'agente non può
+   eseguire i test (manca lo strumento): la qualità della soluzione non viene
+   valutata.

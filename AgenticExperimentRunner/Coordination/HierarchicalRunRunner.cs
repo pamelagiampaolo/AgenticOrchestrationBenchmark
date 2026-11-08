@@ -78,6 +78,13 @@ public sealed class HierarchicalRunRunner
     }
 
     /// <summary>
+    /// Solo per le prove dell'harness: avvolge il gestore delle deleghe (per esempio per
+    /// ritardarle e osservare il comportamento della CLI su chiamate lunghe). Mai impostato
+    /// dal comando, quindi assente nelle run sperimentali.
+    /// </summary>
+    internal Func<IDelegationHandler, IDelegationHandler>? DelegationDecorator { get; init; }
+
+    /// <summary>
     /// Esegue la run e scrive il record.
     /// </summary>
     /// <param name="request">Parametri.</param>
@@ -108,7 +115,7 @@ public sealed class HierarchicalRunRunner
             timeProvider,
             request.MaxDelegations,
             cancellationToken);
-        CoordinationHost host = CoordinationHost.Start(pipeName, handler);
+        CoordinationHost host = CoordinationHost.Start(pipeName, DelegationDecorator?.Invoke(handler) ?? handler);
 
         DateTimeOffset startedAt = limits.Start();
         AgentProcessOutcome coordinator;
