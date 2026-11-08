@@ -12,23 +12,52 @@ public sealed class RootedFileAccessTests : IDisposable
     public RootedFileAccessTests()
     {
         Directory.CreateDirectory(rootPath);
+        Directory.CreateDirectory(Path.Combine(rootPath, "workspace"));
+        Directory.CreateDirectory(Path.Combine(rootPath, "agent-tests"));
+        Directory.CreateDirectory(Path.Combine(rootPath, "public-reference"));
+        File.WriteAllText(Path.Combine(rootPath, "task-specification.md"), "specifica");
+        File.WriteAllText(Path.Combine(rootPath, "public-reference", "public.test.ts"), "test pubblico");
     }
 
     [Fact]
     public void WriteFile_CreatesAndUpdatesFileInsideRoot()
     {
-        var access = new RootedFileAccess(rootPath);
+        var access = CreateAccess();
 
-        access.WriteFile(Path.Combine("src", "example.ts"), "prima");
-        access.WriteFile(Path.Combine("src", "example.ts"), "seconda");
+        access.WriteFile(Path.Combine("workspace", "src", "example.ts"), "prima");
+        access.WriteFile(Path.Combine("workspace", "src", "example.ts"), "seconda");
 
-        Assert.Equal("seconda", access.ReadFile(Path.Combine("src", "example.ts")));
+        Assert.Equal("seconda", access.ReadFile(Path.Combine("workspace", "src", "example.ts")));
+    }
+
+    [Fact]
+    public void WriteFile_CreatesFileInAgentTests()
+    {
+        var access = CreateAccess();
+
+        access.WriteFile(Path.Combine("agent-tests", "additional.test.ts"), "test aggiuntivo");
+
+        Assert.Equal(
+            "test aggiuntivo",
+            access.ReadFile(Path.Combine("agent-tests", "additional.test.ts")));
+    }
+
+    [Theory]
+    [InlineData("public-reference/public.test.ts")]
+    [InlineData("public-reference/new.test.ts")]
+    [InlineData("task-specification.md")]
+    [InlineData("new-root-file.txt")]
+    public void WriteFile_RejectsProtectedPaths(string relativePath)
+    {
+        var access = CreateAccess();
+
+        Assert.Throws<AccessDeniedException>(() => access.WriteFile(relativePath, "negato"));
     }
 
     [Fact]
     public void WriteFile_RejectsParentTraversal()
     {
-        var access = new RootedFileAccess(rootPath);
+        var access = CreateAccess();
 
         Assert.Throws<AccessDeniedException>(() =>
             access.WriteFile(Path.Combine("..", "outside.txt"), "negato"));
@@ -37,7 +66,7 @@ public sealed class RootedFileAccessTests : IDisposable
     [Fact]
     public void WriteFile_RejectsAbsolutePath()
     {
-        var access = new RootedFileAccess(rootPath);
+        var access = CreateAccess();
         string outsidePath = Path.Combine(
             Directory.GetParent(rootPath)!.FullName,
             $"outside-{Guid.NewGuid():N}.txt");
@@ -53,15 +82,15 @@ public sealed class RootedFileAccessTests : IDisposable
             "TestResults",
             $"rooted-file-access-outside-{Guid.NewGuid():N}");
         Directory.CreateDirectory(outsideDirectory);
-        string linkPath = Path.Combine(rootPath, "linked");
+        string linkPath = Path.Combine(rootPath, "workspace", "linked");
 
         try
         {
             CreateDirectoryLink(linkPath, outsideDirectory);
-            var access = new RootedFileAccess(rootPath);
+            var access = CreateAccess();
 
             Assert.Throws<AccessDeniedException>(() =>
-                access.WriteFile(Path.Combine("linked", "outside.txt"), "negato"));
+                access.WriteFile(Path.Combine("workspace", "linked", "outside.txt"), "negato"));
         }
         finally
         {
@@ -73,6 +102,10 @@ public sealed class RootedFileAccessTests : IDisposable
             Directory.Delete(outsideDirectory, recursive: true);
         }
     }
+
+    private RootedFileAccess CreateAccess() => new(
+        rootPath,
+        new[] { "workspace", "agent-tests" });
 
     private static void CreateDirectoryLink(string linkPath, string targetPath)
     {
