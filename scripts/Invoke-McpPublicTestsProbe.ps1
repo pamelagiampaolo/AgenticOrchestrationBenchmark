@@ -8,6 +8,7 @@ $serverDll = Join-Path $repositoryRoot 'McpReadOnlyPrototype\bin\Debug\net10.0\M
 $benchmarkRoot = Join-Path $repositoryRoot 'BenchmarkTarget'
 $nodePath = (Get-Command node.exe -ErrorAction Stop).Source
 $vitestPath = Join-Path $benchmarkRoot 'node_modules\vitest\vitest.mjs'
+$typeScriptPath = Join-Path $benchmarkRoot 'node_modules\typescript\lib\tsc.js'
 $probeRoot = Join-Path $repositoryRoot ('TestResults\mcp-public-tests-' + [guid]::NewGuid().ToString('N'))
 $agentRoot = Join-Path $probeRoot 'agent-root'
 $workspace = Join-Path $agentRoot 'workspace'
@@ -30,6 +31,7 @@ try {
     New-Item -ItemType Directory -Path $workspace, $agentTests, $publicReference, $workerRoot, $resultsRoot -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'src') -Destination $workspace -Recurse
     Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'tsconfig.json') -Destination $workspace
+    Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'package.json') -Destination $workspace
     Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'tests\public\inventory-management.test.ts') -Destination $publicReference
     Copy-Item -LiteralPath (Join-Path $benchmarkRoot 'tests\public\order-management.test.ts') -Destination $publicReference
 
@@ -40,6 +42,10 @@ try {
         MCP_PUBLIC_TEST_WORKER_ROOT = $workerRoot
         MCP_COMMAND_AUDIT_PATH = $auditPath
         MCP_PUBLIC_TEST_TIMEOUT_SECONDS = '30'
+        MCP_TYPECHECK_NODE = $nodePath
+        MCP_TYPECHECK_TSC = $typeScriptPath
+        MCP_TYPECHECK_WORKER_ROOT = $workerRoot
+        MCP_TYPECHECK_TIMEOUT_SECONDS = '30'
     }
     $previousEnvironment = @{}
     foreach ($entry in $environment.GetEnumerator()) {
@@ -52,6 +58,8 @@ try {
             ([ordered]@{ jsonrpc = '2.0'; id = 2; method = 'tools/list'; params = @{} } | ConvertTo-Json -Depth 10 -Compress)
             ([ordered]@{ jsonrpc = '2.0'; id = 3; method = 'tools/call'; params = @{ name = 'run_public_tests'; arguments = @{ command = 'arbitrary' } } } | ConvertTo-Json -Depth 10 -Compress)
             ([ordered]@{ jsonrpc = '2.0'; id = 4; method = 'tools/call'; params = @{ name = 'run_public_tests'; arguments = @{} } } | ConvertTo-Json -Depth 10 -Compress)
+            ([ordered]@{ jsonrpc = '2.0'; id = 5; method = 'tools/call'; params = @{ name = 'run_typecheck'; arguments = @{ command = 'arbitrary' } } } | ConvertTo-Json -Depth 10 -Compress)
+            ([ordered]@{ jsonrpc = '2.0'; id = 6; method = 'tools/call'; params = @{ name = 'run_typecheck'; arguments = @{} } } | ConvertTo-Json -Depth 10 -Compress)
         )
         $stderrPath = Join-Path $resultsRoot 'server-stderr.txt'
         $previousErrorPreference = $ErrorActionPreference
@@ -66,19 +74,19 @@ try {
         }
     }
 
-    if ($serverExitCode -ne 0 -or $responseLines.Count -ne 4) {
+    if ($serverExitCode -ne 0 -or $responseLines.Count -ne 6) {
         $diagnostic = if (Test-Path -LiteralPath $stderrPath) { Get-Content -LiteralPath $stderrPath -Raw } else { '' }
         throw "Server MCP terminato con exit code $serverExitCode e $($responseLines.Count) risposte. $diagnostic"
     }
 
-    $initialize, $toolsResponse, $invalidResponse, $runResponse = @($responseLines | ForEach-Object { $_ | ConvertFrom-Json })
+    $initialize, $toolsResponse, $invalidResponse, $runResponse, $invalidTypecheckResponse, $typecheckResponse = @($responseLines | ForEach-Object { $_ | ConvertFrom-Json })
     $standardError = if (Test-Path -LiteralPath $stderrPath) { Get-Content -LiteralPath $stderrPath -Raw } else { '' }
     if ($null -eq $runResponse.result -or $null -eq $runResponse.result.structuredContent) {
         throw "Risposta MCP di esecuzione inattesa: $($responseLines -join ' | '). Stderr: $standardError"
     }
 
     $toolNames = @($toolsResponse.result.tools | ForEach-Object name)
-    $expectedTools = @('list_files', 'read_file', 'write_file', 'delete_file', 'move_file', 'run_public_tests')
+    $expectedTools = @('list_files', 'read_file', 'write_file', 'delete_file', 'move_file', 'run_public_tests', 'run_typecheck')
     $auditLines = @(Get-Content -LiteralPath $auditPath)
     $remainingWorkerEntries = @(Get-ChildItem -LiteralPath $workerRoot -Force)
     $counts = $runResponse.result.structuredContent.Tests
@@ -94,6 +102,9 @@ try {
         passedTests = $counts.Passed
         failedTests = $counts.Failed
         pendingTests = $counts.Pending
+        typecheckArbitraryParameterRejected = ($invalidTypecheckResponse.error.code -eq -32602)
+        typecheckStatus = $typecheckResponse.result.structuredContent.Status
+        typecheckExitCode = $typecheckResponse.result.structuredContent.ExitCode
         auditRecordCount = $auditLines.Count
         workerResidualEntryCount = $remainingWorkerEntries.Count
         serverStandardError = $normalizedStandardError
@@ -102,11 +113,13 @@ try {
     $failures = [Collections.Generic.List[string]]::new()
     if (-not $summary.exactToolInventory) { $failures.Add('inventario strumenti inatteso') }
     if (-not $summary.arbitraryParameterRejected) { $failures.Add('parametro arbitrario non rifiutato') }
+    if (-not $summary.typecheckArbitraryParameterRejected) { $failures.Add('parametro typecheck arbitrario non rifiutato') }
     if ($summary.status -ne 'completed' -or $summary.exitCode -ne 0) { $failures.Add('esecuzione pubblica non completata') }
     if ($summary.totalTests -ne 27 -or $summary.passedTests -ne 27 -or $summary.failedTests -ne 0 -or $summary.pendingTests -ne 0) {
         $failures.Add('conteggi pubblici diversi da 27/27')
     }
-    if ($summary.auditRecordCount -ne 1) { $failures.Add('audit diverso da una invocazione') }
+    if ($summary.typecheckStatus -ne 'completed' -or $summary.typecheckExitCode -ne 0) { $failures.Add('typecheck non completato') }
+    if ($summary.auditRecordCount -ne 2) { $failures.Add('audit diverso da due invocazioni') }
     if ($summary.workerResidualEntryCount -ne 0) { $failures.Add('residui nella worker root') }
     if (-not [string]::IsNullOrEmpty($summary.serverStandardError)) { $failures.Add('stderr del server non vuoto') }
 

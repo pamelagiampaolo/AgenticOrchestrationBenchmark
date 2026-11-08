@@ -12,6 +12,7 @@ if (args.Length is < 1 or > 2
 RootedFileAccess fileAccess;
 PublicSuiteRunner? publicSuiteRunner = null;
 EphemeralPublicTestRunner? controlledPublicTestRunner = null;
+EphemeralTypecheckRunner? typecheckRunner = null;
 try
 {
     string[] writableDirectories = (Environment.GetEnvironmentVariable("MCP_WRITABLE_DIRECTORIES") ?? string.Empty)
@@ -25,6 +26,23 @@ try
             ? configuredTimeoutSeconds
             : 300;
         publicSuiteRunner = new PublicSuiteRunner(args[1], TimeSpan.FromSeconds(timeoutSeconds));
+    }
+
+    string? typecheckNodePath = Environment.GetEnvironmentVariable("MCP_TYPECHECK_NODE");
+    if (!string.IsNullOrWhiteSpace(typecheckNodePath))
+    {
+        int timeoutSeconds = int.TryParse(
+            Environment.GetEnvironmentVariable("MCP_TYPECHECK_TIMEOUT_SECONDS"),
+            out int configuredTimeoutSeconds)
+            ? configuredTimeoutSeconds
+            : 300;
+        typecheckRunner = new EphemeralTypecheckRunner(
+            args[0],
+            Environment.GetEnvironmentVariable("MCP_TYPECHECK_WORKER_ROOT") ?? string.Empty,
+            typecheckNodePath,
+            Environment.GetEnvironmentVariable("MCP_TYPECHECK_TSC") ?? string.Empty,
+            Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
+            TimeSpan.FromSeconds(timeoutSeconds));
     }
 
     string? nodePath = Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_NODE");
@@ -57,7 +75,7 @@ while (await Console.In.ReadLineAsync() is { } line)
         continue;
     }
 
-    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner, controlledPublicTestRunner);
+    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner);
     await Console.Out.WriteLineAsync(response);
     await Console.Out.FlushAsync();
 }
@@ -68,7 +86,8 @@ static async Task<string> HandleRequestAsync(
     string requestJson,
     RootedFileAccess fileAccess,
     PublicSuiteRunner? publicSuiteRunner,
-    EphemeralPublicTestRunner? controlledPublicTestRunner)
+    EphemeralPublicTestRunner? controlledPublicTestRunner,
+    EphemeralTypecheckRunner? typecheckRunner)
 {
     JsonElement responseId = default;
     try
@@ -96,8 +115,8 @@ static async Task<string> HandleRequestAsync(
                 serverInfo = new { name = "workspace-prototype", version = "0.2.0" }
             },
             "ping" => new { },
-            "tools/list" => CreateToolList(publicSuiteRunner is not null, controlledPublicTestRunner is not null),
-            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner, controlledPublicTestRunner),
+            "tools/list" => CreateToolList(publicSuiteRunner is not null, controlledPublicTestRunner is not null, typecheckRunner is not null),
+            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner),
             _ => throw new McpRequestException(-32601, "Metodo MCP non supportato.")
         };
 
@@ -125,7 +144,7 @@ static async Task<string> HandleRequestAsync(
     }
 }
 
-static object CreateToolList(bool includePublicSuiteRunner, bool includeControlledPublicTestRunner)
+static object CreateToolList(bool includePublicSuiteRunner, bool includeControlledPublicTestRunner, bool includeTypecheckRunner)
 {
     object[] workspaceTools =
     {
@@ -229,6 +248,12 @@ static object CreateToolList(bool includePublicSuiteRunner, bool includeControll
             additionalProperties = false
         }
     };
+    object typecheckTool = new
+    {
+        name = "run_typecheck",
+        description = "Esegue TypeScript typecheck con comando e toolchain fissati dal controllore.",
+        inputSchema = new { type = "object", properties = new { }, additionalProperties = false }
+    };
 
     IEnumerable<object> tools = workspaceTools;
     if (includePublicSuiteRunner)
@@ -238,6 +263,10 @@ static object CreateToolList(bool includePublicSuiteRunner, bool includeControll
     if (includeControlledPublicTestRunner)
     {
         tools = tools.Append(controlledPublicTestTool);
+    }
+    if (includeTypecheckRunner)
+    {
+        tools = tools.Append(typecheckTool);
     }
 
     return new
@@ -250,7 +279,8 @@ static async Task<object> CallToolAsync(
     JsonElement request,
     RootedFileAccess fileAccess,
     PublicSuiteRunner? publicSuiteRunner,
-    EphemeralPublicTestRunner? controlledPublicTestRunner)
+    EphemeralPublicTestRunner? controlledPublicTestRunner,
+    EphemeralTypecheckRunner? typecheckRunner)
 {
     JsonElement parameters = GetRequiredProperty(request, "params");
     string toolName = GetRequiredProperty(parameters, "name").GetString()
@@ -285,6 +315,22 @@ static async Task<object> CallToolAsync(
             throw new McpRequestException(-32602, "Strumento non disponibile.");
         }
         ControlledCommandResult result = await controlledPublicTestRunner.RunAsync();
+        return new
+        {
+            content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
+            structuredContent = result,
+            isError = result.Status != "completed"
+        };
+    }
+
+    if (toolName == "run_typecheck")
+    {
+        EnsureExactProperties(arguments, Array.Empty<string>());
+        if (typecheckRunner is null)
+        {
+            throw new McpRequestException(-32602, "Strumento non disponibile.");
+        }
+        ControlledCommandResult result = await typecheckRunner.RunAsync();
         return new
         {
             content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
