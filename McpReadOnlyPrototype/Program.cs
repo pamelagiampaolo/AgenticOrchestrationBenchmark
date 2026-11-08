@@ -44,10 +44,7 @@ try
             TimeSpan.FromSeconds(timeoutSeconds));
     }
 }
-catch (Exception exception) when (exception is ArgumentException
-    or DirectoryNotFoundException
-    or FileNotFoundException
-    or IOException)
+catch (Exception exception) when (StartupExceptionPolicy.IsConfigurationError(exception))
 {
     Console.Error.WriteLine($"Configurazione non valida: {exception.Message}");
     return 2;
