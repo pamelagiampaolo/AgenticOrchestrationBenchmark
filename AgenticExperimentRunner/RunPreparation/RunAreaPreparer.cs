@@ -8,69 +8,98 @@ namespace AgenticExperimentRunner.RunPreparation;
 /// </summary>
 /// <param name="RepositoryPath">Percorso assoluto di una directory del repository sorgente.</param>
 /// <param name="BaselineReference">Commit, tag o branch della baseline approvata.</param>
-/// <param name="SourceDirectory">Sottodirectory del repository da copiare, con separatore <c>/</c> (per esempio <c>BenchmarkTarget</c>).</param>
-/// <param name="RunsRootPath">Percorso assoluto, esterno al repository, che contiene le aree di run.</param>
+/// <param name="SourceDirectory">Sottodirectory del repository usata come baseline, con separatore <c>/</c> (per esempio <c>BenchmarkTarget</c>).</param>
+/// <param name="TaskId">Task da preparare (<c>T1</c>, <c>T2</c>, ...).</param>
+/// <param name="RunsRootPath">Percorso assoluto, esterno al repository, che contiene le aree di run temporanee.</param>
+/// <param name="ResultsRootPath">Percorso assoluto, esterno al repository e alle aree di run, che contiene i dati persistenti.</param>
 /// <param name="RunId">Identificatore della run: lettere, cifre, <c>-</c> e <c>_</c>, al massimo 64 caratteri.</param>
 public sealed record RunAreaRequest(
     string RepositoryPath,
     string BaselineReference,
     string SourceDirectory,
+    string TaskId,
     string RunsRootPath,
+    string ResultsRootPath,
     string RunId);
 
 /// <summary>
 /// Area di run preparata e pronta per essere assegnata a un'architettura.
 /// </summary>
-/// <param name="RunAreaPath">Directory della run, che contiene workspace e manifest.</param>
-/// <param name="WorkspacePath">Unica directory da assegnare all'agente.</param>
-/// <param name="ManifestPath">Manifest della baseline, esterno alla workspace.</param>
+/// <param name="RunAreaPath">Directory della run, che contiene <c>agent-root</c> e <c>session</c>.</param>
+/// <param name="AgentRootPath">Root del server MCP: unica area di file visibile all'agente.</param>
+/// <param name="SessionDirectoryPath">Directory di lavoro della CLI dell'agente, inizialmente vuota.</param>
+/// <param name="ResultsDirectoryPath">Directory persistente dei risultati della run.</param>
+/// <param name="ManifestPath">Manifest della run, nella directory dei risultati.</param>
 /// <param name="Manifest">Contenuto del manifest.</param>
 public sealed record PreparedRunArea(
     string RunAreaPath,
-    string WorkspacePath,
+    string AgentRootPath,
+    string SessionDirectoryPath,
+    string ResultsDirectoryPath,
     string ManifestPath,
-    BaselineManifest Manifest);
+    RunManifest Manifest);
 
 /// <summary>
-/// Prepara per ogni run una workspace nuova che contiene soltanto i file versionati
-/// della baseline nel commit approvato, insieme al relativo manifest.
+/// Prepara per ogni run un'area agente nuova, ricavata interamente da un solo commit:
+/// baseline modificabile, test pubblici selezionati, specifica del task e manifest.
 /// </summary>
 public sealed partial class RunAreaPreparer
 {
-    /// <summary>
-    /// Nome della directory, interna all'area di run, assegnata all'agente.
-    /// </summary>
+    /// <summary>Directory dell'area di run usata come root MCP.</summary>
+    public const string AgentRootDirectoryName = "agent-root";
+
+    /// <summary>Directory dell'area di run usata come cwd della CLI dell'agente.</summary>
+    public const string SessionDirectoryName = "session";
+
+    /// <summary>Sorgenti modificabili, relativa ad <c>agent-root</c>.</summary>
     public const string WorkspaceDirectoryName = "workspace";
 
-    /// <summary>
-    /// Nome del manifest, collocato accanto alla workspace e non al suo interno.
-    /// </summary>
-    public const string ManifestFileName = "baseline-manifest.json";
+    /// <summary>Test pubblici in sola lettura, relativa ad <c>agent-root</c>.</summary>
+    public const string PublicReferenceDirectoryName = "public-reference";
+
+    /// <summary>Test aggiuntivi scritti dall'agente, relativa ad <c>agent-root</c>.</summary>
+    public const string AgentTestsDirectoryName = "agent-tests";
+
+    /// <summary>Specifica pubblica del task, relativa ad <c>agent-root</c>.</summary>
+    public const string TaskSpecificationFileName = "task-specification.md";
+
+    /// <summary>Nome del manifest nella directory dei risultati della run.</summary>
+    public const string ManifestFileName = "manifest.json";
+
+    /// <summary>Directory di <c>agent-root</c> in cui l'agente può scrivere, nel formato di <c>MCP_WRITABLE_DIRECTORIES</c>.</summary>
+    public static readonly IReadOnlyList<string> WritableDirectories = [WorkspaceDirectoryName, AgentTestsDirectoryName];
 
     private readonly GitCommandRunner git;
     private readonly TimeProvider timeProvider;
+    private readonly string? userProfileDirectory;
 
     /// <summary>
     /// Crea un preparatore con dipendenze esplicite.
     /// </summary>
     /// <param name="git">Esecutore dei comandi Git.</param>
     /// <param name="timeProvider">Sorgente dell'orario registrato nel manifest.</param>
-    public RunAreaPreparer(GitCommandRunner git, TimeProvider timeProvider)
+    /// <param name="userProfileDirectory">
+    /// Profilo dell'utente, in cui la directory <c>.claude</c> è tollerata dal
+    /// controllo delle directory superiori (vedi <see cref="SessionAncestorPolicy"/>).
+    /// </param>
+    public RunAreaPreparer(GitCommandRunner git, TimeProvider timeProvider, string? userProfileDirectory)
     {
         this.git = git ?? throw new ArgumentNullException(nameof(git));
         this.timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
+        this.userProfileDirectory = userProfileDirectory;
     }
 
     /// <summary>
-    /// Crea l'area di run, vi estrae la baseline e scrive il manifest.
+    /// Crea l'area di run e la directory dei risultati, vi estrae i materiali del
+    /// task dal commit indicato e scrive il manifest.
     /// </summary>
     /// <param name="request">Parametri della preparazione.</param>
     /// <param name="cancellationToken">Token di annullamento.</param>
     /// <returns>L'area preparata.</returns>
     /// <exception cref="RunPreparationException">
-    /// Parametri non validi, area già esistente, riferimento inesistente o baseline
-    /// con contenuto non autorizzato. In caso di errore successivo alla creazione,
-    /// l'area viene rimossa.
+    /// Parametri non validi, root non ammesse, aree già esistenti, riferimento o
+    /// materiali del task inesistenti, oppure baseline con contenuto non autorizzato.
+    /// In caso di errore successivo alla creazione, le directory create vengono rimosse.
     /// </exception>
     public async Task<PreparedRunArea> PrepareAsync(
         RunAreaRequest request,
@@ -79,40 +108,81 @@ public sealed partial class RunAreaPreparer
         ArgumentNullException.ThrowIfNull(request);
         ValidateRequest(request);
         string sourceDirectory = WorkspacePathPolicy.NormalizeAuthorizedPath(request.SourceDirectory);
+        string taskId = TaskMaterialSelection.NormalizeTaskId(request.TaskId);
+        string specificationSource = TaskMaterialSelection.TaskSpecificationSourcePath(taskId);
 
         string repositoryRoot = await ResolveRepositoryRootAsync(request.RepositoryPath, cancellationToken);
         string commit = await ResolveCommitAsync(repositoryRoot, request.BaselineReference, cancellationToken);
-        string runsRoot = Path.GetFullPath(request.RunsRootPath);
-        RequireOutsideRepository(runsRoot, repositoryRoot);
+        await RequireObjectTypeAsync(repositoryRoot, commit, specificationSource, "blob", "specifica del task", cancellationToken);
+        await RequireObjectTypeAsync(
+            repositoryRoot,
+            commit,
+            $"{sourceDirectory}/{TaskMaterialSelection.TaskPublicTestsDirectory(taskId)}",
+            "tree",
+            "suite pubblica del task",
+            cancellationToken);
+
+        string runsRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(request.RunsRootPath));
+        string resultsRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(request.ResultsRootPath));
+        ValidateRoots(runsRoot, resultsRoot, repositoryRoot);
 
         string runAreaPath = Path.Combine(runsRoot, request.RunId);
-        CreateNewRunArea(runsRoot, runAreaPath);
+        string resultsDirectory = Path.Combine(resultsRoot, request.RunId);
+        RequireNotExisting(runAreaPath, "L'area di run");
+        RequireNotExisting(resultsDirectory, "La directory dei risultati");
 
+        var createdDirectories = new List<string>();
         try
         {
-            string workspacePath = Path.Combine(runAreaPath, WorkspaceDirectoryName);
-            Directory.CreateDirectory(workspacePath);
-            await ExtractBaselineAsync(repositoryRoot, commit, sourceDirectory, workspacePath, cancellationToken);
+            CreateNewDirectory(runAreaPath, createdDirectories);
+            CreateNewDirectory(resultsDirectory, createdDirectories);
 
-            BaselineManifest manifest = BaselineManifest.CreateFromWorkspace(
-                workspacePath,
-                request.RunId,
-                timeProvider.GetUtcNow(),
-                commit,
-                sourceDirectory);
-            if (manifest.FileCount == 0)
+            string agentRoot = Path.Combine(runAreaPath, AgentRootDirectoryName);
+            string sessionDirectory = Path.Combine(runAreaPath, SessionDirectoryName);
+            foreach (string directory in new[]
             {
-                throw new RunPreparationException(
-                    $"La sottodirectory '{sourceDirectory}' del commit {commit} non contiene file.");
+                Path.Combine(agentRoot, WorkspaceDirectoryName),
+                Path.Combine(agentRoot, PublicReferenceDirectoryName),
+                Path.Combine(agentRoot, AgentTestsDirectoryName),
+                sessionDirectory,
+            })
+            {
+                Directory.CreateDirectory(directory);
             }
 
-            string manifestPath = Path.Combine(runAreaPath, ManifestFileName);
+            var extraction = new ExtractionState(agentRoot, sourceDirectory, taskId);
+            await ExtractBaselineAsync(repositoryRoot, commit, extraction, cancellationToken);
+            if (extraction.WorkspaceFileCount == 0)
+            {
+                throw new RunPreparationException(
+                    $"La sottodirectory '{sourceDirectory}' del commit {commit} non contiene file per la workspace.");
+            }
+
+            await WriteTaskSpecificationAsync(repositoryRoot, commit, specificationSource, agentRoot, cancellationToken);
+            extraction.SourcePaths[TaskSpecificationFileName] = specificationSource;
+
+            IReadOnlyList<RunManifestFile> files = RunManifest.DescribeAgentRoot(agentRoot, extraction.SourcePaths);
+            var manifest = new RunManifest(
+                RunManifest.CurrentSchemaVersion,
+                request.RunId,
+                taskId,
+                timeProvider.GetUtcNow().ToUniversalTime(),
+                commit,
+                sourceDirectory,
+                specificationSource,
+                WritableDirectories,
+                files.Count,
+                RunManifest.ComputeAggregateSha256(files),
+                files,
+                extraction.ExcludedSourcePaths.Order(StringComparer.Ordinal).ToList());
+
+            string manifestPath = Path.Combine(resultsDirectory, ManifestFileName);
             manifest.WriteTo(manifestPath);
-            return new PreparedRunArea(runAreaPath, workspacePath, manifestPath, manifest);
+            return new PreparedRunArea(runAreaPath, agentRoot, sessionDirectory, resultsDirectory, manifestPath, manifest);
         }
         catch (Exception exception)
         {
-            RemoveIncompleteRunArea(runAreaPath, exception);
+            RemoveCreatedDirectories(createdDirectories, exception);
             if (exception is IOException or UnauthorizedAccessException)
             {
                 throw new RunPreparationException(
@@ -139,14 +209,46 @@ public sealed partial class RunAreaPreparer
 
         RequireFullyQualified(request.RepositoryPath, "repository sorgente");
         RequireFullyQualified(request.RunsRootPath, "root delle run");
+        RequireFullyQualified(request.ResultsRootPath, "root dei risultati");
     }
 
     private static void RequireFullyQualified(string? path, string description)
     {
         if (string.IsNullOrWhiteSpace(path) || !Path.IsPathFullyQualified(path))
         {
-            throw new RunPreparationException($"Il percorso del {description} deve essere assoluto: '{path}'.");
+            throw new RunPreparationException($"Il percorso della {description} deve essere assoluto: '{path}'.");
         }
+    }
+
+    private void ValidateRoots(string runsRoot, string resultsRoot, string repositoryRoot)
+    {
+        if (IsSameOrInside(runsRoot, repositoryRoot) || IsSameOrInside(resultsRoot, repositoryRoot))
+        {
+            throw new RunPreparationException(
+                $"Le root delle run ('{runsRoot}') e dei risultati ('{resultsRoot}') devono essere esterne al repository '{repositoryRoot}': i processi della run potrebbero risalire alla cronologia Git.");
+        }
+
+        if (IsSameOrInside(runsRoot, resultsRoot) || IsSameOrInside(resultsRoot, runsRoot))
+        {
+            throw new RunPreparationException(
+                $"Le root delle run ('{runsRoot}') e dei risultati ('{resultsRoot}') devono essere disgiunte: il manifest non deve trovarsi nell'area delle run, né le run tra i risultati.");
+        }
+
+        IReadOnlyList<string> conflicts = SessionAncestorPolicy.FindConflicts(runsRoot, userProfileDirectory);
+        if (conflicts.Count > 0)
+        {
+            throw new RunPreparationException(
+                $"La root delle run '{runsRoot}' o una directory superiore contiene istruzioni, configurazioni o metadati Git che la CLI dell'agente potrebbe caricare: {string.Join(", ", conflicts)}.");
+        }
+    }
+
+    private static bool IsSameOrInside(string candidate, string container)
+    {
+        string relativePath = Path.GetRelativePath(container, candidate);
+        return relativePath == "."
+            || !(relativePath == ".."
+                || relativePath.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                || Path.IsPathFullyQualified(relativePath));
     }
 
     private async Task<string> ResolveRepositoryRootAsync(string repositoryPath, CancellationToken cancellationToken)
@@ -157,7 +259,7 @@ public sealed partial class RunAreaPreparer
         }
 
         string topLevel = await RunGitAsync(repositoryPath, ["rev-parse", "--show-toplevel"], cancellationToken);
-        return Path.GetFullPath(topLevel);
+        return Path.TrimEndingDirectorySeparator(Path.GetFullPath(topLevel));
     }
 
     private async Task<string> ResolveCommitAsync(
@@ -171,6 +273,36 @@ public sealed partial class RunAreaPreparer
             repositoryRoot,
             ["rev-parse", "--verify", "--end-of-options", baselineReference + "^{commit}"],
             cancellationToken);
+    }
+
+    private async Task RequireObjectTypeAsync(
+        string repositoryRoot,
+        string commit,
+        string repositoryPath,
+        string expectedType,
+        string description,
+        CancellationToken cancellationToken)
+    {
+        string actualType;
+        try
+        {
+            actualType = await git.RunForTextAsync(
+                repositoryRoot,
+                ["cat-file", "-t", $"{commit}:{repositoryPath}"],
+                cancellationToken);
+        }
+        catch (GitCommandException exception)
+        {
+            throw new RunPreparationException(
+                $"Manca la {description} '{repositoryPath}' nel commit {commit}.",
+                exception);
+        }
+
+        if (actualType != expectedType)
+        {
+            throw new RunPreparationException(
+                $"La {description} '{repositoryPath}' nel commit {commit} è di tipo '{actualType}' invece di '{expectedType}'.");
+        }
     }
 
     private async Task<string> RunGitAsync(
@@ -188,38 +320,26 @@ public sealed partial class RunAreaPreparer
         }
     }
 
-    private static void RequireOutsideRepository(string runsRoot, string repositoryRoot)
+    private static void RequireNotExisting(string path, string description)
     {
-        string relativePath = Path.GetRelativePath(repositoryRoot, runsRoot);
-        bool isInside = relativePath == "."
-            || !(relativePath == ".."
-                || relativePath.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
-                || Path.IsPathFullyQualified(relativePath));
-
-        if (isInside)
+        if (Directory.Exists(path) || File.Exists(path))
         {
             throw new RunPreparationException(
-                $"La root delle run '{runsRoot}' si trova nel repository '{repositoryRoot}': i processi della run potrebbero risalire alla cronologia Git.");
+                $"{description} '{path}' esiste già: ogni run richiede directory nuove.");
         }
     }
 
-    private static void CreateNewRunArea(string runsRoot, string runAreaPath)
+    private static void CreateNewDirectory(string path, List<string> createdDirectories)
     {
-        Directory.CreateDirectory(runsRoot);
-        if (Directory.Exists(runAreaPath) || File.Exists(runAreaPath))
-        {
-            throw new RunPreparationException(
-                $"L'area di run '{runAreaPath}' esiste già: ogni run richiede un'area nuova.");
-        }
-
-        Directory.CreateDirectory(runAreaPath);
+        RequireNotExisting(path, "La directory");
+        Directory.CreateDirectory(path);
+        createdDirectories.Add(path);
     }
 
     private async Task ExtractBaselineAsync(
         string repositoryRoot,
         string commit,
-        string sourceDirectory,
-        string workspacePath,
+        ExtractionState extraction,
         CancellationToken cancellationToken)
     {
         try
@@ -227,16 +347,16 @@ public sealed partial class RunAreaPreparer
             // 'git archive' legge i blob del commit, quindi ignora albero di lavoro e
             // file non versionati. Applica però la conversione dei fine riga della
             // configurazione host (Git for Windows imposta core.autocrlf=true a livello
-            // di sistema): la si neutralizza perché la workspace contenga i byte esatti
-            // dei blob, uguali su qualsiasi macchina.
+            // di sistema): la si neutralizza perché l'area contenga i byte esatti dei
+            // blob, uguali su qualsiasi macchina.
             await git.RunWithOutputStreamAsync(
                 repositoryRoot,
                 [
                     "-c", "core.autocrlf=false",
                     "-c", "core.eol=lf",
-                    "archive", "--format=tar", $"{commit}:{sourceDirectory}",
+                    "archive", "--format=tar", $"{commit}:{extraction.SourceDirectory}",
                 ],
-                (archive, token) => ExtractArchiveAsync(archive, workspacePath, token),
+                (archive, token) => ExtractArchiveAsync(archive, extraction, token),
                 cancellationToken);
         }
         catch (GitCommandException exception)
@@ -249,7 +369,7 @@ public sealed partial class RunAreaPreparer
         }
     }
 
-    private static async Task ExtractArchiveAsync(Stream archive, string workspacePath, CancellationToken cancellationToken)
+    private static async Task ExtractArchiveAsync(Stream archive, ExtractionState extraction, CancellationToken cancellationToken)
     {
         await using var reader = new TarReader(archive, leaveOpen: true);
         while (await reader.GetNextEntryAsync(copyData: false, cancellationToken) is { } entry)
@@ -260,10 +380,12 @@ public sealed partial class RunAreaPreparer
                     // Intestazione pax di Git con l'identificatore del commit: non è un file.
                     continue;
                 case TarEntryType.Directory:
-                    Directory.CreateDirectory(ResolveDestination(workspacePath, entry.Name));
+                    // Le directory vengono create con i file che contengono; il percorso
+                    // va comunque autorizzato, per rifiutare per esempio '.claude/'.
+                    WorkspacePathPolicy.NormalizeAuthorizedPath(entry.Name);
                     continue;
                 case TarEntryType.RegularFile or TarEntryType.V7RegularFile:
-                    await WriteFileAsync(entry, ResolveDestination(workspacePath, entry.Name), cancellationToken);
+                    await ExtractFileAsync(entry, extraction, cancellationToken);
                     continue;
                 default:
                     throw new RunPreparationException(
@@ -272,48 +394,129 @@ public sealed partial class RunAreaPreparer
         }
     }
 
-    private static string ResolveDestination(string workspacePath, string archivePath)
+    private static async Task ExtractFileAsync(TarEntry entry, ExtractionState extraction, CancellationToken cancellationToken)
     {
-        string authorizedPath = WorkspacePathPolicy.NormalizeAuthorizedPath(archivePath);
-        string destination = Path.GetFullPath(
-            Path.Combine(workspacePath, authorizedPath.Replace('/', Path.DirectorySeparatorChar)));
+        string sourceRelativePath = WorkspacePathPolicy.NormalizeAuthorizedPath(entry.Name);
+        string repositoryPath = $"{extraction.SourceDirectory}/{sourceRelativePath}";
+        MaterialRoute route = TaskMaterialSelection.Route(sourceRelativePath, extraction.TaskId);
 
-        // Controllo difensivo indipendente dalla politica: la destinazione deve restare nella workspace.
-        if (!destination.StartsWith(workspacePath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        string areaDirectory;
+        switch (route.Destination)
         {
-            throw new RunPreparationException($"La voce '{archivePath}' risolve fuori dalla workspace.");
+            case MaterialDestination.Excluded:
+                extraction.ExcludedSourcePaths.Add(repositoryPath);
+                return;
+            case MaterialDestination.Workspace:
+                areaDirectory = WorkspaceDirectoryName;
+                extraction.WorkspaceFileCount++;
+                break;
+            default:
+                areaDirectory = PublicReferenceDirectoryName;
+                break;
+        }
+
+        string agentRootRelativePath = $"{areaDirectory}/{route.RelativePath}";
+        string destination = ResolveDestination(extraction.AgentRoot, agentRootRelativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        await using (var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            if (entry.DataStream is not null)
+            {
+                await entry.DataStream.CopyToAsync(output, cancellationToken);
+            }
+        }
+
+        extraction.SourcePaths[agentRootRelativePath] = repositoryPath;
+    }
+
+    private static string ResolveDestination(string agentRoot, string agentRootRelativePath)
+    {
+        string destination = Path.GetFullPath(
+            Path.Combine(agentRoot, agentRootRelativePath.Replace('/', Path.DirectorySeparatorChar)));
+
+        // Controllo difensivo indipendente dalla politica: la destinazione deve restare in agent-root.
+        if (!destination.StartsWith(agentRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new RunPreparationException($"La voce '{agentRootRelativePath}' risolve fuori dall'area agente.");
         }
 
         return destination;
     }
 
-    private static async Task WriteFileAsync(TarEntry entry, string destination, CancellationToken cancellationToken)
+    private async Task WriteTaskSpecificationAsync(
+        string repositoryRoot,
+        string commit,
+        string specificationSource,
+        string agentRoot,
+        CancellationToken cancellationToken)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-        await using var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-        if (entry.DataStream is not null)
+        string destination = Path.Combine(agentRoot, TaskSpecificationFileName);
+        try
         {
-            await entry.DataStream.CopyToAsync(output, cancellationToken);
+            // 'cat-file blob' restituisce i byte del blob senza filtri né conversioni
+            // dei fine riga: il prompt comune del task è identico per ogni architettura.
+            await git.RunWithOutputStreamAsync(
+                repositoryRoot,
+                ["cat-file", "blob", $"{commit}:{specificationSource}"],
+                async (content, token) =>
+                {
+                    await using var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                    await content.CopyToAsync(output, token);
+                },
+                cancellationToken);
+        }
+        catch (GitCommandException exception)
+        {
+            throw new RunPreparationException($"Lettura della specifica del task non riuscita. {exception.Message}", exception);
         }
     }
 
-    private static void RemoveIncompleteRunArea(string runAreaPath, Exception originalException)
+    private static void RemoveCreatedDirectories(List<string> createdDirectories, Exception originalException)
     {
-        try
+        var failures = new List<string>();
+        foreach (string directory in createdDirectories)
         {
-            if (Directory.Exists(runAreaPath))
+            try
             {
-                Directory.Delete(runAreaPath, recursive: true);
+                if (Directory.Exists(directory))
+                {
+                    Directory.Delete(directory, recursive: true);
+                }
+            }
+            catch (Exception cleanupException) when (cleanupException is IOException or UnauthorizedAccessException)
+            {
+                failures.Add($"'{directory}': {cleanupException.Message}");
             }
         }
-        catch (Exception cleanupException) when (cleanupException is IOException or UnauthorizedAccessException)
+
+        if (failures.Count > 0)
         {
             throw new RunPreparationException(
-                $"Preparazione fallita ({originalException.Message}) e rimozione dell'area incompleta '{runAreaPath}' non riuscita: {cleanupException.Message}. L'area non deve essere usata.",
+                $"Preparazione fallita ({originalException.Message}) e rimozione delle directory incomplete non riuscita: {string.Join("; ", failures)}. Le directory non devono essere usate.",
                 originalException);
         }
     }
 
-    [GeneratedRegex("^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")]
+    [GeneratedRegex(@"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}\z")]
     private static partial Regex RunIdPattern();
+
+    /// <summary>
+    /// Stato accumulato durante l'estrazione di un archivio.
+    /// </summary>
+    private sealed class ExtractionState(string agentRoot, string sourceDirectory, string taskId)
+    {
+        public string AgentRoot { get; } = agentRoot;
+
+        public string SourceDirectory { get; } = sourceDirectory;
+
+        public string TaskId { get; } = taskId;
+
+        /// <summary>Origine nel repository, per percorso relativo ad <c>agent-root</c>.</summary>
+        public Dictionary<string, string> SourcePaths { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>File della baseline non consegnati, relativi alla radice del repository.</summary>
+        public List<string> ExcludedSourcePaths { get; } = [];
+
+        public int WorkspaceFileCount { get; set; }
+    }
 }

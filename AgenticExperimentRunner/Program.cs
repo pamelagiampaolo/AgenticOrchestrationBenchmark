@@ -1,4 +1,17 @@
-﻿
+﻿using AgenticExperimentRunner.RunPreparation;
+
+if (args.Length > 0 && args[0] == PrepareRunCommand.Name)
+{
+    var prepareRun = new PrepareRunCommand(
+        new RunAreaPreparer(
+            new GitCommandRunner(),
+            TimeProvider.System,
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
+        TimeProvider.System);
+    Environment.ExitCode = await prepareRun.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
+
 const string claudeCliPath = @"C:\Users\Utente\.local\bin\claude.exe";
 const string requestedModel = "claude-sonnet-5-5";
 

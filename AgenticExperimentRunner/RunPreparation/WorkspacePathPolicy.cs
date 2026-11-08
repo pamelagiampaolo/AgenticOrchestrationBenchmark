@@ -20,6 +20,14 @@ public static class WorkspacePathPolicy
         ".gitconfig",
         ".npmrc",
         ".env",
+
+        // Istruzioni e configurazioni della CLI dell'agente: se fossero nella baseline
+        // altererebbero le condizioni iniziali in modo diverso tra le architetture (B4).
+        ".claude",
+        "CLAUDE.md",
+        "CLAUDE.local.md",
+        "AGENTS.md",
+        ".mcp.json",
     ];
 
     private const string ForbiddenEnvironmentFilePrefix = ".env.";
