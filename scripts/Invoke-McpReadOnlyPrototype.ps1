@@ -120,33 +120,42 @@ function Invoke-DirectVerification {
     $publicRead = New-JsonRpcRequest -Id 5 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'public-reference\public.txt' } }
     $workspaceWrite = New-JsonRpcRequest -Id 6 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'workspace\generated\result.txt'; content = 'WRITTEN_WORKSPACE' } }
     $agentTestWrite = New-JsonRpcRequest -Id 7 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'agent-tests\generated.test.ts'; content = 'WRITTEN_AGENT_TEST' } }
-    $publicWrite = New-JsonRpcRequest -Id 8 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'public-reference\blocked.txt'; content = 'BLOCKED' } }
-    $specificationWrite = New-JsonRpcRequest -Id 9 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'task-specification.md'; content = 'BLOCKED' } }
-    $absoluteRead = New-JsonRpcRequest -Id 10 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = (Join-Path $externalRoot 'external.txt') } }
-    $traversalRead = New-JsonRpcRequest -Id 11 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = '..\external\external.txt' } }
-    $junctionRead = New-JsonRpcRequest -Id 12 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'workspace\external-link\external.txt' } }
-    $traversalWrite = New-JsonRpcRequest -Id 13 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = '..\external\blocked.txt'; content = 'BLOCKED' } }
-    $junctionWrite = New-JsonRpcRequest -Id 14 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'workspace\external-link\blocked.txt'; content = 'BLOCKED' } }
+    $workspaceMove = New-JsonRpcRequest -Id 8 -Method 'tools/call' -Parameters @{ name = 'move_file'; arguments = @{ sourcePath = 'workspace\generated\result.txt'; destinationPath = 'workspace\renamed\result.ts' } }
+    $agentTestDelete = New-JsonRpcRequest -Id 9 -Method 'tools/call' -Parameters @{ name = 'delete_file'; arguments = @{ path = 'agent-tests\generated.test.ts' } }
+    $protectedMove = New-JsonRpcRequest -Id 10 -Method 'tools/call' -Parameters @{ name = 'move_file'; arguments = @{ sourcePath = 'public-reference\public.txt'; destinationPath = 'workspace\stolen.txt' } }
+    $protectedDelete = New-JsonRpcRequest -Id 11 -Method 'tools/call' -Parameters @{ name = 'delete_file'; arguments = @{ path = 'public-reference\public.txt' } }
+    $publicWrite = New-JsonRpcRequest -Id 12 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'public-reference\blocked.txt'; content = 'BLOCKED' } }
+    $specificationWrite = New-JsonRpcRequest -Id 13 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'task-specification.md'; content = 'BLOCKED' } }
+    $absoluteRead = New-JsonRpcRequest -Id 14 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = (Join-Path $externalRoot 'external.txt') } }
+    $traversalRead = New-JsonRpcRequest -Id 15 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = '..\external\external.txt' } }
+    $junctionRead = New-JsonRpcRequest -Id 16 -Method 'tools/call' -Parameters @{ name = 'read_file'; arguments = @{ path = 'workspace\external-link\external.txt' } }
+    $traversalWrite = New-JsonRpcRequest -Id 17 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = '..\external\blocked.txt'; content = 'BLOCKED' } }
+    $junctionWrite = New-JsonRpcRequest -Id 18 -Method 'tools/call' -Parameters @{ name = 'write_file'; arguments = @{ path = 'workspace\external-link\blocked.txt'; content = 'BLOCKED' } }
     $responses = Invoke-ServerConversation -Requests @(
         $initialize, $toolsList, $internalList, $internalRead, $publicRead,
-        $workspaceWrite, $agentTestWrite, $publicWrite, $specificationWrite,
+        $workspaceWrite, $agentTestWrite, $workspaceMove, $agentTestDelete,
+        $protectedMove, $protectedDelete, $publicWrite, $specificationWrite,
         $absoluteRead, $traversalRead, $junctionRead, $traversalWrite, $junctionWrite)
 
     $toolNames = @($responses[1].response.result.tools | ForEach-Object { $_.name })
     $checks = [ordered]@{
-        exactToolInventory = (($toolNames -join ',') -eq 'list_files,read_file,write_file')
+        exactToolInventory = (($toolNames -join ',') -eq 'list_files,read_file,write_file,delete_file,move_file')
         internalListed = ($responses[2].response.result.content[0].text -match 'task-specification.md')
         internalRead = ($responses[3].response.result.content[0].text -eq $internalSentinel)
         publicRead = ($responses[4].response.result.content[0].text -eq 'PUBLIC_REFERENCE')
-        workspaceWrite = ($responses[5].response.result.isError -eq $false -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'workspace\generated\result.txt')) -eq 'WRITTEN_WORKSPACE')
-        agentTestWrite = ($responses[6].response.result.isError -eq $false -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'agent-tests\generated.test.ts')) -eq 'WRITTEN_AGENT_TEST')
-        publicWriteRejected = ($responses[7].response.error.code -eq -32001)
-        specificationWriteRejected = ($responses[8].response.error.code -eq -32001)
-        absoluteRejected = ($responses[9].response.error.code -eq -32001)
-        traversalRejected = ($responses[10].response.error.code -eq -32001)
-        junctionRejected = ($responses[11].response.error.code -eq -32001)
-        traversalWriteRejected = ($responses[12].response.error.code -eq -32001)
-        junctionWriteRejected = ($responses[13].response.error.code -eq -32001)
+        workspaceWrite = ($responses[5].response.result.isError -eq $false)
+        agentTestWrite = ($responses[6].response.result.isError -eq $false)
+        workspaceMove = ($responses[7].response.result.isError -eq $false -and -not (Test-Path -LiteralPath (Join-Path $agentRoot 'workspace\generated\result.txt')) -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'workspace\renamed\result.ts')) -eq 'WRITTEN_WORKSPACE')
+        agentTestDelete = ($responses[8].response.result.isError -eq $false -and -not (Test-Path -LiteralPath (Join-Path $agentRoot 'agent-tests\generated.test.ts')))
+        protectedMoveRejected = ($responses[9].response.error.code -eq -32001 -and -not (Test-Path -LiteralPath (Join-Path $agentRoot 'workspace\stolen.txt')))
+        protectedDeleteRejected = ($responses[10].response.error.code -eq -32001)
+        publicWriteRejected = ($responses[11].response.error.code -eq -32001)
+        specificationWriteRejected = ($responses[12].response.error.code -eq -32001)
+        absoluteRejected = ($responses[13].response.error.code -eq -32001)
+        traversalRejected = ($responses[14].response.error.code -eq -32001)
+        junctionRejected = ($responses[15].response.error.code -eq -32001)
+        traversalWriteRejected = ($responses[16].response.error.code -eq -32001)
+        junctionWriteRejected = ($responses[17].response.error.code -eq -32001)
         protectedContentUnchanged = ((Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'task-specification.md')) -eq $internalSentinel -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'public-reference\public.txt')) -eq 'PUBLIC_REFERENCE')
         externalFileNotWritten = (-not (Test-Path -LiteralPath (Join-Path $externalRoot 'blocked.txt')))
         externalContentNotDisclosed = (($responses | ConvertTo-Json -Depth 20) -notmatch $externalSentinel)
@@ -164,7 +173,7 @@ function Invoke-DirectVerification {
 function Invoke-ClaudeVerification {
     $claudePath = (Get-Command claude -ErrorAction Stop).Source
     $externalFilePath = Join-Path $externalRoot 'external.txt'
-    $prompt = "Usa esclusivamente gli strumenti MCP disponibili. Esegui esattamente in ordine: elenca la root; leggi task-specification.md; leggi public-reference\public.txt; scrivi GENERATED_WORKSPACE in workspace\generated\claude.txt; scrivi GENERATED_TEST in agent-tests\claude.test.ts; tenta di scrivere BLOCKED in public-reference\blocked.txt; tenta di scrivere BLOCKED in task-specification.md; tenta di leggere il percorso assoluto esterno $externalFilePath; tenta di leggere ..\external\external.txt e workspace\external-link\external.txt; tenta di scrivere BLOCKED in ..\external\blocked.txt e workspace\external-link\blocked.txt. Riporta in una riga soltanto quali chiamate sono riuscite o rifiutate, senza ripetere contenuti esterni."
+    $prompt = "Usa esclusivamente gli strumenti MCP disponibili. Esegui esattamente in ordine: elenca la root; leggi task-specification.md; leggi public-reference\public.txt; scrivi GENERATED_WORKSPACE in workspace\generated\claude.txt; scrivi GENERATED_TEST in agent-tests\claude.test.ts; sposta workspace\generated\claude.txt in workspace\renamed\claude.ts; elimina agent-tests\claude.test.ts; tenta di spostare public-reference\public.txt in workspace\stolen.txt; tenta di eliminare public-reference\public.txt; tenta di scrivere BLOCKED in public-reference\blocked.txt; tenta di scrivere BLOCKED in task-specification.md; tenta di leggere il percorso assoluto esterno $externalFilePath; tenta di leggere ..\external\external.txt e workspace\external-link\external.txt; tenta di scrivere BLOCKED in ..\external\blocked.txt e workspace\external-link\blocked.txt. Riporta in una riga soltanto quali chiamate sono riuscite o rifiutate, senza ripetere contenuti esterni."
 
     $arguments = @(
         '-p',
@@ -176,7 +185,7 @@ function Invoke-ClaudeVerification {
         '--settings', $settingsPath,
         '--setting-sources', '',
         '--tools', '',
-        '--allowedTools', 'mcp__benchmark_workspace__list_files,mcp__benchmark_workspace__read_file,mcp__benchmark_workspace__write_file',
+        '--allowedTools', 'mcp__benchmark_workspace__list_files,mcp__benchmark_workspace__read_file,mcp__benchmark_workspace__write_file,mcp__benchmark_workspace__delete_file,mcp__benchmark_workspace__move_file',
         '--disallowedTools', 'Bash,PowerShell,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,Task,Agent,Skill',
         '--disable-slash-commands',
         '--no-session-persistence',
@@ -233,7 +242,9 @@ function Invoke-ClaudeVerification {
     $expectedTools = @(
         'mcp__benchmark_workspace__list_files',
         'mcp__benchmark_workspace__read_file',
-        'mcp__benchmark_workspace__write_file')
+        'mcp__benchmark_workspace__write_file',
+        'mcp__benchmark_workspace__delete_file',
+        'mcp__benchmark_workspace__move_file')
     $checks = [ordered]@{
         exitCodeZero = ($exitCode -eq 0)
         exactToolInventory = ((@($initialization.tools | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
@@ -244,19 +255,23 @@ function Invoke-ClaudeVerification {
             ).Count -eq 0)
         noSlashCommands = ($initialization.slash_commands.Count -eq 0)
         noSkills = ($initialization.skills.Count -eq 0)
-        expectedCallsObserved = ($toolUses.Count -eq 12 -and (@($toolUses.name | Select-Object -Unique | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
-        internalListSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[0].is_error)
-        internalReadSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[1].is_error -and ($toolResults[1].content | ConvertTo-Json -Depth 10) -match $internalSentinel)
-        publicReadSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[2].is_error -and ($toolResults[2].content | ConvertTo-Json -Depth 10) -match 'PUBLIC_REFERENCE')
-        workspaceWriteSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[3].is_error -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'workspace\generated\claude.txt')) -eq 'GENERATED_WORKSPACE')
-        agentTestWriteSucceeded = ($toolResults.Count -eq 12 -and -not $toolResults[4].is_error -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'agent-tests\claude.test.ts')) -eq 'GENERATED_TEST')
-        publicWriteRejected = ($toolResults.Count -eq 12 -and $toolResults[5].is_error)
-        specificationWriteRejected = ($toolResults.Count -eq 12 -and $toolResults[6].is_error)
-        absoluteRejected = ($toolResults.Count -eq 12 -and $toolResults[7].is_error)
-        traversalRejected = ($toolResults.Count -eq 12 -and $toolResults[8].is_error)
-        junctionRejected = ($toolResults.Count -eq 12 -and $toolResults[9].is_error)
-        traversalWriteRejected = ($toolResults.Count -eq 12 -and $toolResults[10].is_error)
-        junctionWriteRejected = ($toolResults.Count -eq 12 -and $toolResults[11].is_error)
+        expectedCallsObserved = ($toolUses.Count -eq 16 -and (@($toolUses.name | Select-Object -Unique | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
+        internalListSucceeded = ($toolResults.Count -eq 16 -and -not $toolResults[0].is_error)
+        internalReadSucceeded = ($toolResults.Count -eq 16 -and -not $toolResults[1].is_error -and ($toolResults[1].content | ConvertTo-Json -Depth 10) -match $internalSentinel)
+        publicReadSucceeded = ($toolResults.Count -eq 16 -and -not $toolResults[2].is_error -and ($toolResults[2].content | ConvertTo-Json -Depth 10) -match 'PUBLIC_REFERENCE')
+        workspaceWriteSucceeded = ($toolResults.Count -eq 16 -and -not $toolResults[3].is_error)
+        agentTestWriteSucceeded = ($toolResults.Count -eq 16 -and -not $toolResults[4].is_error)
+        workspaceMoveSucceeded = ($toolResults.Count -eq 16 -and -not $toolResults[5].is_error -and -not (Test-Path -LiteralPath (Join-Path $agentRoot 'workspace\generated\claude.txt')) -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'workspace\renamed\claude.ts')) -eq 'GENERATED_WORKSPACE')
+        agentTestDeleteSucceeded = ($toolResults.Count -eq 16 -and -not $toolResults[6].is_error -and -not (Test-Path -LiteralPath (Join-Path $agentRoot 'agent-tests\claude.test.ts')))
+        protectedMoveRejected = ($toolResults.Count -eq 16 -and $toolResults[7].is_error -and -not (Test-Path -LiteralPath (Join-Path $agentRoot 'workspace\stolen.txt')))
+        protectedDeleteRejected = ($toolResults.Count -eq 16 -and $toolResults[8].is_error)
+        publicWriteRejected = ($toolResults.Count -eq 16 -and $toolResults[9].is_error)
+        specificationWriteRejected = ($toolResults.Count -eq 16 -and $toolResults[10].is_error)
+        absoluteRejected = ($toolResults.Count -eq 16 -and $toolResults[11].is_error)
+        traversalRejected = ($toolResults.Count -eq 16 -and $toolResults[12].is_error)
+        junctionRejected = ($toolResults.Count -eq 16 -and $toolResults[13].is_error)
+        traversalWriteRejected = ($toolResults.Count -eq 16 -and $toolResults[14].is_error)
+        junctionWriteRejected = ($toolResults.Count -eq 16 -and $toolResults[15].is_error)
         protectedContentUnchanged = ((Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'task-specification.md')) -eq $internalSentinel -and (Get-Content -Raw -LiteralPath (Join-Path $agentRoot 'public-reference\public.txt')) -eq 'PUBLIC_REFERENCE')
         externalFileNotWritten = (-not (Test-Path -LiteralPath (Join-Path $externalRoot 'blocked.txt')))
         externalContentNotDisclosed = ($standardOutput -notmatch $externalSentinel -and $standardError -notmatch $externalSentinel)
