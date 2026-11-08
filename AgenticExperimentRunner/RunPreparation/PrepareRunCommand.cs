@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace AgenticExperimentRunner.RunPreparation;
@@ -46,43 +47,15 @@ public sealed record PrepareRunArguments(
         out string? error)
     {
         parsed = null;
-        var values = new Dictionary<string, string>(StringComparer.Ordinal);
-        for (int index = 0; index < arguments.Count; index += 2)
+        if (!CommandLineOptions.TryParse(arguments, RequiredOptions, [RunIdOption], Usage, out IReadOnlyDictionary<string, string> values, out error))
         {
-            string option = arguments[index];
-            if (!RequiredOptions.Contains(option) && option != RunIdOption)
-            {
-                error = $"Argomento non riconosciuto: '{option}'. {Usage}";
-                return false;
-            }
-
-            if (index + 1 >= arguments.Count || string.IsNullOrWhiteSpace(arguments[index + 1]))
-            {
-                error = $"L'opzione {option} richiede un valore. {Usage}";
-                return false;
-            }
-
-            if (!values.TryAdd(option, arguments[index + 1]))
-            {
-                error = $"L'opzione {option} non può essere specificata più di una volta.";
-                return false;
-            }
-        }
-
-        string? missing = RequiredOptions.FirstOrDefault(option => !values.ContainsKey(option));
-        if (missing is not null)
-        {
-            error = $"Opzione obbligatoria mancante: {missing}. {Usage}";
             return false;
         }
 
-        foreach (string option in new[] { "--repository", "--runs-root", "--results-root" })
+        error = CommandLineOptions.FindRelativePath(values, ["--repository", "--runs-root", "--results-root"]);
+        if (error is not null)
         {
-            if (!Path.IsPathFullyQualified(values[option]))
-            {
-                error = $"Il percorso fornito a {option} deve essere assoluto: '{values[option]}'.";
-                return false;
-            }
+            return false;
         }
 
         parsed = new PrepareRunArguments(
@@ -92,7 +65,6 @@ public sealed record PrepareRunArguments(
             values["--runs-root"],
             values["--results-root"],
             values.GetValueOrDefault(RunIdOption));
-        error = null;
         return true;
     }
 }
@@ -139,6 +111,9 @@ public sealed record PrepareRunOutput(
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
+
+        // Fine riga fisso: file e hash non devono dipendere dal sistema operativo.
+        NewLine = "\n",
     };
 }
 
@@ -161,6 +136,9 @@ public sealed class PrepareRunCommand
 
     /// <summary>Sottodirectory del repository che costituisce la baseline del benchmark.</summary>
     public const string BenchmarkSourceDirectory = "BenchmarkTarget";
+
+    /// <summary>Copia dello stdout nella directory dei risultati della run.</summary>
+    public const string PreparedRunFileName = "prepared-run.json";
 
     private readonly RunAreaPreparer preparer;
     private readonly TimeProvider timeProvider;
@@ -220,8 +198,21 @@ public sealed class PrepareRunCommand
             return PreparationFailedExitCode;
         }
 
-        PrepareRunOutput output = CreateOutput(area);
-        await standardOutput.WriteLineAsync(JsonSerializer.Serialize(output, PrepareRunOutput.SerializerOptions));
+        string json = JsonSerializer.Serialize(CreateOutput(area), PrepareRunOutput.SerializerOptions);
+        try
+        {
+            // Copia persistente dello stdout: input del comando che avvia la sessione.
+            await using var file = new FileStream(
+                Path.Combine(area.ResultsDirectoryPath, PreparedRunFileName), FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            await file.WriteAsync(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false).GetBytes(json + "\n"), cancellationToken);
+        }
+        catch (IOException exception)
+        {
+            await standardError.WriteLineAsync($"Preparazione della run non riuscita: scrittura di {PreparedRunFileName} fallita: {exception.Message}");
+            return PreparationFailedExitCode;
+        }
+
+        await standardOutput.WriteLineAsync(json);
         return SuccessExitCode;
     }
 

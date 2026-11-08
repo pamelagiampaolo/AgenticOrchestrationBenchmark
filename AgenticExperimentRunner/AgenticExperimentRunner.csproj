@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Istruzioni versionate delle architetture: copiate accanto all'eseguibile e identificate tramite hash nel record di sessione. -->
+    <None Include="Instructions\*.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

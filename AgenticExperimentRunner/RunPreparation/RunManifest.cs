@@ -58,6 +58,9 @@ public sealed record RunManifest(
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
+
+        // Fine riga fisso: file e hash non devono dipendere dal sistema operativo.
+        NewLine = "\n",
     };
 
     /// <summary>

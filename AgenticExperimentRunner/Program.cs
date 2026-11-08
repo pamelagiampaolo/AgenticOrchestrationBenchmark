@@ -1,4 +1,5 @@
 ﻿using AgenticExperimentRunner.RunPreparation;
+using AgenticExperimentRunner.SessionExecution;
 
 if (args.Length > 0 && args[0] == PrepareRunCommand.Name)
 {
@@ -9,6 +10,14 @@ if (args.Length > 0 && args[0] == PrepareRunCommand.Name)
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
         TimeProvider.System);
     Environment.ExitCode = await prepareRun.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
+
+if (args.Length > 0 && args[0] == RunSingleAgentCommand.Name)
+{
+    var runSingleAgent = new RunSingleAgentCommand(
+        new SingleAgentSessionRunner(TimeProvider.System, Path.Combine(AppContext.BaseDirectory, "Instructions")));
+    Environment.ExitCode = await runSingleAgent.ExecuteAsync(args[1..], Console.Out, Console.Error);
     return;
 }
 

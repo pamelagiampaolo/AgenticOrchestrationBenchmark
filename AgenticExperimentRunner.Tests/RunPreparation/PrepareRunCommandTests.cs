@@ -61,6 +61,9 @@ public sealed class PrepareRunCommandTests : IDisposable
         Assert.Equal(Path.Combine(RunsRoot, "cli-run", "session"), root.GetProperty("sessionDirectory").GetString());
         Assert.Equal(Path.Combine(ResultsRoot, "cli-run"), root.GetProperty("resultsDirectory").GetString());
         Assert.True(File.Exists(root.GetProperty("manifestPath").GetString()));
+        Assert.Equal(
+            standardOutput.ToString().ReplaceLineEndings("\n"),
+            await File.ReadAllTextAsync(Path.Combine(ResultsRoot, "cli-run", "prepared-run.json"), Token));
         Assert.True(Directory.Exists(Path.Combine(agentRoot, root.GetProperty("workspaceDirectory").GetString()!)));
         Assert.True(Directory.Exists(Path.Combine(agentRoot, root.GetProperty("agentTestsDirectory").GetString()!)));
         Assert.True(Directory.Exists(Path.Combine(agentRoot, root.GetProperty("publicReferenceDirectory").GetString()!)));
