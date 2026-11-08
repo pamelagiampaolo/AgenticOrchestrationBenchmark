@@ -6,7 +6,9 @@
 - **Fase:** architettura single-agent, iterazione A3
 - **Branch di lavoro:** `feat/single-agent`, allineato a `main` in `8bc2ca3`
   (strumenti MCP `delete_file` e `move_file`)
-- **Stato:** pianificata; questa sezione è scritta prima delle modifiche al codice
+- **Stato:** implementata, verificata con test automatici e con una sessione reale;
+  in attesa di revisione. Le sezioni fino a «Fuori perimetro» sono state scritte
+  prima delle modifiche al codice.
 
 ## Contesto e decisioni
 
@@ -170,3 +172,138 @@ finale per messaggio, da verificare) e `--append-system-prompt-file`.
 - Valutazione con i test riservati e calcolo della correttezza.
 - Valori definitivi dei limiti (piloti B4) e stima dei costi.
 - Architetture multi-agente.
+
+## Parametri della prova reale (dichiarati prima dell'esecuzione)
+
+- commit dell'orchestratore e della baseline: `0da9a7a` (branch `feat/single-agent`; la baseline `BenchmarkTarget` e i documenti T1 sono invariati rispetto a `main`);
+- task `T1`, root `C:\AgenticAIRuns` e `C:\AgenticAIResults`;
+- CLI `C:\Users\Utente\.local\bin\claude.exe` (2.1.312), modello `claude-sonnet-5-5`;
+- server MCP: `McpReadOnlyPrototype\bin\Debug\net10.0\McpReadOnlyPrototype.exe`
+  compilato dallo stesso commit;
+- limiti di prova: 600 secondi e 1 000 000 token. Non sono limiti B4: servono
+  solo a contenere il consumo della verifica.
+
+## File creati o modificati
+
+- `AgenticExperimentRunner/SessionExecution/`: `StreamUsageTracker.cs`,
+  `ClaudeLaunchProfile.cs` (incluso `ChildProcessEnvironment`),
+  `SessionRecord.cs`, `SingleAgentSessionRunner.cs`, `RunSingleAgentCommand.cs`.
+- `AgenticExperimentRunner/Instructions/common-environment.md` e `single-agent.md`,
+  copiati accanto all'eseguibile (`AgenticExperimentRunner.csproj`).
+- `AgenticExperimentRunner/CommandLineOptions.cs`: parsing comune ai sottocomandi,
+  ora usato anche da `prepare-run`.
+- `RunPreparation/PrepareRunCommand.cs`: scrittura di `prepared-run.json`;
+  `RunManifest.cs`, `PrepareRunCommand.cs`: JSON con fine riga LF.
+- `Program.cs`: instradamento di `run-single-agent`.
+- Test: `AgenticExperimentRunner.Tests/SessionExecution/` (tracker, profilo,
+  comando, runner con CLI finta) e asserzione aggiuntiva in
+  `PrepareRunCommandTests`.
+
+## Problemi osservati e soluzioni
+
+1. **Fine riga dei JSON.** Il primo run dei test mirati è fallito (51/52):
+   `prepared-run.json` conteneva CRLF perché in .NET 10 `WriteIndented` usa
+   `Environment.NewLine`. Manifest, configurazioni e i loro hash sarebbero dipesi
+   dal sistema operativo. Tutte le opzioni JSON indentate usano ora LF.
+2. **Hash del server MCP.** Prima della prova reale si è osservato che
+   `McpReadOnlyPrototype.exe` e `AgenticExperimentRunner.exe` hanno la stessa
+   dimensione (162816 byte): l'eseguibile è solo l'apphost .NET. Il record
+   registra ora anche l'hash dell'assembly `.dll` accanto all'eseguibile
+   (commit `0da9a7a`).
+3. **Stdin nella CLI finta.** PowerShell 5.1 decodifica `[Console]::In` con la code
+   page della console; la CLI finta legge quindi i byte grezzi, così il test
+   verifica byte per byte il prompt con caratteri accentati.
+
+## Verifiche eseguite e risultati
+
+```powershell
+dotnet format AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --verify-no-changes --no-restore
+dotnet build  AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-restore
+dotnet test   AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-build --no-restore --filter-class "*StreamUsageTrackerTests" --filter-class "*ClaudeLaunchProfileTests" --filter-class "*RunSingleAgentCommandTests" --filter-class "*SingleAgentSessionRunnerTests" --filter-class "*PrepareRunCommandTests"
+dotnet test   AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-build --no-restore
+```
+
+| Verifica | Risultato osservato |
+|---|---|
+| Formattazione | exit 0 (dopo la correzione automatica di due spaziature) |
+| Build | 0 avvisi, 0 errori |
+| Test mirati | primo tentativo 51/52 (fine riga), poi superati |
+| Suite completa | 188 eseguiti, 188 superati, 0 falliti, 0 ignorati |
+| Residui | nessuna cartella `a1-*`/`a2-*`/`a3-*` in `%TEMP%` |
+
+I test con la CLI finta coprono completamento, budget raggiunto (terminazione
+in meno di 30 s con lo script fermo per 60 s), tempo scaduto (limite 4 s,
+durata registrata tra 4 e 20 s), strumento inatteso in `init`, `result` assente
+con exit 0 (`usage-measurement-error`) e 3 (`cli-failed`), `result` di errore,
+budget superato rivelato solo dal `result`, alterazione di `public-reference`
+durante la sessione, area alterata prima dell'avvio e seconda sessione sulla
+stessa area.
+
+### Prova reale (una sessione della CLI con LLM)
+
+```powershell
+AgenticExperimentRunner.exe prepare-run --repository C:\repos\TesiAgenticAI-agent --commit HEAD --task T1 --runs-root C:\AgenticAIRuns --results-root C:\AgenticAIResults
+AgenticExperimentRunner.exe run-single-agent --prepared-run C:\AgenticAIResults\20261108T173042Z-d8d46f00\prepared-run.json --claude C:\Users\Utente\.local\bin\claude.exe --mcp-server C:\repos\TesiAgenticAI-agent\McpReadOnlyPrototype\bin\Debug\net10.0\McpReadOnlyPrototype.exe --model claude-sonnet-5-5 --time-limit-seconds 600 --token-budget 1000000
+```
+
+Risultato osservato (`runId` `20261108T173042Z-d8d46f00`, `sourceCommit`
+`0da9a7af1441aa057c078ceaef3ef7a3b4194670`):
+
+- exit 0; stato `completed`; `agentTaskDurationMs` 26643; `result` `success`,
+  `terminal_reason` `completed`, 6 turni, 4 chiamate al modello;
+- `init`: modello `claude-sonnet-5-5`, esattamente i 5 strumenti MCP, un solo
+  server `benchmark_workspace` connesso, nessun agente, skill o comando slash;
+  nessuna violazione;
+- token autorevoli: input 8, cache read 17372, cache creation 12153, output
+  4629, `totalTokens` 34162;
+- **l'uso ricostruito dallo stream coincide con il `result` in tutte e quattro le
+  categorie, output compreso**, e tutte le chiamate hanno l'output finale da
+  `message_delta`: con `--include-partial-messages` il controllo del budget
+  durante la sessione usa valori esatti e non un limite inferiore;
+- `result.usage.iterations` contiene una sola voce per 4 chiamate: non è l'uso
+  per chiamata della sessione e non va usato come tale;
+- costo riportato dalla CLI 0,0966552 USD (dato della CLI, non stima B4);
+- variabili ereditate rimosse: 14, tutte di una sessione Claude Code che ha
+  avviato l'orchestratore (per esempio `CLAUDECODE`, `CLAUDE_CODE_SESSION_ID`,
+  `CLAUDE_CODE_ENTRYPOINT`); senza la rimozione la CLI dell'agente le avrebbe
+  ereditate;
+- strumenti: 3 `list_files`, 1 `read_file`, 1 `write_file`, nessun errore;
+  l'unico file modificato è `agent-root/workspace/src/index.ts`; `session/` è
+  rimasta vuota; differenze nei materiali protetti: nessuna;
+- comportamento dell'agente (osservazione, non valutazione): ha implementato
+  `findProductsBelowStock` e dichiarato di non aver potuto eseguire i test per
+  mancanza di shell; ha elencato `public-reference/` senza leggerne i test.
+
+Evidenze non versionate: `C:\AgenticAIResults\20261108T173042Z-d8d46f00\`
+(record, stream, stderr vuoto, configurazioni) e l'area
+`C:\AgenticAIRuns\20261108T173042Z-d8d46f00\`, lasciata per una futura
+valutazione.
+
+Corrispondenza con i criteri di accettazione: 1–5 superati; 6 superato,
+compreso il confronto tra output per messaggio e `result`.
+
+## Limiti e punti non verificati
+
+- **L'agente non può eseguire typecheck né test.** Finché il worker confinato
+  non è disponibile le sessioni non rappresentano il ciclo di sviluppo previsto
+  e non sono utilizzabili come piloti B4.
+- La terminazione per budget o tempo è provata solo con la CLI finta; con la CLI
+  reale non è verificato che la chiusura dell'albero di processi non lasci il
+  server MCP in esecuzione.
+- Il controllo dei token avviene a ogni evento dello stream: il superamento
+  include sempre la chiamata in corso, come previsto da B4, e con lo stream
+  parziale la terminazione può avvenire a metà di una risposta.
+- La corrispondenza esatta tra stream e `result` è osservata su una sola sessione
+  di 4 chiamate e sulla CLI 2.1.312.
+- Il periodo tecnico di arresto è nullo.
+- Il testo delle istruzioni comune e single-agent è una prima stesura: va rivisto
+  prima dei piloti, perché ogni modifica cambia gli hash e le condizioni.
+- Managed settings, plugin built-in e variabili d'ambiente non prefissate restano
+  i limiti già documentati in P1.1.
+
+## Prossimo passo proposto
+
+Integrare il worker confinato di Codex per typecheck e test pubblici, quando
+disponibile, e rivedere il testo delle istruzioni; poi definire con l'utente il
+protocollo dei piloti B4. In parallelo è possibile iniziare la gerarchia
+adattiva, che riuserà preparazione, profilo, tracker e record.
