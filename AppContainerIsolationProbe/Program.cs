@@ -9,12 +9,12 @@ using System.Text.Json;
 
 namespace AppContainerIsolationProbe;
 
-internal static class Program
+internal static partial class Program
 {
     private const int ProbeTimeoutMilliseconds = 20_000;
     private static readonly string[] AllowedEnvironmentNames =
     [
-        "APPDATA", "COMSPEC", "LOCALAPPDATA", "PATH", "SYSTEMROOT", "TEMP", "TMP", "USERPROFILE",
+        "APPDATA", "COMSPEC", "LOCALAPPDATA", "NODE_OPTIONS", "PATH", "SYSTEMROOT", "TEMP", "TMP", "USERPROFILE",
     ];
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
@@ -28,6 +28,7 @@ internal static class Program
                 "--grandchild" => RunGrandchild(args),
                 "--hang" => RunHangingChild(args),
                 "--hang-leaf" => RunHangingLeaf(),
+                "--node-controller" => RunNodeController(args),
                 _ => RunController(args),
             };
         }
@@ -272,12 +273,17 @@ internal static class Program
         IReadOnlyList<string> arguments,
         string workingDirectory,
         IntPtr appContainerSid,
-        uint timeoutMilliseconds)
+        uint timeoutMilliseconds,
+        IReadOnlyDictionary<string, string>? environmentOverrides = null,
+        string? logPrefix = null)
     {
         IntPtr attributeList = IntPtr.Zero;
         IntPtr capabilitiesPointer = IntPtr.Zero;
         IntPtr environmentPointer = IntPtr.Zero;
         IntPtr job = IntPtr.Zero;
+        FileStream? standardOutput = null;
+        FileStream? standardError = null;
+        Microsoft.Win32.SafeHandles.SafeFileHandle? standardInput = null;
         NativeMethods.ProcessInformation process = default;
 
         try
@@ -310,7 +316,23 @@ internal static class Program
                 StartupInfo = new NativeMethods.StartupInfo { Cb = Marshal.SizeOf<NativeMethods.StartupInfoEx>() },
                 AttributeList = attributeList,
             };
-            environmentPointer = CreateEnvironmentBlock();
+            bool inheritHandles = false;
+            if (logPrefix is not null)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(logPrefix)!);
+                standardOutput = new FileStream(logPrefix + ".stdout.txt", FileMode.Create, FileAccess.Write, FileShare.Read);
+                standardError = new FileStream(logPrefix + ".stderr.txt", FileMode.Create, FileAccess.Write, FileShare.Read);
+                standardInput = File.OpenHandle("NUL", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                SetInheritable(standardOutput.SafeFileHandle.DangerousGetHandle());
+                SetInheritable(standardError.SafeFileHandle.DangerousGetHandle());
+                SetInheritable(standardInput.DangerousGetHandle());
+                startupInfo.StartupInfo.Flags |= NativeMethods.StartfUseStdHandles;
+                startupInfo.StartupInfo.StandardInput = standardInput.DangerousGetHandle();
+                startupInfo.StartupInfo.StandardOutput = standardOutput.SafeFileHandle.DangerousGetHandle();
+                startupInfo.StartupInfo.StandardError = standardError.SafeFileHandle.DangerousGetHandle();
+                inheritHandles = true;
+            }
+            environmentPointer = CreateEnvironmentBlock(environmentOverrides);
             var commandLine = new StringBuilder(Quote(executablePath));
             foreach (string argument in arguments)
             {
@@ -326,7 +348,7 @@ internal static class Program
                     commandLine,
                     IntPtr.Zero,
                     IntPtr.Zero,
-                    false,
+                    inheritHandles,
                     flags,
                     environmentPointer,
                     workingDirectory,
@@ -370,6 +392,9 @@ internal static class Program
             if (process.Thread != IntPtr.Zero) NativeMethods.CloseHandle(process.Thread);
             if (process.Process != IntPtr.Zero) NativeMethods.CloseHandle(process.Process);
             if (job != IntPtr.Zero) NativeMethods.CloseHandle(job);
+            standardInput?.Dispose();
+            standardError?.Dispose();
+            standardOutput?.Dispose();
             if (environmentPointer != IntPtr.Zero) Marshal.FreeHGlobal(environmentPointer);
             if (capabilitiesPointer != IntPtr.Zero) Marshal.FreeHGlobal(capabilitiesPointer);
             if (attributeList != IntPtr.Zero)
@@ -377,6 +402,14 @@ internal static class Program
                 NativeMethods.DeleteProcThreadAttributeList(attributeList);
                 Marshal.FreeHGlobal(attributeList);
             }
+        }
+    }
+
+    private static void SetInheritable(IntPtr handle)
+    {
+        if (!NativeMethods.SetHandleInformation(handle, NativeMethods.HandleFlagInherit, NativeMethods.HandleFlagInherit))
+        {
+            throw NativeMethods.Error("SetHandleInformation");
         }
     }
 
@@ -416,11 +449,12 @@ internal static class Program
         }
     }
 
-    private static IntPtr CreateEnvironmentBlock()
+    private static IntPtr CreateEnvironmentBlock(IReadOnlyDictionary<string, string>? overrides)
     {
         string content = string.Join(
             '\0',
-            AllowedEnvironmentNames.Select(name => $"{name}={Environment.GetEnvironmentVariable(name) ?? string.Empty}")) + "\0\0";
+            AllowedEnvironmentNames.Select(name =>
+                $"{name}={(overrides is not null && overrides.TryGetValue(name, out string? value) ? value : Environment.GetEnvironmentVariable(name) ?? string.Empty)}")) + "\0\0";
         byte[] bytes = Encoding.Unicode.GetBytes(content);
         IntPtr pointer = Marshal.AllocHGlobal(bytes.Length);
         Marshal.Copy(bytes, 0, pointer, bytes.Length);

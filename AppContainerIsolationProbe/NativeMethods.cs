@@ -12,6 +12,8 @@ internal static class NativeMethods
     internal const uint ExtendedStartupInfoPresent = 0x00080000;
     internal const int ProcThreadAttributeSecurityCapabilities = 0x00020009;
     internal const uint JobObjectLimitKillOnJobClose = 0x00002000;
+    internal const uint StartfUseStdHandles = 0x00000100;
+    internal const uint HandleFlagInherit = 0x00000001;
     internal const int JobObjectExtendedLimitInformationClass = 9;
     internal const uint WaitObject0 = 0;
     internal const uint WaitTimeout = 258;
@@ -28,6 +30,9 @@ internal static class NativeMethods
 
     [DllImport("userenv.dll", CharSet = CharSet.Unicode)]
     internal static extern int DeleteAppContainerProfile(string appContainerName);
+
+    [DllImport("userenv.dll", CharSet = CharSet.Unicode)]
+    internal static extern int GetAppContainerFolderPath(string appContainerSid, out IntPtr path);
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -104,6 +109,10 @@ internal static class NativeMethods
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool CloseHandle(IntPtr handle);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool SetHandleInformation(IntPtr handle, uint mask, uint flags);
 
     internal static Win32Exception Error(string operation) =>
         new(Marshal.GetLastPInvokeError(), operation);
