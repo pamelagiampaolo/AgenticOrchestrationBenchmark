@@ -39,9 +39,15 @@ public sealed class RealCliHierarchyProbes
         string runId = $"a5-probe-long-delegation-{DateTimeOffset.UtcNow:yyyyMMddTHHmmssZ}";
         PrepareRunOutput prepared = await PrepareAsync(repository.RootPath, runId);
 
+        var delayed = new List<DelayedDelegationHandler>();
         var runner = new HierarchicalRunRunner(TimeProvider.System, Path.Combine(AppContext.BaseDirectory, "Instructions"))
         {
-            DelegationDecorator = inner => new DelayedDelegationHandler(inner, DelegationDelay),
+            DelegationDecorator = inner =>
+            {
+                var handler = new DelayedDelegationHandler(inner, DelegationDelay);
+                delayed.Add(handler);
+                return handler;
+            },
         };
         (HierarchicalRunRecord record, string recordPath) = await runner.RunAsync(
             new HierarchicalRunRequest(
@@ -56,10 +62,20 @@ public sealed class RealCliHierarchyProbes
             TestContext.Current.CancellationToken);
 
         TestContext.Current.SendDiagnosticMessage($"record: {recordPath}");
-        DelegationEvent delegation = Assert.Single(record.Delegations);
-        Assert.True(delegation.EndedAtUtc - delegation.RequestedAtUtc >= DelegationDelay);
-        Assert.Equal(DelegationStatus.Completed, delegation.Status);
+        // Gli istanti dell'evento sono registrati dal gestore interno, dopo il ritardo: la durata
+        // vista dal coordinatore si misura nel decoratore, dalla ricezione della richiesta.
+        TimeSpan observed = Assert.Single(Assert.Single(delayed).Durations);
+        TestContext.Current.SendDiagnosticMessage($"durata della delega vista dal relay: {observed}");
+        Assert.True(observed >= DelegationDelay, $"durata {observed}");
+        Assert.Equal(DelegationStatus.Completed, Assert.Single(record.Delegations).Status);
         Assert.Equal(SessionStatus.Completed, record.Status);
+
+        // Il coordinatore deve ricevere come risultato dello strumento il riepilogo del lavoratore,
+        // non una notifica di esecuzione in background.
+        string workerSummary = record.Agents[1].Result!.ResultText!;
+        string coordinatorStream = await File.ReadAllTextAsync(
+            Path.Combine(prepared.ResultsDirectory, "agents", "coordinator", "stream.jsonl"), TestContext.Current.CancellationToken);
+        Assert.Contains(JsonSerializer.Serialize(workerSummary).Trim('"'), coordinatorStream);
     }
 
     private static async Task<PrepareRunOutput> PrepareAsync(string repositoryPath, string runId)
@@ -81,13 +97,18 @@ public sealed class RealCliHierarchyProbes
         return JsonSerializer.Deserialize<PrepareRunOutput>(output.ToString(), PrepareRunOutput.SerializerOptions)!;
     }
 
-    /// <summary>Ritarda ogni delega prima di passarla al gestore reale.</summary>
+    /// <summary>Ritarda ogni delega prima di passarla al gestore reale e ne misura la durata totale.</summary>
     private sealed class DelayedDelegationHandler(IDelegationHandler inner, TimeSpan delay) : IDelegationHandler
     {
+        public List<TimeSpan> Durations { get; } = [];
+
         public async Task<DelegationOutcome> DelegateAsync(DelegationRequest request, CancellationToken cancellationToken)
         {
+            long start = TimeProvider.System.GetTimestamp();
             await Task.Delay(delay, cancellationToken);
-            return await inner.DelegateAsync(request, cancellationToken);
+            DelegationOutcome outcome = await inner.DelegateAsync(request, cancellationToken);
+            Durations.Add(TimeProvider.System.GetElapsedTime(start));
+            return outcome;
         }
     }
 }
