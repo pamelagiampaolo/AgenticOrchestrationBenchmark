@@ -58,6 +58,15 @@ function ConvertTo-QuotedProcessArgument {
     return '"' + $Value.Replace('\', '\').Replace('"', '\"') + '"'
 }
 
+function Set-Utf8WithoutBom {
+    param(
+        [string]$LiteralPath,
+        [string]$Value
+    )
+
+    [IO.File]::WriteAllText($LiteralPath, $Value, [Text.UTF8Encoding]::new($false))
+}
+
 function Invoke-ServerConversation {
     param([string[]]$Requests)
 
@@ -368,7 +377,7 @@ $mcpConfiguration = [ordered]@{
         }
     }
 }
-$mcpConfiguration | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $mcpConfigurationPath
+Set-Utf8WithoutBom -LiteralPath $mcpConfigurationPath -Value ($mcpConfiguration | ConvertTo-Json -Depth 10)
 
 @"
 Set-Content -NoNewline -Encoding utf8 '$projectHookSentinelPath' 'PROJECT_HOOK_EXECUTED'
@@ -428,9 +437,9 @@ $hookControlSettings = [ordered]@{
         )
     }
 }
-$projectSettings | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $projectSettingsPath
-$trustedSettings | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $settingsPath
-$hookControlSettings | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $hookControlSettingsPath
+Set-Utf8WithoutBom -LiteralPath $projectSettingsPath -Value ($projectSettings | ConvertTo-Json -Depth 10)
+Set-Utf8WithoutBom -LiteralPath $settingsPath -Value ($trustedSettings | ConvertTo-Json -Depth 10)
+Set-Utf8WithoutBom -LiteralPath $hookControlSettingsPath -Value ($hookControlSettings | ConvertTo-Json -Depth 10)
 
 try {
     if ($Mode -in @('Direct', 'All')) {

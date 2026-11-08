@@ -106,6 +106,31 @@ l'interazione della CLI `2.1.312` tra `--tools ''` e gli strumenti MCP: il flag
 potrebbe ora eliminare l'intero inventario invece dei soli strumenti built-in.
 Non sono stati eseguiti ulteriori tentativi LLM in questa iterazione.
 
+### Verifiche successive sulla CLI 2.1.312
+
+Una prova successiva ha rimosso soltanto `--tools ''`. Il server MCP è rimasto
+assente, mentre l'inventario ha esposto 13 strumenti built-in. Claude ha invocato
+due volte `ToolSearch`, senza trovare strumenti MCP. L'ipotesi che
+`--tools ''` fosse la causa del mancato caricamento è quindi confutata; il flag
+resta necessario per eliminare gli strumenti built-in dalla superficie agente.
+
+È stato poi osservato che PowerShell aveva serializzato `mcp.json` e i file di
+settings con BOM UTF-8 (`EF BB BF`). Il launcher è stato corretto per scrivere i
+file di configurazione con `UTF8Encoding(false)` ed è stata ripetuta la prova con
+`--tools ''`. Anche questa volta l'inizializzazione ha riportato zero server,
+zero strumenti e zero tool call. La presenza del BOM non era quindi la causa.
+
+Le evidenze non versionate dei due tentativi aggiuntivi sono in:
+
+- `%TEMP%\mcp-readonly-prototype-12b7ed6e8d5d45c28c05f0f3652408f8\evidence`;
+- `%TEMP%\mcp-readonly-prototype-5013e0e3c16441368b1bcdba4d984267\evidence`.
+
+Il prossimo confine diagnostico è il passaggio degli argomenti al processo. Il
+launcher costruisce ancora una singola stringa `ProcessStartInfo.Arguments` con
+quoting manuale; la prossima iterazione dovrà sostituirla con
+`ProcessStartInfo.ArgumentList`, verificare la configurazione ricevuta dalla CLI
+e solo dopo autorizzare una nuova chiamata LLM.
+
 Non sono ancora verificati:
 
 - l'uso di `write_file` attraverso una sessione Claude CLI reale;
