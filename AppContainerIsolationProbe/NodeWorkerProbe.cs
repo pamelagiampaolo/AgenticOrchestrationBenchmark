@@ -59,7 +59,7 @@ internal static partial class Program
             string copiedNodePath = Path.Combine(toolchainRoot, "node.exe");
             string nodeProbePath = Path.Combine(configRoot, "node-isolation-probe.mjs");
             string nodeProbeResultPath = Path.Combine(outputRoot, "node-isolation.json");
-            string vitestConfigPath = Path.Combine(configRoot, "vitest.public.config.mjs");
+            string vitestLauncherPath = Path.Combine(configRoot, "vitest.in-process.mjs");
             string vitestReportPath = Path.Combine(outputRoot, "public-tests.json");
 
             CopyDirectory(baselineRoot, projectRoot, excludedDirectoryName: "node_modules");
@@ -73,7 +73,7 @@ internal static partial class Program
             Directory.CreateDirectory(evidenceRoot);
             File.Copy(sourceNodePath, copiedNodePath, overwrite: false);
             File.WriteAllText(forbiddenSentinel, "P12_FORBIDDEN_SENTINEL", Encoding.UTF8);
-            File.WriteAllText(vitestConfigPath, CreateVitestConfiguration(), Encoding.UTF8);
+            File.WriteAllText(vitestLauncherPath, CreateInProcessVitestLauncher(), Encoding.UTF8);
             File.WriteAllText(nodeProbePath, NodeProbeSource, Encoding.UTF8);
             CreateJunction(junctionPath, forbiddenRoot);
 
@@ -131,8 +131,7 @@ internal static partial class Program
             ProcessRunResult publicTests = RunInAppContainer(
                 copiedNodePath,
                 [
-                    "--preserve-symlinks", "--preserve-symlinks-main", vitestPath, "run", "--root", projectRoot, "--config", vitestConfigPath,
-                    "--configLoader=native", "--reporter=json", $"--outputFile={vitestReportPath}",
+                    "--preserve-symlinks", "--preserve-symlinks-main", vitestLauncherPath, projectRoot, vitestReportPath,
                 ],
                 projectRoot,
                 appContainerSid,
@@ -285,24 +284,76 @@ internal static partial class Program
         }
     }
 
-    private static string CreateVitestConfiguration() =>
+    private static string CreateInProcessVitestLauncher() =>
         """
-        export default {
-          test: {
+        import { EventEmitter } from "node:events";
+        import { startVitest } from "vitest/node";
+        import { init, runBaseTests, setupEnvironment } from "vitest/worker";
+
+        class InProcessPoolWorker {
+          name = "appContainerInProcess";
+          cacheFs = false;
+          reportMemory = false;
+          #events = new EventEmitter();
+          #requestHandler;
+
+          on(event, callback) { this.#events.on(event, callback); }
+          off(event, callback) { this.#events.off(event, callback); }
+          deserialize(data) { return data; }
+
+          async start() {
+            init({
+              post: (response) => queueMicrotask(() => this.#events.emit("message", response)),
+              on: (callback) => {
+                this.#requestHandler = callback;
+                this.#events.on("request", callback);
+              },
+              off: (callback) => this.#events.off("request", callback),
+              teardown: () => this.#events.removeAllListeners("request"),
+              runTests: async (state, traces) => runBaseTests("run", state, traces),
+              collectTests: async (state, traces) => runBaseTests("collect", state, traces),
+              setup: setupEnvironment
+            });
+          }
+
+          send(message) {
+            queueMicrotask(() => this.#events.emit("request", message));
+          }
+
+          async stop() {
+            if (this.#requestHandler) this.#events.off("request", this.#requestHandler);
+            this.#events.removeAllListeners();
+          }
+        }
+
+        const pool = {
+          name: "appContainerInProcess",
+          createPoolWorker: () => new InProcessPoolWorker()
+        };
+
+        const [root, outputFile] = process.argv.slice(2);
+        await startVitest(
+          [
+            "tests/public/inventory-management.test.ts",
+            "tests/public/order-management.test.ts"
+          ],
+          {
+            root,
+            config: false,
+            run: true,
+            watch: false,
             environment: "node",
-            pool: "threads",
+            pool,
             maxWorkers: 1,
             fileParallelism: false,
-            execArgv: ["--preserve-symlinks", "--preserve-symlinks-main"],
             testTimeout: 5000,
             hookTimeout: 5000,
-            include: [
-              "tests/public/inventory-management.test.ts",
-              "tests/public/order-management.test.ts"
-            ],
-            exclude: ["tests/reserved/**"]
-          }
-        };
+            reporters: ["json"],
+            outputFile
+          },
+          { configFile: false }
+        );
+        process.exit(process.exitCode ?? 0);
         """;
 
     private static void CopyDirectory(string sourceRoot, string destinationRoot, string? excludedDirectoryName = null)
