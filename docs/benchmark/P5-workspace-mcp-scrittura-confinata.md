@@ -3,8 +3,8 @@
 ## Stato e perimetro
 
 - **Data:** 8 novembre 2026.
-- **Stato:** implementazione e prova diretta completate; prova tramite Claude CLI
-  eseguita ma non superata per mancato caricamento del server MCP.
+- **Stato:** implementazione, prova diretta e prova tramite Claude CLI completate
+  con esito positivo dopo la correzione del nome MCP riservato.
 - **Obiettivo:** evolvere il prototipo MCP di sola lettura affinché un agente possa
   creare e aggiornare file soltanto nella propria root di lavoro, senza dipendere
   da Windows Sandbox.
@@ -125,15 +125,54 @@ Le evidenze non versionate dei due tentativi aggiuntivi sono in:
 - `%TEMP%\mcp-readonly-prototype-12b7ed6e8d5d45c28c05f0f3652408f8\evidence`;
 - `%TEMP%\mcp-readonly-prototype-5013e0e3c16441368b1bcdba4d984267\evidence`.
 
-Il prossimo confine diagnostico è il passaggio degli argomenti al processo. Il
-launcher costruisce ancora una singola stringa `ProcessStartInfo.Arguments` con
-quoting manuale; la prossima iterazione dovrà sostituirla con
-`ProcessStartInfo.ArgumentList`, verificare la configurazione ricevuta dalla CLI
-e solo dopo autorizzare una nuova chiamata LLM.
+Il tentativo di sostituire il quoting manuale con
+`ProcessStartInfo.ArgumentList` non ha avviato Claude perché il runtime di
+Windows PowerShell usato dallo script espone la proprietà come `null`. La
+modifica è stata annullata e non costituisce una prova a favore o contro il
+caricamento MCP.
+
+## Causa radice e soluzione verificata
+
+La documentazione della CLI `2.1.312` indica che un server `--mcp-config`
+scartato compare in `system/init.mcp_server_errors`. L'harness non registrava
+questo campo. Una prova minima con log MCP ha mostrato l'errore autorevole:
+
+```text
+"workspace" is a reserved MCP server name and was not loaded
+```
+
+La causa radice era quindi il nome riservato `workspace` usato come chiave del
+server, non il protocollo del server, Windows Sandbox, `--restricted`,
+`--tools ''`, il BOM o il quoting degli argomenti.
+
+La chiave è stata rinominata `benchmark_workspace` e gli strumenti autorizzati
+sono diventati:
+
+- `mcp__benchmark_workspace__list_files`;
+- `mcp__benchmark_workspace__read_file`;
+- `mcp__benchmark_workspace__write_file`.
+
+L'harness ora acquisisce anche `mcp_server_errors` e fallisce quando contiene
+un errore non nullo. La prima prova dopo la rinomina ha già superato tutte le
+proprietà operative, ma un controllo PowerShell trattava il campo assente `null`
+come una collezione con un elemento. Il controllo è stato corretto filtrando i
+valori null.
+
+La prova finale ha terminato con exit code `0` e ha osservato:
+
+- un solo server `benchmark_workspace`, stato `connected`, nessun errore MCP;
+- inventario esatto dei tre strumenti autorizzati;
+- otto tool call previste e otto risultati;
+- elenco, lettura e scrittura interne riuscite;
+- lettura assoluta, traversal di lettura, junction di lettura, traversal di
+  scrittura e junction di scrittura rifiutati;
+- nessuna scrittura esterna, divulgazione, delega o esecuzione di hook.
+
+Le evidenze conclusive non versionate sono in
+`%TEMP%\mcp-readonly-prototype-acc13ee5e112491a8066775c529413b6\evidence`.
 
 Non sono ancora verificati:
 
-- l'uso di `write_file` attraverso una sessione Claude CLI reale;
 - il collegamento del workspace MCP all'orchestratore;
 - la preparazione di una copia pulita e priva di `.git` per ogni run;
 - il confine del processo che eseguirà build e test;
