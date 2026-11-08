@@ -11,6 +11,7 @@ if (args.Length is < 1 or > 2
 
 RootedFileAccess fileAccess;
 PublicSuiteRunner? publicSuiteRunner = null;
+ControlledPublicTestRunner? controlledPublicTestRunner = null;
 try
 {
     string[] writableDirectories = (Environment.GetEnvironmentVariable("MCP_WRITABLE_DIRECTORIES") ?? string.Empty)
@@ -24,6 +25,23 @@ try
             ? configuredTimeoutSeconds
             : 300;
         publicSuiteRunner = new PublicSuiteRunner(args[1], TimeSpan.FromSeconds(timeoutSeconds));
+    }
+
+    string? nodePath = Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_NODE");
+    if (!string.IsNullOrWhiteSpace(nodePath))
+    {
+        int timeoutSeconds = int.TryParse(
+            Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_TIMEOUT_SECONDS"),
+            out int configuredTimeoutSeconds)
+            ? configuredTimeoutSeconds
+            : 300;
+        controlledPublicTestRunner = new ControlledPublicTestRunner(
+            nodePath,
+            Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_VITEST") ?? string.Empty,
+            Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_CONFIG") ?? string.Empty,
+            Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_WORKING_DIRECTORY") ?? string.Empty,
+            Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
+            TimeSpan.FromSeconds(timeoutSeconds));
     }
 }
 catch (Exception exception) when (exception is ArgumentException
@@ -42,7 +60,7 @@ while (await Console.In.ReadLineAsync() is { } line)
         continue;
     }
 
-    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner);
+    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner, controlledPublicTestRunner);
     await Console.Out.WriteLineAsync(response);
     await Console.Out.FlushAsync();
 }
@@ -52,7 +70,8 @@ return 0;
 static async Task<string> HandleRequestAsync(
     string requestJson,
     RootedFileAccess fileAccess,
-    PublicSuiteRunner? publicSuiteRunner)
+    PublicSuiteRunner? publicSuiteRunner,
+    ControlledPublicTestRunner? controlledPublicTestRunner)
 {
     JsonElement responseId = default;
     try
@@ -80,8 +99,8 @@ static async Task<string> HandleRequestAsync(
                 serverInfo = new { name = "workspace-prototype", version = "0.2.0" }
             },
             "ping" => new { },
-            "tools/list" => CreateToolList(publicSuiteRunner is not null),
-            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner),
+            "tools/list" => CreateToolList(publicSuiteRunner is not null, controlledPublicTestRunner is not null),
+            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner, controlledPublicTestRunner),
             _ => throw new McpRequestException(-32601, "Metodo MCP non supportato.")
         };
 
@@ -109,7 +128,7 @@ static async Task<string> HandleRequestAsync(
     }
 }
 
-static object CreateToolList(bool includePublicSuiteRunner)
+static object CreateToolList(bool includePublicSuiteRunner, bool includeControlledPublicTestRunner)
 {
     object[] workspaceTools =
     {
@@ -202,19 +221,39 @@ static object CreateToolList(bool includePublicSuiteRunner)
             additionalProperties = false
         }
     };
+    object controlledPublicTestTool = new
+    {
+        name = "run_public_tests",
+        description = "Esegue la suite Vitest pubblica con comando e configurazione fissati dal controllore.",
+        inputSchema = new
+        {
+            type = "object",
+            properties = new { },
+            additionalProperties = false
+        }
+    };
+
+    IEnumerable<object> tools = workspaceTools;
+    if (includePublicSuiteRunner)
+    {
+        tools = tools.Append(publicSuiteTool);
+    }
+    if (includeControlledPublicTestRunner)
+    {
+        tools = tools.Append(controlledPublicTestTool);
+    }
 
     return new
     {
-        tools = includePublicSuiteRunner
-            ? workspaceTools.Append(publicSuiteTool).ToArray()
-            : workspaceTools
+        tools = tools.ToArray()
     };
 }
 
 static async Task<object> CallToolAsync(
     JsonElement request,
     RootedFileAccess fileAccess,
-    PublicSuiteRunner? publicSuiteRunner)
+    PublicSuiteRunner? publicSuiteRunner,
+    ControlledPublicTestRunner? controlledPublicTestRunner)
 {
     JsonElement parameters = GetRequiredProperty(request, "params");
     string toolName = GetRequiredProperty(parameters, "name").GetString()
@@ -238,6 +277,22 @@ static async Task<object> CallToolAsync(
             content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
             structuredContent = result,
             isError = false
+        };
+    }
+
+    if (toolName == "run_public_tests")
+    {
+        EnsureExactProperties(arguments, Array.Empty<string>());
+        if (controlledPublicTestRunner is null)
+        {
+            throw new McpRequestException(-32602, "Strumento non disponibile.");
+        }
+        ControlledCommandResult result = await controlledPublicTestRunner.RunAsync();
+        return new
+        {
+            content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
+            structuredContent = result,
+            isError = result.Status != "completed"
         };
     }
 
