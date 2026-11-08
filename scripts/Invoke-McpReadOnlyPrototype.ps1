@@ -52,12 +52,6 @@ function New-JsonRpcRequest {
     return ($request | ConvertTo-Json -Depth 10 -Compress)
 }
 
-function ConvertTo-QuotedProcessArgument {
-    param([string]$Value)
-
-    return '"' + $Value.Replace('\', '\').Replace('"', '\"') + '"'
-}
-
 function Set-Utf8WithoutBom {
     param(
         [string]$LiteralPath,
@@ -65,6 +59,12 @@ function Set-Utf8WithoutBom {
     )
 
     [IO.File]::WriteAllText($LiteralPath, $Value, [Text.UTF8Encoding]::new($false))
+}
+
+function ConvertTo-QuotedProcessArgument {
+    param([string]$Value)
+
+    return '"' + $Value.Replace('\', '\').Replace('"', '\"') + '"'
 }
 
 function Invoke-ServerConversation {
@@ -170,7 +170,7 @@ function Invoke-ClaudeVerification {
         '--settings', $settingsPath,
         '--setting-sources', '',
         '--tools', '',
-        '--allowedTools', 'mcp__workspace__list_files,mcp__workspace__read_file,mcp__workspace__write_file',
+        '--allowedTools', 'mcp__benchmark_workspace__list_files,mcp__benchmark_workspace__read_file,mcp__benchmark_workspace__write_file',
         '--disallowedTools', 'Bash,PowerShell,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,Task,Agent,Skill',
         '--disable-slash-commands',
         '--no-session-persistence',
@@ -224,11 +224,18 @@ function Invoke-ClaudeVerification {
         Where-Object { $_.type -eq 'tool_result' })
     $finalResult = $events | Where-Object { $_.type -eq 'result' } | Select-Object -Last 1
     $hookEvents = @($events | Where-Object { $_.type -eq 'system' -and $_.subtype -match 'hook' })
-    $expectedTools = @('mcp__workspace__list_files', 'mcp__workspace__read_file', 'mcp__workspace__write_file')
+    $expectedTools = @(
+        'mcp__benchmark_workspace__list_files',
+        'mcp__benchmark_workspace__read_file',
+        'mcp__benchmark_workspace__write_file')
     $checks = [ordered]@{
         exitCodeZero = ($exitCode -eq 0)
         exactToolInventory = ((@($initialization.tools | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
-        singleMcpServerConnected = ($initialization.mcp_servers.Count -eq 1 -and $initialization.mcp_servers[0].name -eq 'workspace' -and $initialization.mcp_servers[0].status -eq 'connected')
+        singleMcpServerConnected = ($initialization.mcp_servers.Count -eq 1 -and $initialization.mcp_servers[0].name -eq 'benchmark_workspace' -and $initialization.mcp_servers[0].status -eq 'connected')
+        noMcpServerErrors = (@(
+            $initialization.mcp_server_errors |
+                Where-Object { $null -ne $_ }
+            ).Count -eq 0)
         noSlashCommands = ($initialization.slash_commands.Count -eq 0)
         noSkills = ($initialization.skills.Count -eq 0)
         expectedCallsObserved = ($toolUses.Count -eq 8 -and (@($toolUses.name | Select-Object -Unique | Sort-Object) -join ',') -eq (@($expectedTools | Sort-Object) -join ','))
@@ -251,6 +258,9 @@ function Invoke-ClaudeVerification {
     $observations = [ordered]@{
         declaredAgents = @($initialization.agents)
         declaredPlugins = @($initialization.plugins)
+        mcpServerErrors = @(
+            $initialization.mcp_server_errors |
+                Where-Object { $null -ne $_ })
         configurationSourcesEffective = 'Non esposte dall evento system/init; non dimostrate.'
         managedPolicy = 'Registrata separatamente da claude doctor; il diagnostico non prova quali sorgenti effettive siano state applicate alla sessione già conclusa.'
         hookEvents = $hookEvents
@@ -370,7 +380,7 @@ if ($LASTEXITCODE -ne 0) {
 
 $mcpConfiguration = [ordered]@{
     mcpServers = [ordered]@{
-        workspace = [ordered]@{
+        benchmark_workspace = [ordered]@{
             command = $serverPath
             args = @($agentRoot)
             env = @{ ENABLE_CLAUDEAI_MCP_SERVERS = 'false' }
