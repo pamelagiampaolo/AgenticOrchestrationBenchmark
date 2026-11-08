@@ -15,11 +15,28 @@ riproducibile.
 
 ## Priorità attuale
 
-Concentrarsi sulla progettazione e successiva costruzione del benchmark. La
-baseline sperimentale definitiva non esiste finché struttura, task, criteri di
-successo e condizioni iniziali non sono stati approvati e verificati.
+Il benchmark e l'evaluator esterno sono stati realizzati. La fase corrente è
+dedicata agli ultimi miglioramenti e alla verifica di readiness prima della
+prima esecuzione con un agente sperimentale. Prima di avviare run ufficiali,
+confermare che baseline, configurazione dell'harness, criteri di successo,
+condizioni iniziali, limiti e raccolta delle metriche siano congelati e
+verificati nello stato effettivamente usato dall'esperimento.
 
 Non implementare in anticipo le soluzioni dei task sperimentali.
+
+### Architettura di isolamento corrente
+
+Windows Sandbox non fa più parte dell'architettura operativa corrente. Il server
+MCP deve confinare gli agenti al solo progetto di lavoro e deve esporre soltanto
+gli strumenti approvati. I documenti e i prototipi relativi a Windows Sandbox
+restano evidenze storiche delle iterazioni precedenti, ma non descrivono il
+percorso di esecuzione attuale e non devono essere usati come prerequisito delle
+nuove run.
+
+Il confinamento MCP, l'inaccessibilità dei test riservati e l'assenza di percorsi
+alternativi non autorizzati devono essere verificati con prove di accettazione
+sull'harness corrente prima delle run ufficiali. La presenza del meccanismo non
+costituisce da sola prova di isolamento completo.
 
 ## Metodo di lavoro
 
