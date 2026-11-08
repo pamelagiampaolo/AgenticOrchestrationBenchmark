@@ -98,6 +98,7 @@ public sealed record SessionInitialization(
 /// <param name="Iterations">Uso per chiamata riportato nel campo <c>usage.iterations</c>.</param>
 /// <param name="Models">Modelli elencati in <c>modelUsage</c>.</param>
 /// <param name="PermissionDenialCount">Numero di permessi negati.</param>
+/// <param name="ResultText">Testo finale della sessione (campo <c>result</c>), se presente.</param>
 public sealed record SessionResult(
     string? Subtype,
     bool? IsError,
@@ -108,7 +109,8 @@ public sealed record SessionResult(
     TokenUsage? Usage,
     IReadOnlyList<TokenUsage> Iterations,
     IReadOnlyList<string> Models,
-    int PermissionDenialCount);
+    int PermissionDenialCount,
+    string? ResultText);
 
 /// <summary>
 /// Tipo di riga osservata, per le decisioni del controllore.
@@ -338,7 +340,8 @@ public sealed class StreamUsageTracker
             usage,
             iterations,
             models,
-            GetArray(root, "permission_denials").Count());
+            GetArray(root, "permission_denials").Count(),
+            GetString(root, "result"));
         return StreamLineKind.Result;
     }
 

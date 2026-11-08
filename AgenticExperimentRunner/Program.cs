@@ -10,6 +10,18 @@ if (args.Length > 0 && args[0] == CoordinationServerCommand.Name)
     return;
 }
 
+if (args.Length > 0 && args[0] == RunAdaptiveHierarchyCommand.Name)
+{
+    // La CLI del coordinatore avvia questo stesso eseguibile come relay di coordinamento.
+    string coordinationServerPath = Environment.ProcessPath
+        ?? throw new InvalidOperationException("Percorso dell'eseguibile corrente non disponibile.");
+    var runAdaptiveHierarchy = new RunAdaptiveHierarchyCommand(
+        new HierarchicalRunRunner(TimeProvider.System, Path.Combine(AppContext.BaseDirectory, "Instructions")),
+        coordinationServerPath);
+    Environment.ExitCode = await runAdaptiveHierarchy.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
+
 if (args.Length > 0 && args[0] == PrepareRunCommand.Name)
 {
     var prepareRun = new PrepareRunCommand(

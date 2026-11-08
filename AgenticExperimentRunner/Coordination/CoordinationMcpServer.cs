@@ -112,6 +112,13 @@ public sealed class CoordinationMcpServer
         }
     }
 
+    /// <summary>
+    /// Definizione degli strumenti come la riceve il modello (risultato di <c>tools/list</c>).
+    /// La descrizione è una condizione sperimentale: il suo hash entra nel record della run.
+    /// </summary>
+    /// <returns>JSON compatto.</returns>
+    public static string DescribeTools() => JsonSerializer.Serialize(CreateToolList());
+
     private static object CreateToolList() => new
     {
         tools = new[]
