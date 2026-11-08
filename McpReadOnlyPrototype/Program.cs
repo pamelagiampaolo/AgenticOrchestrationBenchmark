@@ -111,7 +111,7 @@ static async Task<string> HandleRequestAsync(
 
 static object CreateToolList(bool includePublicSuiteRunner)
 {
-    object[] readOnlyTools =
+    object[] workspaceTools =
     {
         new
         {
@@ -158,6 +158,37 @@ static object CreateToolList(bool includePublicSuiteRunner)
                 required = new[] { "path", "content" },
                 additionalProperties = false
             }
+        },
+        new
+        {
+            name = "delete_file",
+            description = "Elimina un singolo file esistente da un'area scrivibile configurata.",
+            inputSchema = new
+            {
+                type = "object",
+                properties = new
+                {
+                    path = new { type = "string", description = "Percorso relativo del file." }
+                },
+                required = new[] { "path" },
+                additionalProperties = false
+            }
+        },
+        new
+        {
+            name = "move_file",
+            description = "Sposta o rinomina un file tra aree scrivibili senza sovrascrivere la destinazione.",
+            inputSchema = new
+            {
+                type = "object",
+                properties = new
+                {
+                    sourcePath = new { type = "string", description = "Percorso relativo del file sorgente." },
+                    destinationPath = new { type = "string", description = "Nuovo percorso relativo del file." }
+                },
+                required = new[] { "sourcePath", "destinationPath" },
+                additionalProperties = false
+            }
         }
     };
     object publicSuiteTool = new
@@ -175,8 +206,8 @@ static object CreateToolList(bool includePublicSuiteRunner)
     return new
     {
         tools = includePublicSuiteRunner
-            ? readOnlyTools.Append(publicSuiteTool).ToArray()
-            : readOnlyTools
+            ? workspaceTools.Append(publicSuiteTool).ToArray()
+            : workspaceTools
     };
 }
 
@@ -222,6 +253,36 @@ static async Task<object> CallToolAsync(
         {
             content = new[] { new { type = "text", text = "File scritto correttamente." } },
             structuredContent = new { path = writePath, charactersWritten = content.Length },
+            isError = false
+        };
+    }
+
+    if (toolName == "delete_file")
+    {
+        EnsureExactProperties(arguments, new[] { "path" });
+        string deletePath = GetRequiredProperty(arguments, "path").GetString()
+            ?? throw new McpRequestException(-32602, "Percorso mancante.");
+        fileAccess.DeleteFile(deletePath);
+        return new
+        {
+            content = new[] { new { type = "text", text = "File eliminato correttamente." } },
+            structuredContent = new { path = deletePath },
+            isError = false
+        };
+    }
+
+    if (toolName == "move_file")
+    {
+        EnsureExactProperties(arguments, new[] { "sourcePath", "destinationPath" });
+        string sourcePath = GetRequiredProperty(arguments, "sourcePath").GetString()
+            ?? throw new McpRequestException(-32602, "Percorso sorgente mancante.");
+        string destinationPath = GetRequiredProperty(arguments, "destinationPath").GetString()
+            ?? throw new McpRequestException(-32602, "Percorso destinazione mancante.");
+        fileAccess.MoveFile(sourcePath, destinationPath);
+        return new
+        {
+            content = new[] { new { type = "text", text = "File spostato correttamente." } },
+            structuredContent = new { sourcePath, destinationPath },
             isError = false
         };
     }
