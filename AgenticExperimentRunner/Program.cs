@@ -1,5 +1,14 @@
-﻿using AgenticExperimentRunner.RunPreparation;
+﻿using AgenticExperimentRunner.Coordination;
+using AgenticExperimentRunner.RunPreparation;
 using AgenticExperimentRunner.SessionExecution;
+
+if (args.Length > 0 && args[0] == CoordinationServerCommand.Name)
+{
+    // Relay MCP: stdout è riservato al protocollo, la diagnostica va su stderr.
+    Environment.ExitCode = await CoordinationServerCommand.ExecuteAsync(
+        args[1..], Console.OpenStandardInput(), Console.OpenStandardOutput(), Console.Error);
+    return;
+}
 
 if (args.Length > 0 && args[0] == PrepareRunCommand.Name)
 {
