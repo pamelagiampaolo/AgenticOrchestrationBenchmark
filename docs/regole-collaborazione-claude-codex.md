@@ -269,7 +269,10 @@ Queste regole sono state date soltanto a Claude e non si estendono a Codex.
    e comandi Git distruttivi.
 4. **Prima di ogni nuova iterazione** integrare `main` in `feat/single-agent` nel
    proprio worktree (merge, mai rebase di commit già condivisi).
-5. Lavorare solo in `C:\repos\TesiAgenticAI-agent`.
+5. **Branch sempre integrabile:** ogni commit che chiude un'iterazione `A*` è già
+   verificato (format, build, suite completa), così Codex può unire in `main`
+   qualunque punto del branch che chiude un'iterazione senza attendere Claude.
+6. Lavorare solo in `C:\repos\TesiAgenticAI-agent`.
 
 ---
 
@@ -278,8 +281,15 @@ Queste regole sono state date soltanto a Claude e non si estendono a Codex.
 1. **Commit:** vale la regola generale di `AGENTS.md`: Codex crea commit soltanto
    dopo un'autorizzazione esplicita dell'utente. L'autorizzazione permanente data
    a Claude non si applica a Codex.
-2. **Integrazione su `main`:** Codex esegue il merge di `feat/single-agent` in
-   `main` nel proprio worktree, quando ha un punto pulito con tutto committato.
+2. **Integrazione su `main` (decisione dell'utente, 8 novembre 2026):** Codex
+   esegue il merge di `feat/single-agent` in `main` nel proprio worktree in questi
+   momenti precisi:
+   - prima di iniziare un lavoro che usa codice di Claude (per esempio la
+     gerarchia statica, che usa il livello di coordinamento e il launcher);
+   - quando l'utente lo chiede.
+
+   Condizioni: il worktree di Codex è pulito con tutto committato, e dopo il merge
+   build e suite completa passano; l'esito si riporta con comandi e output reali.
 3. **Gerarchia statica:** va costruita come configurazione del livello di
    coordinamento condiviso (`AgenticExperimentRunner/Coordination/`) e del launcher
    C#; se servono modifiche a quel codice, si chiedono a Claude tramite l'utente.
