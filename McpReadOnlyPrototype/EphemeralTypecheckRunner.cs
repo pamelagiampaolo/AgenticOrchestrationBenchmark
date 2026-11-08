@@ -16,6 +16,8 @@ public sealed class EphemeralTypecheckRunner
     private readonly string typeScriptEntryPoint;
     private readonly string auditPath;
     private readonly TimeSpan timeout;
+    private readonly string operation;
+    private readonly bool noEmit;
 
     /// <summary>
     /// Configura workspace, toolchain, audit e timeout senza input controllabili dal chiamante MCP.
@@ -27,6 +29,19 @@ public sealed class EphemeralTypecheckRunner
         string typeScriptEntryPoint,
         string auditPath,
         TimeSpan timeout)
+        : this(agentRoot, workerRoot, nodePath, typeScriptEntryPoint, auditPath, timeout, "typecheck", noEmit: true)
+    {
+    }
+
+    internal EphemeralTypecheckRunner(
+        string agentRoot,
+        string workerRoot,
+        string nodePath,
+        string typeScriptEntryPoint,
+        string auditPath,
+        TimeSpan timeout,
+        string operation,
+        bool noEmit)
     {
         string normalizedAgentRoot = RequireDirectory(agentRoot, nameof(agentRoot));
         workspaceSource = RequireDirectory(Path.Combine(normalizedAgentRoot, "workspace"), "workspace");
@@ -37,6 +52,8 @@ public sealed class EphemeralTypecheckRunner
         this.timeout = timeout > TimeSpan.Zero
             ? timeout
             : throw new ArgumentException("Il timeout deve essere positivo.", nameof(timeout));
+        this.operation = operation;
+        this.noEmit = noEmit;
         if (IsWithin(this.workerRoot, normalizedAgentRoot) || IsWithin(this.auditPath, normalizedAgentRoot))
         {
             throw new ArgumentException("Worker e audit devono essere esterni alla root MCP dell'agente.");
@@ -78,7 +95,10 @@ public sealed class EphemeralTypecheckRunner
                 }
             };
             process.StartInfo.ArgumentList.Add(typeScriptEntryPoint);
-            process.StartInfo.ArgumentList.Add("--noEmit");
+            if (noEmit)
+            {
+                process.StartInfo.ArgumentList.Add("--noEmit");
+            }
             process.StartInfo.ArgumentList.Add("--project");
             process.StartInfo.ArgumentList.Add(configPath);
 
@@ -125,7 +145,7 @@ public sealed class EphemeralTypecheckRunner
 
             stopwatch.Stop();
             var result = new ControlledCommandResult(
-                "typecheck",
+                operation,
                 status,
                 exitCode,
                 stopwatch.ElapsedMilliseconds,
@@ -149,7 +169,7 @@ public sealed class EphemeralTypecheckRunner
         string message,
         CancellationToken cancellationToken)
     {
-        var result = new ControlledCommandResult("typecheck", "infrastructure-error", null, 0, string.Empty, message, null);
+        var result = new ControlledCommandResult(operation, "infrastructure-error", null, 0, string.Empty, message, null);
         await AppendAuditAsync(DateTimeOffset.UtcNow, Path.Combine(invocationRoot, "project"), result, cancellationToken);
         return result;
     }
@@ -161,12 +181,19 @@ public sealed class EphemeralTypecheckRunner
         CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(auditPath)!);
+        var arguments = new List<string> { typeScriptEntryPoint };
+        if (noEmit)
+        {
+            arguments.Add("--noEmit");
+        }
+        arguments.Add("--project");
+        arguments.Add("<worker>/project/tsconfig.json");
         string record = JsonSerializer.Serialize(new
         {
             timestampUtc = startedAt,
             operation = result.Operation,
             executable = nodePath,
-            arguments = new[] { typeScriptEntryPoint, "--noEmit", "--project", "<worker>/project/tsconfig.json" },
+            arguments,
             workingDirectory,
             result.Status,
             result.ExitCode,

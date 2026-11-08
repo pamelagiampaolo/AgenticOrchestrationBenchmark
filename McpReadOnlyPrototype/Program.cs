@@ -13,6 +13,7 @@ RootedFileAccess fileAccess;
 PublicSuiteRunner? publicSuiteRunner = null;
 EphemeralPublicTestRunner? controlledPublicTestRunner = null;
 EphemeralTypecheckRunner? typecheckRunner = null;
+EphemeralBuildRunner? buildRunner = null;
 try
 {
     string[] writableDirectories = (Environment.GetEnvironmentVariable("MCP_WRITABLE_DIRECTORIES") ?? string.Empty)
@@ -61,6 +62,23 @@ try
             Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
             TimeSpan.FromSeconds(timeoutSeconds));
     }
+
+    string? buildNodePath = Environment.GetEnvironmentVariable("MCP_BUILD_NODE");
+    if (!string.IsNullOrWhiteSpace(buildNodePath))
+    {
+        int timeoutSeconds = int.TryParse(
+            Environment.GetEnvironmentVariable("MCP_BUILD_TIMEOUT_SECONDS"),
+            out int configuredTimeoutSeconds)
+            ? configuredTimeoutSeconds
+            : 300;
+        buildRunner = new EphemeralBuildRunner(
+            args[0],
+            Environment.GetEnvironmentVariable("MCP_BUILD_WORKER_ROOT") ?? string.Empty,
+            buildNodePath,
+            Environment.GetEnvironmentVariable("MCP_BUILD_TSC") ?? string.Empty,
+            Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
+            TimeSpan.FromSeconds(timeoutSeconds));
+    }
 }
 catch (Exception exception) when (StartupExceptionPolicy.IsConfigurationError(exception))
 {
@@ -75,7 +93,7 @@ while (await Console.In.ReadLineAsync() is { } line)
         continue;
     }
 
-    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner);
+    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner, buildRunner);
     await Console.Out.WriteLineAsync(response);
     await Console.Out.FlushAsync();
 }
@@ -87,7 +105,8 @@ static async Task<string> HandleRequestAsync(
     RootedFileAccess fileAccess,
     PublicSuiteRunner? publicSuiteRunner,
     EphemeralPublicTestRunner? controlledPublicTestRunner,
-    EphemeralTypecheckRunner? typecheckRunner)
+    EphemeralTypecheckRunner? typecheckRunner,
+    EphemeralBuildRunner? buildRunner)
 {
     JsonElement responseId = default;
     try
@@ -115,8 +134,8 @@ static async Task<string> HandleRequestAsync(
                 serverInfo = new { name = "workspace-prototype", version = "0.2.0" }
             },
             "ping" => new { },
-            "tools/list" => CreateToolList(publicSuiteRunner is not null, controlledPublicTestRunner is not null, typecheckRunner is not null),
-            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner),
+            "tools/list" => CreateToolList(publicSuiteRunner is not null, controlledPublicTestRunner is not null, typecheckRunner is not null, buildRunner is not null),
+            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner, buildRunner),
             _ => throw new McpRequestException(-32601, "Metodo MCP non supportato.")
         };
 
@@ -144,7 +163,11 @@ static async Task<string> HandleRequestAsync(
     }
 }
 
-static object CreateToolList(bool includePublicSuiteRunner, bool includeControlledPublicTestRunner, bool includeTypecheckRunner)
+static object CreateToolList(
+    bool includePublicSuiteRunner,
+    bool includeControlledPublicTestRunner,
+    bool includeTypecheckRunner,
+    bool includeBuildRunner)
 {
     object[] workspaceTools =
     {
@@ -254,6 +277,12 @@ static object CreateToolList(bool includePublicSuiteRunner, bool includeControll
         description = "Esegue TypeScript typecheck con comando e toolchain fissati dal controllore.",
         inputSchema = new { type = "object", properties = new { }, additionalProperties = false }
     };
+    object buildTool = new
+    {
+        name = "run_build",
+        description = "Esegue la build TypeScript in una copia effimera con comando fissato dal controllore.",
+        inputSchema = new { type = "object", properties = new { }, additionalProperties = false }
+    };
 
     IEnumerable<object> tools = workspaceTools;
     if (includePublicSuiteRunner)
@@ -268,6 +297,10 @@ static object CreateToolList(bool includePublicSuiteRunner, bool includeControll
     {
         tools = tools.Append(typecheckTool);
     }
+    if (includeBuildRunner)
+    {
+        tools = tools.Append(buildTool);
+    }
 
     return new
     {
@@ -280,7 +313,8 @@ static async Task<object> CallToolAsync(
     RootedFileAccess fileAccess,
     PublicSuiteRunner? publicSuiteRunner,
     EphemeralPublicTestRunner? controlledPublicTestRunner,
-    EphemeralTypecheckRunner? typecheckRunner)
+    EphemeralTypecheckRunner? typecheckRunner,
+    EphemeralBuildRunner? buildRunner)
 {
     JsonElement parameters = GetRequiredProperty(request, "params");
     string toolName = GetRequiredProperty(parameters, "name").GetString()
@@ -331,6 +365,22 @@ static async Task<object> CallToolAsync(
             throw new McpRequestException(-32602, "Strumento non disponibile.");
         }
         ControlledCommandResult result = await typecheckRunner.RunAsync();
+        return new
+        {
+            content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
+            structuredContent = result,
+            isError = result.Status != "completed"
+        };
+    }
+
+    if (toolName == "run_build")
+    {
+        EnsureExactProperties(arguments, Array.Empty<string>());
+        if (buildRunner is null)
+        {
+            throw new McpRequestException(-32602, "Strumento non disponibile.");
+        }
+        ControlledCommandResult result = await buildRunner.RunAsync();
         return new
         {
             content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
