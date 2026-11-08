@@ -11,7 +11,7 @@ if (args.Length is < 1 or > 2
 
 RootedFileAccess fileAccess;
 PublicSuiteRunner? publicSuiteRunner = null;
-ControlledPublicTestRunner? controlledPublicTestRunner = null;
+EphemeralPublicTestRunner? controlledPublicTestRunner = null;
 try
 {
     string[] writableDirectories = (Environment.GetEnvironmentVariable("MCP_WRITABLE_DIRECTORIES") ?? string.Empty)
@@ -35,11 +35,11 @@ try
             out int configuredTimeoutSeconds)
             ? configuredTimeoutSeconds
             : 300;
-        controlledPublicTestRunner = new ControlledPublicTestRunner(
+        controlledPublicTestRunner = new EphemeralPublicTestRunner(
+            args[0],
+            Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_WORKER_ROOT") ?? string.Empty,
             nodePath,
             Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_VITEST") ?? string.Empty,
-            Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_CONFIG") ?? string.Empty,
-            Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_WORKING_DIRECTORY") ?? string.Empty,
             Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
             TimeSpan.FromSeconds(timeoutSeconds));
     }
@@ -71,7 +71,7 @@ static async Task<string> HandleRequestAsync(
     string requestJson,
     RootedFileAccess fileAccess,
     PublicSuiteRunner? publicSuiteRunner,
-    ControlledPublicTestRunner? controlledPublicTestRunner)
+    EphemeralPublicTestRunner? controlledPublicTestRunner)
 {
     JsonElement responseId = default;
     try
@@ -253,7 +253,7 @@ static async Task<object> CallToolAsync(
     JsonElement request,
     RootedFileAccess fileAccess,
     PublicSuiteRunner? publicSuiteRunner,
-    ControlledPublicTestRunner? controlledPublicTestRunner)
+    EphemeralPublicTestRunner? controlledPublicTestRunner)
 {
     JsonElement parameters = GetRequiredProperty(request, "params");
     string toolName = GetRequiredProperty(parameters, "name").GetString()

@@ -40,14 +40,13 @@ usato dal nuovo percorso.
 
 - `MCP_PUBLIC_TEST_NODE`;
 - `MCP_PUBLIC_TEST_VITEST`;
-- `MCP_PUBLIC_TEST_CONFIG`;
-- `MCP_PUBLIC_TEST_WORKING_DIRECTORY`;
+- `MCP_PUBLIC_TEST_WORKER_ROOT`;
 - `MCP_COMMAND_AUDIT_PATH`;
 - `MCP_PUBLIC_TEST_TIMEOUT_SECONDS` opzionale, valore predefinito 300.
 
-La directory di lavoro dovrà essere la copia effimera composta secondo P9. Il
-launcher definitivo e la verifica d'integrità prima/dopo il comando non fanno
-parte di questa iterazione.
+Il server crea sotto la worker root una copia effimera composta secondo P9,
+genera la configurazione e verifica l'integrità dei test pubblici prima e dopo
+il comando. Il collegamento al launcher definitivo resta esterno a P15.
 
 ## Criteri di accettazione ed evidenze
 
