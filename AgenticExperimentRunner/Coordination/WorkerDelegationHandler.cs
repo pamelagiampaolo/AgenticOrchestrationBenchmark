@@ -15,7 +15,9 @@ public sealed class WorkerDelegationHandler : IDelegationHandler
     /// <summary>Motivo registrato per un lavoratore terminato perché il coordinatore ha concluso.</summary>
     public const string CoordinatorEndedReason = "il coordinatore ha concluso prima della fine del lavoratore";
 
-    private readonly Func<string, string, AgentLaunch> createWorkerLaunch;
+    private readonly Func<string, string, string, AgentLaunch> createWorkerLaunch;
+    private readonly Func<int, string> selectAgentId;
+    private readonly Func<int, string> selectRole;
     private readonly RunLimitController limits;
     private readonly TimeProvider timeProvider;
     private readonly int maxDelegations;
@@ -40,9 +42,47 @@ public sealed class WorkerDelegationHandler : IDelegationHandler
         TimeProvider timeProvider,
         int maxDelegations,
         CancellationToken runCancellation)
+        : this(
+            WrapLegacyFactory(createWorkerLaunch),
+            sequence => $"worker-{sequence:00}",
+            _ => HierarchicalRunRunner.WorkerRole,
+            limits,
+            timeProvider,
+            maxDelegations,
+            runCancellation)
+    {
+    }
+
+    private static Func<string, string, string, AgentLaunch> WrapLegacyFactory(
+        Func<string, string, AgentLaunch> createWorkerLaunch)
+    {
+        ArgumentNullException.ThrowIfNull(createWorkerLaunch);
+        return (agentId, _, task) => createWorkerLaunch(agentId, task);
+    }
+
+    /// <summary>
+    /// Crea un gestore con identificatori e ruoli determinati meccanicamente dal numero di sequenza.
+    /// </summary>
+    /// <param name="createWorkerLaunch">Prepara l'avvio usando identificatore, ruolo e compito.</param>
+    /// <param name="selectAgentId">Restituisce l'identificatore per una sequenza a base uno.</param>
+    /// <param name="selectRole">Restituisce il ruolo per una sequenza a base uno.</param>
+    /// <param name="limits">Controllore globale della run.</param>
+    /// <param name="timeProvider">Orologio degli eventi.</param>
+    /// <param name="maxDelegations">Numero massimo di richieste.</param>
+    /// <param name="runCancellation">Annullamento esterno della run.</param>
+    public WorkerDelegationHandler(
+        Func<string, string, string, AgentLaunch> createWorkerLaunch,
+        Func<int, string> selectAgentId,
+        Func<int, string> selectRole,
+        RunLimitController limits,
+        TimeProvider timeProvider,
+        int maxDelegations,
+        CancellationToken runCancellation)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxDelegations);
         this.createWorkerLaunch = createWorkerLaunch ?? throw new ArgumentNullException(nameof(createWorkerLaunch));
+        this.selectAgentId = selectAgentId ?? throw new ArgumentNullException(nameof(selectAgentId));
+        this.selectRole = selectRole ?? throw new ArgumentNullException(nameof(selectRole));
         this.limits = limits ?? throw new ArgumentNullException(nameof(limits));
         this.timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         this.maxDelegations = maxDelegations;
@@ -81,8 +121,14 @@ public sealed class WorkerDelegationHandler : IDelegationHandler
                 $"Delega rifiutata: {rejection}. Nessun lavoratore è stato avviato.");
         }
 
-        string agentId = $"worker-{workers.Count + 1:00}";
-        AgentLaunch launch = createWorkerLaunch(agentId, request.Task);
+        string agentId = selectAgentId(sequence);
+        string role = selectRole(sequence);
+        if (string.IsNullOrWhiteSpace(agentId) || string.IsNullOrWhiteSpace(role))
+        {
+            throw new InvalidOperationException($"Identificatore e ruolo devono essere valorizzati per la delega {sequence}.");
+        }
+
+        AgentLaunch launch = createWorkerLaunch(agentId, role, request.Task);
         DateTimeOffset startedAt = timeProvider.GetUtcNow();
         AgentProcessOutcome outcome = await AgentProcess.RunAsync(
             launch, limits, timeProvider, cancellationToken, CoordinatorEndedReason, runCancellation);
