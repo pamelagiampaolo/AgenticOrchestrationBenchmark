@@ -45,6 +45,13 @@ public sealed class WorkspacePathPolicyTests
     [InlineData("tests/reserved")]
     [InlineData("tests/reserved/t1.test.ts")]
     [InlineData("Tests/Reserved/t1.test.ts")]
+    [InlineData(".claude/settings.json")]
+    [InlineData("src/.claude")]
+    [InlineData("CLAUDE.md")]
+    [InlineData("docs/claude.md")]
+    [InlineData("CLAUDE.local.md")]
+    [InlineData("AGENTS.md")]
+    [InlineData(".mcp.json")]
     public void NormalizeAuthorizedPath_RejectsUnauthorizedMaterial(string archivePath)
     {
         Assert.Throws<RunPreparationException>(() => WorkspacePathPolicy.NormalizeAuthorizedPath(archivePath));

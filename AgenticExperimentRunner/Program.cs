@@ -1,4 +1,47 @@
-﻿
+﻿using AgenticExperimentRunner.Coordination;
+using AgenticExperimentRunner.RunPreparation;
+using AgenticExperimentRunner.SessionExecution;
+
+if (args.Length > 0 && args[0] == CoordinationServerCommand.Name)
+{
+    // Relay MCP: stdout è riservato al protocollo, la diagnostica va su stderr.
+    Environment.ExitCode = await CoordinationServerCommand.ExecuteAsync(
+        args[1..], Console.OpenStandardInput(), Console.OpenStandardOutput(), Console.Error);
+    return;
+}
+
+if (args.Length > 0 && args[0] == RunAdaptiveHierarchyCommand.Name)
+{
+    // La CLI del coordinatore avvia questo stesso eseguibile come relay di coordinamento.
+    string coordinationServerPath = Environment.ProcessPath
+        ?? throw new InvalidOperationException("Percorso dell'eseguibile corrente non disponibile.");
+    var runAdaptiveHierarchy = new RunAdaptiveHierarchyCommand(
+        new HierarchicalRunRunner(TimeProvider.System, Path.Combine(AppContext.BaseDirectory, "Instructions")),
+        coordinationServerPath);
+    Environment.ExitCode = await runAdaptiveHierarchy.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
+
+if (args.Length > 0 && args[0] == PrepareRunCommand.Name)
+{
+    var prepareRun = new PrepareRunCommand(
+        new RunAreaPreparer(
+            new GitCommandRunner(),
+            TimeProvider.System,
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
+        TimeProvider.System);
+    Environment.ExitCode = await prepareRun.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
+
+if (args.Length > 0 && args[0] == RunSingleAgentCommand.Name)
+{
+    var runSingleAgent = new RunSingleAgentCommand(
+        new SingleAgentSessionRunner(TimeProvider.System, Path.Combine(AppContext.BaseDirectory, "Instructions")));
+    Environment.ExitCode = await runSingleAgent.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
+
 const string claudeCliPath = @"C:\Users\Utente\.local\bin\claude.exe";
 const string requestedModel = "claude-sonnet-5-5";
 

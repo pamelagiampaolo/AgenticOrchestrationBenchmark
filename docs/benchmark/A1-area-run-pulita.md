@@ -1,5 +1,11 @@
 # A1 — Area di run pulita per ogni esecuzione
 
+> **Esteso da A2.** Il layout `workspace/` + `baseline-manifest.json` descritto
+> qui è stato sostituito dal layout `agent-root/` + `session/` con manifest
+> schema 2 nella root dei risultati
+> (`A2-layout-agente-e-prepare-run.md`). Decisioni, verifiche e problemi A1
+> riportati sotto restano validi come registro storico.
+
 ## Registro
 
 - **Data:** 8 novembre 2026

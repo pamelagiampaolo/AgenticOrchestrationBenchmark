@@ -83,7 +83,15 @@ autorizzazione: è una chiamata LLM.
   `claude.exe` (percorso e modello hard-coded in `Program.cs`) tramite
   `ClaudeCliClient`, interpreta l'output JSON in `ClaudeCliResult` (token
   input/output/cache, durata, modello effettivo) e accoda una riga JSON nel file
-  di risultati. Non è ancora collegato al server MCP.
+  di risultati. Non è ancora collegato al server MCP. Il sottocomando
+  `prepare-run` (`RunPreparation/`, documenti `A1`/`A2`) prepara da un commit
+  l'area di una run (`<runsRoot>/<runId>/{agent-root,session}`) e il manifest in
+  `<resultsRoot>/<runId>/manifest.json`, e stampa su stdout il solo JSON con i
+  percorsi; va invocato come eseguibile compilato, non con `dotnet run`:
+
+  ```powershell
+  AgenticExperimentRunner.exe prepare-run --repository <assoluto> --commit <rif> --task T1 --runs-root C:\AgenticAIRuns --results-root C:\AgenticAIResults [--run-id <id>]
+  ```
 - **`P21IsolationProbe/`, `NodeBaselineSandboxProbe/`, `McpSandboxBridgeProbe/`,
   script `*Sandbox*`/`P21*` e `.wsb`** — evidenze storiche del percorso Windows
   Sandbox, non più parte dell'architettura operativa (vedi `AGENTS.md`).
