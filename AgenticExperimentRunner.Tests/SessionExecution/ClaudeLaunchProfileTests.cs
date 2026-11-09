@@ -25,7 +25,7 @@ public sealed class ClaudeLaunchProfileTests
                 "--setting-sources", "",
                 "--tools", "",
                 "--allowedTools",
-                "mcp__benchmark_workspace__list_files,mcp__benchmark_workspace__read_file,mcp__benchmark_workspace__write_file,mcp__benchmark_workspace__delete_file,mcp__benchmark_workspace__move_file",
+                "mcp__benchmark_workspace__list_files,mcp__benchmark_workspace__read_file,mcp__benchmark_workspace__write_file,mcp__benchmark_workspace__delete_file,mcp__benchmark_workspace__move_file,mcp__benchmark_workspace__run_public_tests,mcp__benchmark_workspace__run_typecheck,mcp__benchmark_workspace__run_build,mcp__benchmark_workspace__run_agent_tests",
                 "--disallowedTools", "Bash,PowerShell,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,Task,Agent,Skill",
                 "--disable-slash-commands",
                 "--no-session-persistence",
@@ -52,7 +52,12 @@ public sealed class ClaudeLaunchProfileTests
     public void BuildMcpConfigurationJson_DeclaresOnlyWorkspaceServerWithWritablePolicy()
     {
         using JsonDocument configuration = JsonDocument.Parse(ClaudeLaunchProfile.BuildMcpConfigurationJson(
-            @"C:\server\McpReadOnlyPrototype.exe", @"C:\AgenticAIRuns\r1\agent-root", ["workspace", "agent-tests"]));
+            @"C:\server\McpReadOnlyPrototype.exe",
+            @"C:\AgenticAIRuns\r1\agent-root",
+            ["workspace", "agent-tests"],
+            new McpDevelopmentToolchain(@"C:\bin\node.exe", @"C:\toolchain\vitest.mjs", @"C:\toolchain\tsc.js"),
+            @"C:\AgenticAIResults\r1\mcp-worker",
+            @"C:\AgenticAIResults\r1\mcp-audit"));
 
         JsonElement servers = configuration.RootElement.GetProperty("mcpServers");
         JsonElement server = Assert.Single(servers.EnumerateObject()).Value;
@@ -62,6 +67,12 @@ public sealed class ClaudeLaunchProfileTests
         Assert.Equal(
             "workspace" + Path.PathSeparator + "agent-tests",
             server.GetProperty("env").GetProperty("MCP_WRITABLE_DIRECTORIES").GetString());
+        JsonElement environment = server.GetProperty("env");
+        Assert.Equal(@"C:\bin\node.exe", environment.GetProperty("MCP_PUBLIC_TEST_NODE").GetString());
+        Assert.Equal(@"C:\toolchain\vitest.mjs", environment.GetProperty("MCP_AGENT_TEST_VITEST").GetString());
+        Assert.Equal(@"C:\toolchain\tsc.js", environment.GetProperty("MCP_BUILD_TSC").GetString());
+        Assert.Equal(@"C:\AgenticAIResults\r1\mcp-worker", environment.GetProperty("MCP_TYPECHECK_WORKER_ROOT").GetString());
+        Assert.Equal(@"C:\AgenticAIResults\r1\mcp-audit", environment.GetProperty("MCP_COMMAND_AUDIT_DIRECTORY").GetString());
     }
 
     [Fact]

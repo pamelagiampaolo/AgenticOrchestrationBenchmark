@@ -19,7 +19,7 @@ public static class ClaudeLaunchProfile
 
     /// <summary>Strumenti del server MCP esposti al modello.</summary>
     public static readonly IReadOnlyList<string> McpToolNames =
-        ["list_files", "read_file", "write_file", "delete_file", "move_file"];
+        ["list_files", "read_file", "write_file", "delete_file", "move_file", "run_public_tests", "run_typecheck", "run_build", "run_agent_tests"];
 
     /// <summary>Strumenti built-in esplicitamente negati, come nel profilo verificato.</summary>
     public static readonly IReadOnlyList<string> DisallowedBuiltInTools =
@@ -118,12 +118,15 @@ public static class ClaudeLaunchProfile
     public static string BuildMcpConfigurationJson(
         string mcpServerPath,
         string agentRoot,
-        IReadOnlyList<string> writableDirectories) => JsonSerializer.Serialize(
+        IReadOnlyList<string> writableDirectories,
+        McpDevelopmentToolchain toolchain,
+        string workerRoot,
+        string auditDirectory) => JsonSerializer.Serialize(
         new Dictionary<string, object>
         {
             ["mcpServers"] = new Dictionary<string, object>
             {
-                [McpServerName] = WorkspaceServer(mcpServerPath, agentRoot, writableDirectories),
+                [McpServerName] = WorkspaceServer(mcpServerPath, agentRoot, writableDirectories, toolchain, workerRoot, auditDirectory),
             },
         },
         JsonOptions);
@@ -145,6 +148,9 @@ public static class ClaudeLaunchProfile
         string mcpServerPath,
         string agentRoot,
         IReadOnlyList<string> writableDirectories,
+        McpDevelopmentToolchain toolchain,
+        string workerRoot,
+        string auditDirectory,
         string coordinationServerPath,
         string pipeName,
         TimeSpan toolTimeout) => JsonSerializer.Serialize(
@@ -152,7 +158,7 @@ public static class ClaudeLaunchProfile
         {
             ["mcpServers"] = new Dictionary<string, object>
             {
-                [McpServerName] = WorkspaceServer(mcpServerPath, agentRoot, writableDirectories),
+                [McpServerName] = WorkspaceServer(mcpServerPath, agentRoot, writableDirectories, toolchain, workerRoot, auditDirectory),
                 [CoordinationServerName] = new Dictionary<string, object>
                 {
                     ["command"] = coordinationServerPath,
@@ -219,7 +225,10 @@ public static class ClaudeLaunchProfile
     private static Dictionary<string, object> WorkspaceServer(
         string mcpServerPath,
         string agentRoot,
-        IReadOnlyList<string> writableDirectories) => new()
+        IReadOnlyList<string> writableDirectories,
+        McpDevelopmentToolchain toolchain,
+        string workerRoot,
+        string auditDirectory) => new()
     {
         ["command"] = mcpServerPath,
         ["args"] = new[] { agentRoot },
@@ -227,6 +236,19 @@ public static class ClaudeLaunchProfile
         {
             ["ENABLE_CLAUDEAI_MCP_SERVERS"] = "false",
             ["MCP_WRITABLE_DIRECTORIES"] = string.Join(Path.PathSeparator, writableDirectories),
+            ["MCP_PUBLIC_TEST_NODE"] = toolchain.NodePath,
+            ["MCP_PUBLIC_TEST_VITEST"] = toolchain.VitestPath,
+            ["MCP_PUBLIC_TEST_WORKER_ROOT"] = workerRoot,
+            ["MCP_TYPECHECK_NODE"] = toolchain.NodePath,
+            ["MCP_TYPECHECK_TSC"] = toolchain.TypeScriptPath,
+            ["MCP_TYPECHECK_WORKER_ROOT"] = workerRoot,
+            ["MCP_BUILD_NODE"] = toolchain.NodePath,
+            ["MCP_BUILD_TSC"] = toolchain.TypeScriptPath,
+            ["MCP_BUILD_WORKER_ROOT"] = workerRoot,
+            ["MCP_AGENT_TEST_NODE"] = toolchain.NodePath,
+            ["MCP_AGENT_TEST_VITEST"] = toolchain.VitestPath,
+            ["MCP_AGENT_TEST_WORKER_ROOT"] = workerRoot,
+            ["MCP_COMMAND_AUDIT_DIRECTORY"] = auditDirectory,
         },
     };
 

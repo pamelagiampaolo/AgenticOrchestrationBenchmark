@@ -9,6 +9,7 @@ namespace AgenticExperimentRunner.Coordination;
 /// <param name="PreparedRunPath">Percorso assoluto di <c>prepared-run.json</c>.</param>
 /// <param name="ClaudePath">Eseguibile della CLI.</param>
 /// <param name="McpServerPath">Eseguibile del server MCP del workspace.</param>
+/// <param name="McpToolchain">Toolchain fidata per build e test.</param>
 /// <param name="CoordinationServerPath">Eseguibile dell'orchestratore, avviato dalla CLI come relay.</param>
 /// <param name="Model">Identificatore esatto del modello, uguale per tutti gli agenti.</param>
 /// <param name="TimeLimit">Limite di <c>agentTaskDurationMs</c> della run.</param>
@@ -18,6 +19,7 @@ public sealed record HierarchicalRunRequest(
     string PreparedRunPath,
     string ClaudePath,
     string McpServerPath,
+    McpDevelopmentToolchain McpToolchain,
     string CoordinationServerPath,
     string Model,
     TimeSpan TimeLimit,
@@ -201,6 +203,9 @@ public sealed class HierarchicalRunRunner
             (request.PreparedRunPath, "prepared-run.json"),
             (request.ClaudePath, "eseguibile della CLI"),
             (request.McpServerPath, "eseguibile del server MCP"),
+            (request.McpToolchain.NodePath, "eseguibile Node.js"),
+            (request.McpToolchain.VitestPath, "entry point Vitest"),
+            (request.McpToolchain.TypeScriptPath, "entry point TypeScript"),
             (request.CoordinationServerPath, "eseguibile del relay di coordinamento"),
         })
         {
@@ -250,10 +255,12 @@ public sealed class HierarchicalRunRunner
         string workerSystemPrompt = RunInputs.CombineInstructions(commonInstructions, workerInstructions);
         string settings = ClaudeLaunchProfile.BuildSettingsJson();
         string coordinatorMcpConfiguration = ClaudeLaunchProfile.BuildCoordinatorMcpConfigurationJson(
-            request.McpServerPath, prepared.AgentRoot, prepared.WritableDirectories,
+            request.McpServerPath, prepared.AgentRoot, prepared.WritableDirectories, request.McpToolchain,
+            Path.Combine(prepared.ResultsDirectory, "mcp-worker"), Path.Combine(prepared.ResultsDirectory, "mcp-audit"),
             request.CoordinationServerPath, pipeName, request.TimeLimit);
         string workerMcpConfiguration = ClaudeLaunchProfile.BuildMcpConfigurationJson(
-            request.McpServerPath, prepared.AgentRoot, prepared.WritableDirectories);
+            request.McpServerPath, prepared.AgentRoot, prepared.WritableDirectories, request.McpToolchain,
+            Path.Combine(prepared.ResultsDirectory, "mcp-worker"), Path.Combine(prepared.ResultsDirectory, "mcp-audit"));
 
         var conditions = new RunConditions(
             taskPrompt,

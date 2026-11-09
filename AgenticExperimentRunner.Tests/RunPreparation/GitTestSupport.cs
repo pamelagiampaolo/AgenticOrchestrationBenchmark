@@ -126,6 +126,23 @@ internal sealed class TemporaryGitRepository : IDisposable
 internal static class TestDirectories
 {
     /// <summary>
+    /// Trova l'eventuale profilo che contiene la temp directory reale del test.
+    /// L'identità sandbox può differire dal proprietario del percorso restituito da <see cref="Path.GetTempPath"/>.
+    /// </summary>
+    public static string? TempUserProfile()
+    {
+        for (DirectoryInfo? directory = new(Path.GetTempPath()); directory is not null; directory = directory.Parent)
+        {
+            if (Directory.Exists(Path.Combine(directory.FullName, ".claude")))
+            {
+                return directory.FullName;
+            }
+        }
+
+        return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+    }
+
+    /// <summary>
     /// Elimina una directory anche se contiene file in sola lettura (come gli oggetti Git su Windows).
     /// </summary>
     public static void DeleteRecursively(string path)

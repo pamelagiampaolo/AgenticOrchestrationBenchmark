@@ -19,7 +19,7 @@ public sealed class PrepareRunCommandTests : IDisposable
             new RunAreaPreparer(
                 new GitCommandRunner(),
                 new FixedTimeProvider(FixedNow),
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
+                TestDirectories.TempUserProfile()),
             new FixedTimeProvider(FixedNow));
     }
 

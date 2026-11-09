@@ -23,10 +23,10 @@ public sealed class RunAdaptiveHierarchyCommand
     public const int UsageErrorExitCode = 2;
 
     private const string Usage =
-        "Uso: run-adaptive-hierarchy --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n> --max-delegations <n>";
+        "Uso: run-adaptive-hierarchy --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --node <assoluto> --vitest <assoluto> --typescript <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n> --max-delegations <n>";
 
     private static readonly string[] RequiredOptions =
-        ["--prepared-run", "--claude", "--mcp-server", "--model", "--time-limit-seconds", "--token-budget", "--max-delegations"];
+        ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript", "--model", "--time-limit-seconds", "--token-budget", "--max-delegations"];
 
     private readonly HierarchicalRunRunner runner;
     private readonly string coordinationServerPath;
@@ -110,7 +110,7 @@ public sealed class RunAdaptiveHierarchyCommand
             return false;
         }
 
-        error = CommandLineOptions.FindRelativePath(values, ["--prepared-run", "--claude", "--mcp-server"]);
+        error = CommandLineOptions.FindRelativePath(values, ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript"]);
         if (error is not null)
         {
             return false;
@@ -133,6 +133,7 @@ public sealed class RunAdaptiveHierarchyCommand
             values["--prepared-run"],
             values["--claude"],
             values["--mcp-server"],
+            new McpDevelopmentToolchain(values["--node"], values["--vitest"], values["--typescript"]),
             coordinationServerPath,
             values["--model"],
             TimeSpan.FromSeconds(seconds),

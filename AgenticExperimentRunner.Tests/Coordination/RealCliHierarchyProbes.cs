@@ -54,6 +54,7 @@ public sealed class RealCliHierarchyProbes
                 Path.Combine(prepared.ResultsDirectory, PrepareRunCommand.PreparedRunFileName),
                 ClaudePath,
                 Path.Combine(AppContext.BaseDirectory, "McpReadOnlyPrototype.exe"),
+                RealToolchain(),
                 Path.Combine(AppContext.BaseDirectory, "AgenticExperimentRunner.exe"),
                 Model,
                 TimeSpan.FromMinutes(15),
@@ -78,6 +79,31 @@ public sealed class RealCliHierarchyProbes
         Assert.Equal(workerSummary, toolResult);
     }
 
+    private static McpDevelopmentToolchain RealToolchain()
+    {
+        string repositoryRoot = FindRepositoryRoot();
+        string benchmark = Path.Combine(repositoryRoot, "BenchmarkTarget");
+        string node = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
+            .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+            .Select(directory => Path.Combine(directory, "node.exe"))
+            .First(File.Exists);
+        return new McpDevelopmentToolchain(
+            node,
+            Path.Combine(benchmark, "node_modules", "vitest", "vitest.mjs"),
+            Path.Combine(benchmark, "node_modules", "typescript", "lib", "tsc.js"));
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "BenchmarkTarget")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? throw new DirectoryNotFoundException("Root del repository non trovata.");
+    }
+
     /// <summary>Testi dei <c>tool_result</c> ricevuti dall'agente, interpretando lo stream come JSON.</summary>
     private static IReadOnlyList<string> ToolResultTexts(string streamPath) =>
         File.ReadLines(streamPath)
@@ -92,7 +118,7 @@ public sealed class RealCliHierarchyProbes
     private static async Task<PrepareRunOutput> PrepareAsync(string repositoryPath, string runId)
     {
         var command = new PrepareRunCommand(
-            new RunAreaPreparer(new GitCommandRunner(), TimeProvider.System, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
+            new RunAreaPreparer(new GitCommandRunner(), TimeProvider.System, TestDirectories.TempUserProfile()),
             TimeProvider.System);
         var output = new StringWriter();
         var error = new StringWriter();

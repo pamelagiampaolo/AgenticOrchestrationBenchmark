@@ -8,6 +8,7 @@ namespace AgenticExperimentRunner.SessionExecution;
 /// <param name="PreparedRunPath">Percorso assoluto di <c>prepared-run.json</c> scritto da <c>prepare-run</c>.</param>
 /// <param name="ClaudePath">Eseguibile della CLI.</param>
 /// <param name="McpServerPath">Eseguibile del server MCP.</param>
+/// <param name="McpToolchain">Toolchain fidata per build e test.</param>
 /// <param name="Model">Identificatore esatto del modello.</param>
 /// <param name="TimeLimit">Limite di <c>agentTaskDurationMs</c>.</param>
 /// <param name="TokenBudget">Budget di <c>totalTokens</c>.</param>
@@ -15,6 +16,7 @@ public sealed record SingleAgentSessionRequest(
     string PreparedRunPath,
     string ClaudePath,
     string McpServerPath,
+    McpDevelopmentToolchain McpToolchain,
     string Model,
     TimeSpan TimeLimit,
     long TokenBudget);
@@ -113,6 +115,9 @@ public sealed class SingleAgentSessionRunner
             (request.PreparedRunPath, "prepared-run.json"),
             (request.ClaudePath, "eseguibile della CLI"),
             (request.McpServerPath, "eseguibile del server MCP"),
+            (request.McpToolchain.NodePath, "eseguibile Node.js"),
+            (request.McpToolchain.VitestPath, "entry point Vitest"),
+            (request.McpToolchain.TypeScriptPath, "entry point TypeScript"),
         })
         {
             if (string.IsNullOrWhiteSpace(path) || !Path.IsPathFullyQualified(path) || !File.Exists(path))
@@ -144,7 +149,12 @@ public sealed class SingleAgentSessionRunner
         string systemPromptAppendPath = Path.Combine(prepared.ResultsDirectory, SystemPromptAppendFileName);
         string settings = ClaudeLaunchProfile.BuildSettingsJson();
         string mcpConfiguration = ClaudeLaunchProfile.BuildMcpConfigurationJson(
-            request.McpServerPath, prepared.AgentRoot, prepared.WritableDirectories);
+            request.McpServerPath,
+            prepared.AgentRoot,
+            prepared.WritableDirectories,
+            request.McpToolchain,
+            Path.Combine(prepared.ResultsDirectory, "mcp-worker"),
+            Path.Combine(prepared.ResultsDirectory, "mcp-audit"));
         RunInputs.WriteNewText(settingsPath, settings);
         RunInputs.WriteNewText(mcpConfigurationPath, mcpConfiguration);
         RunInputs.WriteNewText(systemPromptAppendPath, systemPromptAppend);

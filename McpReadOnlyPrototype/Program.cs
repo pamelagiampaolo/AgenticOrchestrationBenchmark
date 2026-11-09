@@ -17,6 +17,7 @@ EphemeralBuildRunner? buildRunner = null;
 EphemeralAgentTestRunner? agentTestRunner = null;
 try
 {
+    string commandAuditPath = ResolveCommandAuditPath();
     string[] writableDirectories = (Environment.GetEnvironmentVariable("MCP_WRITABLE_DIRECTORIES") ?? string.Empty)
         .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     fileAccess = new RootedFileAccess(args[0], writableDirectories);
@@ -43,7 +44,7 @@ try
             Environment.GetEnvironmentVariable("MCP_TYPECHECK_WORKER_ROOT") ?? string.Empty,
             typecheckNodePath,
             Environment.GetEnvironmentVariable("MCP_TYPECHECK_TSC") ?? string.Empty,
-            Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
+            commandAuditPath,
             TimeSpan.FromSeconds(timeoutSeconds));
     }
 
@@ -60,7 +61,7 @@ try
             Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_WORKER_ROOT") ?? string.Empty,
             nodePath,
             Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_VITEST") ?? string.Empty,
-            Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
+            commandAuditPath,
             TimeSpan.FromSeconds(timeoutSeconds));
     }
 
@@ -77,7 +78,7 @@ try
             Environment.GetEnvironmentVariable("MCP_BUILD_WORKER_ROOT") ?? string.Empty,
             buildNodePath,
             Environment.GetEnvironmentVariable("MCP_BUILD_TSC") ?? string.Empty,
-            Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
+            commandAuditPath,
             TimeSpan.FromSeconds(timeoutSeconds));
     }
 
@@ -94,7 +95,7 @@ try
             Environment.GetEnvironmentVariable("MCP_AGENT_TEST_WORKER_ROOT") ?? string.Empty,
             agentTestNodePath,
             Environment.GetEnvironmentVariable("MCP_AGENT_TEST_VITEST") ?? string.Empty,
-            Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
+            commandAuditPath,
             TimeSpan.FromSeconds(timeoutSeconds));
     }
 }
@@ -117,6 +118,23 @@ while (await Console.In.ReadLineAsync() is { } line)
 }
 
 return 0;
+
+static string ResolveCommandAuditPath()
+{
+    string? explicitPath = Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH");
+    if (!string.IsNullOrWhiteSpace(explicitPath))
+    {
+        return explicitPath;
+    }
+
+    string directory = Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_DIRECTORY") ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(directory) || !Path.IsPathFullyQualified(directory))
+    {
+        return string.Empty;
+    }
+
+    return Path.Combine(directory, $"mcp-command-audit-{Environment.ProcessId}.jsonl");
+}
 
 static async Task<string> HandleRequestAsync(
     string requestJson,

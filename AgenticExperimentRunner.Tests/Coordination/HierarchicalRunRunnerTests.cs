@@ -272,6 +272,7 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
         cli.ExecutablePath,
         // Il server del workspace non viene avviato dalla CLI finta: serve solo come file da identificare con hash.
         cli.ExecutablePath,
+        new McpDevelopmentToolchain(cli.ExecutablePath, cli.ExecutablePath, cli.ExecutablePath),
         RelayExecutable,
         FakeClaudeCli.Model,
         TimeSpan.FromSeconds(60),
@@ -290,9 +291,10 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
             new RunAreaPreparer(
                 new GitCommandRunner(),
                 TimeProvider.System,
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
+                TestDirectories.TempUserProfile()),
             TimeProvider.System);
         var output = new StringWriter();
+        var error = new StringWriter();
         int exitCode = await command.ExecuteAsync(
             [
                 "--repository", repository.RootPath, "--commit", "main", "--task", "T1",
@@ -301,9 +303,9 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
                 "--run-id", "hierarchy-test",
             ],
             output,
-            new StringWriter(),
+            error,
             Token);
-        Assert.Equal(0, exitCode);
+        Assert.True(exitCode == 0, error.ToString());
         return JsonSerializer.Deserialize<PrepareRunOutput>(output.ToString(), PrepareRunOutput.SerializerOptions)!;
     }
 }

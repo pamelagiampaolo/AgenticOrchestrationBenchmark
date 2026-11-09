@@ -22,7 +22,7 @@ public sealed class BenchmarkBaselinePreparationTests : IDisposable
         var preparer = new RunAreaPreparer(
             new GitCommandRunner(),
             TimeProvider.System,
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+            TestDirectories.TempUserProfile());
 
         PreparedRunArea area = await preparer.PrepareAsync(
             new RunAreaRequest(

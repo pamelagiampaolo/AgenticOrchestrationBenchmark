@@ -26,6 +26,9 @@ public sealed class CoordinatorLaunchProfileTests
             @"C:\server\McpReadOnlyPrototype.exe",
             @"C:\AgenticAIRuns\r1\agent-root",
             ["workspace", "agent-tests"],
+            new McpDevelopmentToolchain(@"C:\bin\node.exe", @"C:\toolchain\vitest.mjs", @"C:\toolchain\tsc.js"),
+            @"C:\AgenticAIResults\r1\mcp-worker",
+            @"C:\AgenticAIResults\r1\mcp-audit",
             @"C:\runner\AgenticExperimentRunner.exe",
             "agentic-coordination-abc",
             TimeSpan.FromSeconds(1800.5));
@@ -50,7 +53,7 @@ public sealed class CoordinatorLaunchProfileTests
 
         string allowed = arguments[arguments.ToList().IndexOf("--allowedTools") + 1];
         Assert.Contains(ClaudeLaunchProfile.QualifiedDelegateToolName, allowed.Split(','));
-        Assert.Equal(6, allowed.Split(',').Length);
+        Assert.Equal(10, allowed.Split(',').Length);
     }
 
     [Fact]

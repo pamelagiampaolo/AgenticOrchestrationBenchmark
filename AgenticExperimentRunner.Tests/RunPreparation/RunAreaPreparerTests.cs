@@ -5,7 +5,7 @@ using Xunit;
 public sealed class RunAreaPreparerTests : IDisposable
 {
     private static readonly DateTimeOffset FixedNow = new(2026, 11, 8, 12, 0, 0, TimeSpan.Zero);
-    private static readonly string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+    private static readonly string? UserProfile = TestDirectories.TempUserProfile();
 
     private const string SpecificationContent = "# T1\n\nSpecifica pubblica di prova.\n";
 

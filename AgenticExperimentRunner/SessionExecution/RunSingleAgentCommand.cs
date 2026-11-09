@@ -21,10 +21,10 @@ public sealed class RunSingleAgentCommand
     public const int UsageErrorExitCode = 2;
 
     private const string Usage =
-        "Uso: run-single-agent --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n>";
+        "Uso: run-single-agent --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --node <assoluto> --vitest <assoluto> --typescript <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n>";
 
     private static readonly string[] RequiredOptions =
-        ["--prepared-run", "--claude", "--mcp-server", "--model", "--time-limit-seconds", "--token-budget"];
+        ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript", "--model", "--time-limit-seconds", "--token-budget"];
 
     private readonly SingleAgentSessionRunner runner;
 
@@ -91,7 +91,7 @@ public sealed class RunSingleAgentCommand
             return false;
         }
 
-        error = CommandLineOptions.FindRelativePath(values, ["--prepared-run", "--claude", "--mcp-server"]);
+        error = CommandLineOptions.FindRelativePath(values, ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript"]);
         if (error is not null)
         {
             return false;
@@ -113,6 +113,7 @@ public sealed class RunSingleAgentCommand
             values["--prepared-run"],
             values["--claude"],
             values["--mcp-server"],
+            new McpDevelopmentToolchain(values["--node"], values["--vitest"], values["--typescript"]),
             values["--model"],
             TimeSpan.FromSeconds(seconds),
             budget);
