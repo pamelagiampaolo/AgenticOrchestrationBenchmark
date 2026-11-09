@@ -67,6 +67,7 @@ public sealed class HierarchicalRunRunner
 
     private readonly TimeProvider timeProvider;
     private readonly string instructionsDirectory;
+    private readonly bool usesStaticPlan;
 
     /// <summary>
     /// Crea il runner.
@@ -74,10 +75,23 @@ public sealed class HierarchicalRunRunner
     /// <param name="timeProvider">Orologio per istanti, cronometro e limite di tempo.</param>
     /// <param name="instructionsDirectory">Directory con le istruzioni versionate.</param>
     public HierarchicalRunRunner(TimeProvider timeProvider, string instructionsDirectory)
+        : this(timeProvider, instructionsDirectory, usesStaticPlan: false)
+    {
+    }
+
+    private HierarchicalRunRunner(TimeProvider timeProvider, string instructionsDirectory, bool usesStaticPlan)
     {
         this.timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         this.instructionsDirectory = instructionsDirectory ?? throw new ArgumentNullException(nameof(instructionsDirectory));
+        this.usesStaticPlan = usesStaticPlan;
     }
+
+    /// <summary>Crea il runner della gerarchia statica sul runtime gerarchico condiviso.</summary>
+    /// <param name="timeProvider">Orologio per metriche e limiti.</param>
+    /// <param name="instructionsDirectory">Directory delle istruzioni versionate.</param>
+    /// <returns>Runner configurato con i tre ruoli obbligatori.</returns>
+    public static HierarchicalRunRunner CreateStatic(TimeProvider timeProvider, string instructionsDirectory) =>
+        new(timeProvider, instructionsDirectory, usesStaticPlan: true);
 
     /// <summary>
     /// Solo per le prove dell'harness: avvolge il gestore delle deleghe (per esempio per
@@ -111,13 +125,34 @@ public sealed class HierarchicalRunRunner
         string cliVersion = await AgentProcess.ReadCliVersionAsync(request.ClaudePath, prepared.SessionDirectory, cancellationToken);
 
         using var limits = new RunLimitController(request.TokenBudget, request.TimeLimit, timeProvider);
-        var handler = new WorkerDelegationHandler(
-            (agentId, task) => CreateWorkerLaunch(request, prepared, conditions, agentId, task),
-            limits,
-            timeProvider,
-            request.MaxDelegations,
-            cancellationToken);
-        CoordinationHost host = CoordinationHost.Start(pipeName, DelegationDecorator?.Invoke(handler) ?? handler);
+        WorkerDelegationHandler handler;
+        IDelegationHandler policy;
+        StaticDelegationHandler? staticPolicy = null;
+        if (usesStaticPlan)
+        {
+            handler = new WorkerDelegationHandler(
+                (agentId, role, task) => CreateWorkerLaunch(request, prepared, conditions, agentId, role, task),
+                sequence => StaticHierarchyPlan.Steps[sequence - 1].AgentId,
+                sequence => StaticHierarchyPlan.Steps[sequence - 1].Role,
+                limits,
+                timeProvider,
+                StaticHierarchyPlan.Steps.Count,
+                cancellationToken);
+            staticPolicy = new StaticDelegationHandler(handler);
+            policy = staticPolicy;
+        }
+        else
+        {
+            handler = new WorkerDelegationHandler(
+                (agentId, task) => CreateWorkerLaunch(request, prepared, conditions, agentId, WorkerRole, task),
+                limits,
+                timeProvider,
+                request.MaxDelegations,
+                cancellationToken);
+            policy = handler;
+        }
+
+        CoordinationHost host = CoordinationHost.Start(pipeName, DelegationDecorator?.Invoke(policy) ?? policy);
 
         DateTimeOffset startedAt = limits.Start();
         AgentProcessOutcome coordinator;
@@ -144,6 +179,7 @@ public sealed class HierarchicalRunRunner
 
         HierarchicalRunRecord record = BuildRecord(
             request, prepared, conditions, cliVersion, limits, coordinator, handler,
+            staticPolicy?.IsComplete ?? true,
             startedAt, endedAt, duration, protectedDifferences);
         string recordPath = Path.Combine(prepared.ResultsDirectory, RunRecordFileName);
         record.WriteTo(recordPath);
@@ -249,10 +285,24 @@ public sealed class HierarchicalRunRunner
     {
         byte[] taskPrompt = File.ReadAllBytes(Path.Combine(prepared.AgentRoot, prepared.TaskSpecificationPath));
         string commonInstructions = RunInputs.ReadInstructions(instructionsDirectory, SingleAgentSessionRunner.CommonInstructionsFileName);
-        string coordinatorInstructions = RunInputs.ReadInstructions(instructionsDirectory, CoordinatorInstructionsFileName);
-        string workerInstructions = RunInputs.ReadInstructions(instructionsDirectory, WorkerInstructionsFileName);
+        string coordinatorInstructions = RunInputs.ReadInstructions(
+            instructionsDirectory,
+            usesStaticPlan ? "static-coordinator.md" : CoordinatorInstructionsFileName);
+        Dictionary<string, string> roleInstructions = usesStaticPlan
+            ? StaticHierarchyPlan.Steps.ToDictionary(
+                step => step.Role,
+                step => RunInputs.ReadInstructions(instructionsDirectory, step.InstructionFileName),
+                StringComparer.Ordinal)
+            : new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [WorkerRole] = RunInputs.ReadInstructions(instructionsDirectory, WorkerInstructionsFileName),
+            };
+        string workerInstructions = string.Join("\n", roleInstructions.OrderBy(item => item.Key, StringComparer.Ordinal).Select(item => item.Value));
         string coordinatorSystemPrompt = RunInputs.CombineInstructions(commonInstructions, coordinatorInstructions);
-        string workerSystemPrompt = RunInputs.CombineInstructions(commonInstructions, workerInstructions);
+        string workerSystemPrompt = string.Join(
+            "\n",
+            roleInstructions.OrderBy(item => item.Key, StringComparer.Ordinal)
+                .Select(item => RunInputs.CombineInstructions(commonInstructions, item.Value)));
         string settings = ClaudeLaunchProfile.BuildSettingsJson();
         string coordinatorMcpConfiguration = ClaudeLaunchProfile.BuildCoordinatorMcpConfigurationJson(
             request.McpServerPath, prepared.AgentRoot, prepared.WritableDirectories, request.McpToolchain,
@@ -269,6 +319,8 @@ public sealed class HierarchicalRunRunner
             Path.Combine(prepared.ResultsDirectory, CoordinatorSystemPromptFileName),
             Path.Combine(prepared.ResultsDirectory, WorkerMcpConfigurationFileName),
             Path.Combine(prepared.ResultsDirectory, WorkerSystemPromptFileName),
+            commonInstructions,
+            roleInstructions,
             new HierarchyHashes(
                 RunInputs.Sha256(taskPrompt),
                 RunInputs.Sha256(commonInstructions),
@@ -320,17 +372,23 @@ public sealed class HierarchicalRunRunner
         PrepareRunOutput prepared,
         RunConditions conditions,
         string agentId,
+        string role,
         string task)
     {
         string directory = Path.Combine(prepared.ResultsDirectory, AgentsDirectoryName, agentId);
         Directory.CreateDirectory(directory);
         RunInputs.WriteNewText(Path.Combine(directory, WorkerPromptFileName), task);
+        string roleSystemPromptPath = Path.Combine(directory, "system-prompt-append.md");
+        string roleSystemPrompt = RunInputs.CombineInstructions(
+            conditions.CommonInstructions,
+            conditions.RoleInstructions[role]);
+        RunInputs.WriteNewText(roleSystemPromptPath, roleSystemPrompt);
         return new AgentLaunch(
             agentId,
-            WorkerRole,
+            role,
             request.ClaudePath,
             ClaudeLaunchProfile.BuildArguments(
-                request.Model, conditions.WorkerMcpConfigurationPath, conditions.SettingsPath, conditions.WorkerSystemPromptPath),
+                request.Model, conditions.WorkerMcpConfigurationPath, conditions.SettingsPath, roleSystemPromptPath),
             RunInputs.Utf8WithoutBom.GetBytes(task),
             prepared.SessionDirectory,
             Path.Combine(directory, SingleAgentSessionRunner.StreamFileName),
@@ -338,7 +396,7 @@ public sealed class HierarchicalRunRunner
             initialization => ClaudeLaunchProfile.FindConfigurationViolations(initialization, request.Model));
     }
 
-    private static HierarchicalRunRecord BuildRecord(
+    private HierarchicalRunRecord BuildRecord(
         HierarchicalRunRequest request,
         PrepareRunOutput prepared,
         RunConditions conditions,
@@ -346,6 +404,7 @@ public sealed class HierarchicalRunRunner
         RunLimitController limits,
         AgentProcessOutcome coordinator,
         WorkerDelegationHandler handler,
+        bool requiredPlanComplete,
         DateTimeOffset startedAt,
         DateTimeOffset endedAt,
         TimeSpan duration,
@@ -363,13 +422,17 @@ public sealed class HierarchicalRunRunner
             .ToDictionary(group => group.Key, group => group.Aggregate(TokenUsage.Zero, (sum, agent) => sum.Add(agent.CountedUsage)), StringComparer.Ordinal);
         AgentProcessOutcome[] outcomes = [coordinator, .. handler.Workers.Select(worker => worker.Outcome)];
         SessionStatus status = DetermineStatus(outcomes, limits, total.TotalTokens);
+        if (status == SessionStatus.Completed && !requiredPlanComplete)
+        {
+            status = SessionStatus.CliFailed;
+        }
         bool overBudget = status is SessionStatus.TokenLimitExceeded or SessionStatus.ResourceLimitsExceeded;
 
         return new HierarchicalRunRecord(
             HierarchicalRunRecord.CurrentSchemaVersion,
             prepared.RunId,
             prepared.TaskId,
-            ArchitectureName,
+            usesStaticPlan ? StaticHierarchyPlan.ArchitectureName : ArchitectureName,
             prepared.SourceCommit,
             status,
             startedAt,
@@ -377,13 +440,13 @@ public sealed class HierarchicalRunRunner
             (long)duration.TotalMilliseconds,
             (long)request.TimeLimit.TotalMilliseconds,
             request.TokenBudget,
-            request.MaxDelegations,
+            usesStaticPlan ? StaticHierarchyPlan.Steps.Count : request.MaxDelegations,
             total.TotalTokens,
             overBudget ? total.TotalTokens - request.TokenBudget : null,
             agents.All(agent => agent.TokenMeasurementComplete),
             total,
             usageByRole,
-            limits.StopReason,
+            limits.StopReason ?? (!requiredPlanComplete ? "il coordinatore non ha completato i tre passaggi statici" : null),
             request.Model,
             cliVersion,
             agents,
@@ -428,5 +491,7 @@ public sealed class HierarchicalRunRunner
         string CoordinatorSystemPromptPath,
         string WorkerMcpConfigurationPath,
         string WorkerSystemPromptPath,
+        string CommonInstructions,
+        IReadOnlyDictionary<string, string> RoleInstructions,
         HierarchyHashes Hashes);
 }

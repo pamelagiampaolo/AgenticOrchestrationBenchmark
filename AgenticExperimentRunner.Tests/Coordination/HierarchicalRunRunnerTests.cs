@@ -250,6 +250,78 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
     }
 
     [Fact]
+    public async Task StaticRun_ExecutesThreeFixedRolesAndWritesStaticRecord()
+    {
+        PrepareRunOutput prepared = await PrepareAsync();
+        FakeHierarchyCli cli = CreateCli(
+            coordinator:
+            [
+                FakeHierarchyCli.CoordinatorInit(),
+                "DELEGATE SCRIPT analyst",
+                "DELEGATE SCRIPT implementer",
+                "DELEGATE SCRIPT verifier",
+                FakeHierarchyCli.Result("coordinamento completato", 1, 1, 1, 1),
+            ],
+            workers: new()
+            {
+                ["analyst"] = [FakeClaudeCli.Init(), FakeHierarchyCli.Result("piano", 1, 1, 1, 1)],
+                ["implementer"] = [FakeClaudeCli.Init(), FakeHierarchyCli.Result("implementato", 1, 1, 1, 1)],
+                ["verifier"] = [FakeClaudeCli.Init(), FakeHierarchyCli.Result("verificato", 1, 1, 1, 1)],
+            });
+        HierarchicalRunRunner staticRunner = HierarchicalRunRunner.CreateStatic(
+            TimeProvider.System,
+            Path.Combine(AppContext.BaseDirectory, "Instructions"));
+
+        (HierarchicalRunRecord record, _) = await staticRunner.RunAsync(Request(prepared, cli), Token);
+
+        Assert.Equal(SessionStatus.Completed, record.Status);
+        Assert.Equal("hierarchical-static", record.Architecture);
+        Assert.Equal(3, record.MaxDelegations);
+        Assert.Equal(["coordinator", "analyst", "implementer", "verifier"], record.Agents.Select(agent => agent.AgentId));
+        Assert.Equal(["coordinator", "analyst", "implementer", "verifier"], record.Agents.Select(agent => agent.Role));
+        Assert.Equal(new DelegationCounts(3, 3, 3, 0, 0), record.DelegationCounts);
+        Assert.Equal(1, record.MaxConcurrentWorkers);
+        foreach (StaticWorkerStep step in StaticHierarchyPlan.Steps)
+        {
+            string prompt = File.ReadAllText(Path.Combine(
+                prepared.ResultsDirectory,
+                "agents",
+                step.AgentId,
+                "system-prompt-append.md"));
+            Assert.Contains($"Ruolo statico: {step.Role}", prompt);
+        }
+        Assert.Contains(
+            "esattamente tre deleghe",
+            File.ReadAllText(Path.Combine(prepared.ResultsDirectory, "coordinator-system-prompt-append.md")));
+    }
+
+    [Fact]
+    public async Task StaticRun_CoordinatorEndingBeforeAllRoles_IsCliFailed()
+    {
+        PrepareRunOutput prepared = await PrepareAsync();
+        FakeHierarchyCli cli = CreateCli(
+            coordinator:
+            [
+                FakeHierarchyCli.CoordinatorInit(),
+                "DELEGATE SCRIPT analyst",
+                FakeHierarchyCli.Result("fine anticipata", 1, 1, 1, 1),
+            ],
+            workers: new()
+            {
+                ["analyst"] = [FakeClaudeCli.Init(), FakeHierarchyCli.Result("piano", 1, 1, 1, 1)],
+            });
+        HierarchicalRunRunner staticRunner = HierarchicalRunRunner.CreateStatic(
+            TimeProvider.System,
+            Path.Combine(AppContext.BaseDirectory, "Instructions"));
+
+        (HierarchicalRunRecord record, _) = await staticRunner.RunAsync(Request(prepared, cli), Token);
+
+        Assert.Equal(SessionStatus.CliFailed, record.Status);
+        Assert.Equal("il coordinatore non ha completato i tre passaggi statici", record.StopReason);
+        Assert.Equal(["coordinator", "analyst"], record.Agents.Select(agent => agent.Role));
+    }
+
+    [Fact]
     public void MaxConcurrent_CountsOverlapsAndTreatsTouchingIntervalsAsSequential()
     {
         DateTimeOffset origin = DateTimeOffset.UnixEpoch;
