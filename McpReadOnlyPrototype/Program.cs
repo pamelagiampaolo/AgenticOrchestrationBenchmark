@@ -1,5 +1,11 @@
+using System.Text;
 using System.Text.Json;
 using McpReadOnlyPrototype;
+
+// JSON-RPC stdio richiede UTF-8. Su Windows l'encoding ereditato può essere la
+// code page OEM anche con pipe redirette, corrompendo gli argomenti non ASCII.
+Console.InputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
 if (args.Length is < 1 or > 2
     || !Path.IsPathFullyQualified(args[0])
