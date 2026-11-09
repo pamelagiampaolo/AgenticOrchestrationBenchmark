@@ -14,6 +14,7 @@ PublicSuiteRunner? publicSuiteRunner = null;
 EphemeralPublicTestRunner? controlledPublicTestRunner = null;
 EphemeralTypecheckRunner? typecheckRunner = null;
 EphemeralBuildRunner? buildRunner = null;
+EphemeralAgentTestRunner? agentTestRunner = null;
 try
 {
     string[] writableDirectories = (Environment.GetEnvironmentVariable("MCP_WRITABLE_DIRECTORIES") ?? string.Empty)
@@ -79,6 +80,23 @@ try
             Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
             TimeSpan.FromSeconds(timeoutSeconds));
     }
+
+    string? agentTestNodePath = Environment.GetEnvironmentVariable("MCP_AGENT_TEST_NODE");
+    if (!string.IsNullOrWhiteSpace(agentTestNodePath))
+    {
+        int timeoutSeconds = int.TryParse(
+            Environment.GetEnvironmentVariable("MCP_AGENT_TEST_TIMEOUT_SECONDS"),
+            out int configuredTimeoutSeconds)
+            ? configuredTimeoutSeconds
+            : 300;
+        agentTestRunner = new EphemeralAgentTestRunner(
+            args[0],
+            Environment.GetEnvironmentVariable("MCP_AGENT_TEST_WORKER_ROOT") ?? string.Empty,
+            agentTestNodePath,
+            Environment.GetEnvironmentVariable("MCP_AGENT_TEST_VITEST") ?? string.Empty,
+            Environment.GetEnvironmentVariable("MCP_COMMAND_AUDIT_PATH") ?? string.Empty,
+            TimeSpan.FromSeconds(timeoutSeconds));
+    }
 }
 catch (Exception exception) when (StartupExceptionPolicy.IsConfigurationError(exception))
 {
@@ -93,7 +111,7 @@ while (await Console.In.ReadLineAsync() is { } line)
         continue;
     }
 
-    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner, buildRunner);
+    string response = await HandleRequestAsync(line, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner, buildRunner, agentTestRunner);
     await Console.Out.WriteLineAsync(response);
     await Console.Out.FlushAsync();
 }
@@ -106,7 +124,8 @@ static async Task<string> HandleRequestAsync(
     PublicSuiteRunner? publicSuiteRunner,
     EphemeralPublicTestRunner? controlledPublicTestRunner,
     EphemeralTypecheckRunner? typecheckRunner,
-    EphemeralBuildRunner? buildRunner)
+    EphemeralBuildRunner? buildRunner,
+    EphemeralAgentTestRunner? agentTestRunner)
 {
     JsonElement responseId = default;
     try
@@ -134,8 +153,8 @@ static async Task<string> HandleRequestAsync(
                 serverInfo = new { name = "workspace-prototype", version = "0.2.0" }
             },
             "ping" => new { },
-            "tools/list" => CreateToolList(publicSuiteRunner is not null, controlledPublicTestRunner is not null, typecheckRunner is not null, buildRunner is not null),
-            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner, buildRunner),
+            "tools/list" => CreateToolList(publicSuiteRunner is not null, controlledPublicTestRunner is not null, typecheckRunner is not null, buildRunner is not null, agentTestRunner is not null),
+            "tools/call" => await CallToolAsync(root, fileAccess, publicSuiteRunner, controlledPublicTestRunner, typecheckRunner, buildRunner, agentTestRunner),
             _ => throw new McpRequestException(-32601, "Metodo MCP non supportato.")
         };
 
@@ -167,7 +186,8 @@ static object CreateToolList(
     bool includePublicSuiteRunner,
     bool includeControlledPublicTestRunner,
     bool includeTypecheckRunner,
-    bool includeBuildRunner)
+    bool includeBuildRunner,
+    bool includeAgentTestRunner)
 {
     object[] workspaceTools =
     {
@@ -283,6 +303,12 @@ static object CreateToolList(
         description = "Esegue la build TypeScript in una copia effimera con comando fissato dal controllore.",
         inputSchema = new { type = "object", properties = new { }, additionalProperties = false }
     };
+    object agentTestTool = new
+    {
+        name = "run_agent_tests",
+        description = "Esegue soltanto i test Vitest creati dall'agente; l'esito non fa parte della valutazione ufficiale.",
+        inputSchema = new { type = "object", properties = new { }, additionalProperties = false }
+    };
 
     IEnumerable<object> tools = workspaceTools;
     if (includePublicSuiteRunner)
@@ -301,6 +327,10 @@ static object CreateToolList(
     {
         tools = tools.Append(buildTool);
     }
+    if (includeAgentTestRunner)
+    {
+        tools = tools.Append(agentTestTool);
+    }
 
     return new
     {
@@ -314,7 +344,8 @@ static async Task<object> CallToolAsync(
     PublicSuiteRunner? publicSuiteRunner,
     EphemeralPublicTestRunner? controlledPublicTestRunner,
     EphemeralTypecheckRunner? typecheckRunner,
-    EphemeralBuildRunner? buildRunner)
+    EphemeralBuildRunner? buildRunner,
+    EphemeralAgentTestRunner? agentTestRunner)
 {
     JsonElement parameters = GetRequiredProperty(request, "params");
     string toolName = GetRequiredProperty(parameters, "name").GetString()
@@ -381,6 +412,22 @@ static async Task<object> CallToolAsync(
             throw new McpRequestException(-32602, "Strumento non disponibile.");
         }
         ControlledCommandResult result = await buildRunner.RunAsync();
+        return new
+        {
+            content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },
+            structuredContent = result,
+            isError = result.Status != "completed"
+        };
+    }
+
+    if (toolName == "run_agent_tests")
+    {
+        EnsureExactProperties(arguments, Array.Empty<string>());
+        if (agentTestRunner is null)
+        {
+            throw new McpRequestException(-32602, "Strumento non disponibile.");
+        }
+        ControlledCommandResult result = await agentTestRunner.RunAsync();
         return new
         {
             content = new[] { new { type = "text", text = JsonSerializer.Serialize(result) } },

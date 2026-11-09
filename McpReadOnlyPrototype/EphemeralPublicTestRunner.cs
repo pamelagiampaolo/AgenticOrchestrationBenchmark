@@ -15,6 +15,11 @@ public sealed class EphemeralPublicTestRunner
     private readonly string vitestEntryPoint;
     private readonly string auditPath;
     private readonly TimeSpan timeout;
+    private readonly string sourceDirectoryName;
+    private readonly string includePattern;
+    private readonly string operation;
+    private readonly string suiteLabel;
+    private readonly string[] excludedPatterns;
 
     /// <summary>
     /// Configura le sorgenti della composizione e la toolchain fidata.
@@ -26,6 +31,33 @@ public sealed class EphemeralPublicTestRunner
         string vitestEntryPoint,
         string auditPath,
         TimeSpan timeout)
+        : this(
+            agentRoot,
+            workerRoot,
+            nodePath,
+            vitestEntryPoint,
+            auditPath,
+            timeout,
+            "public-reference",
+            "tests/public/**/*.test.ts",
+            "public-tests",
+            "pubblici",
+            ["tests/reserved/**"])
+    {
+    }
+
+    internal EphemeralPublicTestRunner(
+        string agentRoot,
+        string workerRoot,
+        string nodePath,
+        string vitestEntryPoint,
+        string auditPath,
+        TimeSpan timeout,
+        string sourceDirectoryName,
+        string includePattern,
+        string operation,
+        string suiteLabel,
+        string[] excludedPatterns)
     {
         this.agentRoot = RequireDirectory(agentRoot, nameof(agentRoot));
         this.workerRoot = RequireAbsolutePath(workerRoot, nameof(workerRoot));
@@ -35,9 +67,14 @@ public sealed class EphemeralPublicTestRunner
         this.timeout = timeout > TimeSpan.Zero
             ? timeout
             : throw new ArgumentException("Il timeout deve essere positivo.", nameof(timeout));
+        this.sourceDirectoryName = sourceDirectoryName;
+        this.includePattern = includePattern;
+        this.operation = operation;
+        this.suiteLabel = suiteLabel;
+        this.excludedPatterns = excludedPatterns;
 
         RequireDirectory(Path.Combine(this.agentRoot, "workspace"), "workspace");
-        RequireDirectory(Path.Combine(this.agentRoot, "public-reference"), "public-reference");
+        RequireDirectory(Path.Combine(this.agentRoot, sourceDirectoryName), sourceDirectoryName);
         if (IsWithin(this.workerRoot, this.agentRoot) || IsWithin(this.auditPath, this.agentRoot))
         {
             throw new ArgumentException("Worker e audit devono essere esterni alla root MCP dell'agente.");
@@ -49,12 +86,12 @@ public sealed class EphemeralPublicTestRunner
     /// </summary>
     public async Task<ControlledCommandResult> RunAsync(CancellationToken cancellationToken = default)
     {
-        string publicReference = Path.Combine(agentRoot, "public-reference");
-        string publicHashBefore = ComputeTreeHash(publicReference);
+        string suiteSource = Path.Combine(agentRoot, sourceDirectoryName);
+        string suiteHashBefore = ComputeTreeHash(suiteSource);
         string invocationRoot = Path.Combine(workerRoot, Guid.NewGuid().ToString("N"));
         string project = Path.Combine(invocationRoot, "project");
         string configDirectory = Path.Combine(invocationRoot, "config");
-        string configPath = Path.Combine(configDirectory, "vitest.public.generated.mjs");
+        string configPath = Path.Combine(configDirectory, $"vitest.{operation}.generated.mjs");
         string outputDirectory = Path.Combine(invocationRoot, "output");
         string reportPath = Path.Combine(outputDirectory, "vitest-results.json");
 
@@ -64,10 +101,10 @@ public sealed class EphemeralPublicTestRunner
         try
         {
             CopyTree(Path.Combine(agentRoot, "workspace"), project, rejectCollisions: true);
-            CopyTree(publicReference, project, rejectCollisions: true);
+            CopyTree(suiteSource, project, rejectCollisions: true);
             await File.WriteAllTextAsync(
                 configPath,
-                "export default { test: { environment: 'node', include: ['tests/public/**/*.test.ts'], exclude: ['tests/reserved/**'], outputFile: '../output/vitest-results.json' } };\n",
+                $"export default {{ test: {{ environment: 'node', include: ['{includePattern}'], exclude: [{string.Join(", ", excludedPatterns.Select(pattern => $"'{pattern}'"))}], outputFile: '../output/vitest-results.json' }} }};\n",
                 Encoding.UTF8,
                 cancellationToken);
 
@@ -77,16 +114,17 @@ public sealed class EphemeralPublicTestRunner
                 configPath,
                 project,
                 auditPath,
-                timeout);
+                timeout,
+                operation);
             ControlledCommandResult result = await runner.RunAsync(cancellationToken);
             result = AttachValidatedReport(result, reportPath, invocationRoot);
-            string publicHashAfter = ComputeTreeHash(publicReference);
-            if (!string.Equals(publicHashBefore, publicHashAfter, StringComparison.Ordinal))
+            string suiteHashAfter = ComputeTreeHash(suiteSource);
+            if (!string.Equals(suiteHashBefore, suiteHashAfter, StringComparison.Ordinal))
             {
                 return result with
                 {
                     Status = "infrastructure-error",
-                    StandardError = "Integrita dei test pubblici violata durante l'esecuzione."
+                    StandardError = $"Integrita dei test {suiteLabel} violata durante l'esecuzione."
                 };
             }
 
@@ -114,7 +152,7 @@ public sealed class EphemeralPublicTestRunner
             {
                 Status = "infrastructure-error",
                 StandardOutput = sanitizedOutput,
-                StandardError = "Vitest non ha prodotto il report JSON pubblico atteso."
+                StandardError = $"Vitest non ha prodotto il report JSON dei test {suiteLabel} atteso."
             };
         }
 
@@ -149,7 +187,7 @@ public sealed class EphemeralPublicTestRunner
             {
                 Status = "infrastructure-error",
                 StandardOutput = sanitizedOutput,
-                StandardError = $"Report Vitest pubblico non valido: {exception.Message}",
+                StandardError = $"Report Vitest dei test {suiteLabel} non valido: {exception.Message}",
                 Tests = null
             };
         }

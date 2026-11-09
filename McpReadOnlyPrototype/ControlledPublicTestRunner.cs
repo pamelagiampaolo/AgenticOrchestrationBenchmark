@@ -15,6 +15,7 @@ public sealed class ControlledPublicTestRunner
     private readonly string configPath;
     private readonly string workingDirectory;
     private readonly string auditPath;
+    private readonly string operation;
     private readonly TimeSpan timeout;
 
     /// <summary>
@@ -33,12 +34,27 @@ public sealed class ControlledPublicTestRunner
         string workingDirectory,
         string auditPath,
         TimeSpan timeout)
+        : this(nodePath, vitestEntryPoint, configPath, workingDirectory, auditPath, timeout, "public-tests")
+    {
+    }
+
+    internal ControlledPublicTestRunner(
+        string nodePath,
+        string vitestEntryPoint,
+        string configPath,
+        string workingDirectory,
+        string auditPath,
+        TimeSpan timeout,
+        string operation)
     {
         this.nodePath = RequireFile(nodePath, nameof(nodePath));
         this.vitestEntryPoint = RequireFile(vitestEntryPoint, nameof(vitestEntryPoint));
         this.configPath = RequireFile(configPath, nameof(configPath));
         this.workingDirectory = RequireDirectory(workingDirectory, nameof(workingDirectory));
         this.auditPath = RequireAbsolutePath(auditPath, nameof(auditPath));
+        this.operation = string.IsNullOrWhiteSpace(operation)
+            ? throw new ArgumentException("L'operazione deve essere valorizzata.", nameof(operation))
+            : operation;
         if (IsWithin(this.vitestEntryPoint, this.workingDirectory)
             || IsWithin(this.configPath, this.workingDirectory))
         {
@@ -128,7 +144,7 @@ public sealed class ControlledPublicTestRunner
 
         stopwatch.Stop();
         var result = new ControlledCommandResult(
-            "public-tests",
+            operation,
             status,
             exitCode,
             stopwatch.ElapsedMilliseconds,
