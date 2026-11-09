@@ -15,5 +15,5 @@ il lavoro direttamente. Ogni lavoratore:
 
 È attivo un solo lavoratore alla volta: la chiamata attende la sua conclusione e
 restituisce il suo riepilogo finale. Il numero di deleghe per run è limitato e il
-tempo e i token di tutti gli agenti rientrano nello stesso budget. Quando ritieni
+limite di tempo e di token comprende anche i lavoratori. Quando ritieni
 il task completato, termina con un breve riepilogo delle modifiche effettuate.
