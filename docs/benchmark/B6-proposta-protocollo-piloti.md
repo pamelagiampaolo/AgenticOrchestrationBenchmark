@@ -1,15 +1,16 @@
-# B6 — Proposta di protocollo minimo per i piloti
+# B6 — Protocollo minimo approvato per i piloti
 
 ## Stato
 
 - **Data:** 9 novembre 2026.
-- **Stato:** proposta completa, non ancora approvata; nessun pilota autorizzato.
+- **Stato:** protocollo approvato e congelato dall'utente il 9 novembre 2026;
+  i piloti sono autorizzati, ma non ancora avviati.
 - **Obiettivo:** calibrare un unico limite di tempo e token per le tre
   architetture senza duplicare le 54 run ufficiali.
 
 ## Workload e numero di prove
 
-La proposta usa due estremi già congelati del benchmark:
+Il protocollo usa due estremi già congelati del benchmark:
 
 - **T1:** modifica semplice e circoscritta;
 - **T6:** modifica complessa, trasversale e scomponibile.
@@ -27,7 +28,7 @@ non includono tutte le condizioni.
 
 ## Ordine e seed
 
-Seed proposto: `d9dc66a`, commit che ha esposto la terza architettura.
+Seed approvato: `d9dc66a`, commit che ha esposto la terza architettura.
 
 L'ordine base si ottiene ordinando lessicograficamente gli SHA-256 di
 `<seed>|<architecture>`:
@@ -64,7 +65,7 @@ I limiti iniziali sono tetti di calibrazione, non i limiti ufficiali. Se un
 pilota li raggiunge, la calibrazione è inconclusiva e non vengono aumentati
 automaticamente dopo aver visto il risultato.
 
-## Regola proposta per i limiti ufficiali
+## Regola approvata per i limiti ufficiali
 
 La regola viene approvata prima dei piloti e applicata una sola volta ai sei
 piloti validi:
@@ -108,10 +109,10 @@ della CLI, errori del modello e test falliti non autorizzano una ripetizione.
 - Cache e posizione nell'ordine vengono registrate, non interpretate come nuovo
   input.
 
-## Istruzioni proposte per il freeze
+## Istruzioni congelate
 
 La revisione non ha trovato suggerimenti funzionali specifici dei task. Le
-differenze descrivono soltanto l'architettura. Hash SHA-256 proposti:
+differenze descrivono soltanto l'architettura. Hash SHA-256 congelati:
 
 | File | SHA-256 |
 | --- | --- |
@@ -124,9 +125,9 @@ differenze descrivono soltanto l'architettura. Hash SHA-256 proposti:
 | `static-implementer.md` | `ac82d463091f5e5dcb45f18c82e86e93f1479e7562ba442df578e0f189edbdca` |
 | `static-verifier.md` | `816f5db0256cabad8ea1509bed3b46c06bad6f02b95be23eb27e6d64ce2a0ac6` |
 
-## Decisioni richieste
+## Decisioni approvate e congelate
 
-Prima di avviare il primo pilota devono essere approvati insieme:
+L'utente ha approvato insieme, prima del primo pilota:
 
 1. 6 piloti validi su T1 e T6;
 2. ordine e seed sopra indicati;
@@ -134,7 +135,7 @@ Prima di avviare il primo pilota devono essere approvati insieme:
 4. massimo 3 deleghe adattive;
 5. margine del 25% e arrotondamenti;
 6. una sola ripetizione per errore infrastrutturale;
-7. freeze degli otto file di istruzioni elencati.
+7. freeze degli otto file di istruzioni elencati;
 8. periodo tecnico di arresto nullo e schema degli stati già implementato
    (`completed`, limiti singoli o congiunti, configurazione rifiutata,
    misurazione incompleta, fallimento CLI).
