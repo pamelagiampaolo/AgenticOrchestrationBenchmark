@@ -22,6 +22,32 @@ if (args.Length > 0 && args[0] == RunAdaptiveHierarchyCommand.Name)
     return;
 }
 
+if (args.Length > 0 && args[0] == RunStaticHierarchyCommand.Name)
+{
+    string coordinationServerPath = Environment.ProcessPath
+        ?? throw new InvalidOperationException("Percorso dell'eseguibile corrente non disponibile.");
+    var runStaticHierarchy = new RunStaticHierarchyCommand(
+        HierarchicalRunRunner.CreateStatic(
+            TimeProvider.System,
+            Path.Combine(AppContext.BaseDirectory, "Instructions")),
+        coordinationServerPath);
+    Environment.ExitCode = await runStaticHierarchy.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
+
+if (args.Length > 0 && args[0] == RunStaticHierarchyCommand.Name)
+{
+    string coordinationServerPath = Environment.ProcessPath
+        ?? throw new InvalidOperationException("Percorso dell'eseguibile corrente non disponibile.");
+    var runStaticHierarchy = new RunStaticHierarchyCommand(
+        HierarchicalRunRunner.CreateStatic(
+            TimeProvider.System,
+            Path.Combine(AppContext.BaseDirectory, "Instructions")),
+        coordinationServerPath);
+    Environment.ExitCode = await runStaticHierarchy.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
+
 if (args.Length > 0 && args[0] == PrepareRunCommand.Name)
 {
     var prepareRun = new PrepareRunCommand(
