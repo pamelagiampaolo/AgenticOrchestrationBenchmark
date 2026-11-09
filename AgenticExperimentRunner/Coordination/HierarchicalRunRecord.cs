@@ -211,6 +211,7 @@ public sealed record HierarchyHashes(
 /// <param name="McpServerPath">Eseguibile del server MCP del workspace.</param>
 /// <param name="CoordinationServerPath">Eseguibile del relay di coordinamento.</param>
 /// <param name="ProtectedIntegrityDifferences">Differenze nei materiali protetti a fine run.</param>
+/// <param name="Toolchain">Identità della toolchain dei comandi MCP di sviluppo.</param>
 public sealed record HierarchicalRunRecord(
     int SchemaVersion,
     string RunId,
@@ -240,7 +241,8 @@ public sealed record HierarchicalRunRecord(
     string ClaudePath,
     string McpServerPath,
     string CoordinationServerPath,
-    IReadOnlyList<string> ProtectedIntegrityDifferences)
+    IReadOnlyList<string> ProtectedIntegrityDifferences,
+    ToolchainIdentity Toolchain)
 {
     /// <summary>Versione corrente del formato.</summary>
     public const int CurrentSchemaVersion = 1;

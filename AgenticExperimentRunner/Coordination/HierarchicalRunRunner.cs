@@ -109,6 +109,7 @@ public sealed class HierarchicalRunRunner
         string pipeName = CoordinationHost.CreatePipeName();
         RunConditions conditions = WriteConditions(request, prepared, pipeName);
         string cliVersion = await AgentProcess.ReadCliVersionAsync(request.ClaudePath, prepared.SessionDirectory, cancellationToken);
+        ToolchainIdentity toolchain = await ToolchainIdentity.InspectAsync(request.McpToolchain, prepared.SessionDirectory, cancellationToken);
 
         using var limits = new RunLimitController(request.TokenBudget, request.TimeLimit, timeProvider);
         var handler = new WorkerDelegationHandler(
@@ -143,7 +144,7 @@ public sealed class HierarchicalRunRunner
             RunIntegrity.FindDifferences(manifest, prepared.AgentRoot, IntegrityScope.ProtectedOnly);
 
         HierarchicalRunRecord record = BuildRecord(
-            request, prepared, conditions, cliVersion, limits, coordinator, handler,
+            request, prepared, conditions, cliVersion, toolchain, limits, coordinator, handler,
             startedAt, endedAt, duration, protectedDifferences);
         string recordPath = Path.Combine(prepared.ResultsDirectory, RunRecordFileName);
         record.WriteTo(recordPath);
@@ -343,6 +344,7 @@ public sealed class HierarchicalRunRunner
         PrepareRunOutput prepared,
         RunConditions conditions,
         string cliVersion,
+        ToolchainIdentity toolchain,
         RunLimitController limits,
         AgentProcessOutcome coordinator,
         WorkerDelegationHandler handler,
@@ -394,7 +396,8 @@ public sealed class HierarchicalRunRunner
             request.ClaudePath,
             request.McpServerPath,
             request.CoordinationServerPath,
-            protectedDifferences);
+            protectedDifferences,
+            toolchain);
     }
 
     /// <summary>
