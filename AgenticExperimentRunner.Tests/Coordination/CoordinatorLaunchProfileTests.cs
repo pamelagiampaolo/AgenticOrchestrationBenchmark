@@ -31,7 +31,8 @@ public sealed class CoordinatorLaunchProfileTests
             @"C:\AgenticAIResults\r1\mcp-audit",
             @"C:\runner\AgenticExperimentRunner.exe",
             "agentic-coordination-abc",
-            TimeSpan.FromSeconds(1800.5));
+            TimeSpan.FromSeconds(1800.5),
+            "T6");
 
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement servers = document.RootElement.GetProperty("mcpServers");
@@ -43,6 +44,7 @@ public sealed class CoordinatorLaunchProfileTests
         Assert.Equal(
             "workspace;agent-tests",
             servers.GetProperty("benchmark_workspace").GetProperty("env").GetProperty("MCP_WRITABLE_DIRECTORIES").GetString());
+        Assert.Equal("T6", servers.GetProperty("benchmark_workspace").GetProperty("env").GetProperty("MCP_TASK_ID").GetString());
         Assert.DoesNotContain("\r", json);
     }
 

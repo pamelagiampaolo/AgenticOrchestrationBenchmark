@@ -154,7 +154,8 @@ public sealed class SingleAgentSessionRunner
             prepared.WritableDirectories,
             request.McpToolchain,
             Path.Combine(prepared.ResultsDirectory, "mcp-worker"),
-            Path.Combine(prepared.ResultsDirectory, "mcp-audit"));
+            Path.Combine(prepared.ResultsDirectory, "mcp-audit"),
+            prepared.TaskId);
         RunInputs.WriteNewText(settingsPath, settings);
         RunInputs.WriteNewText(mcpConfigurationPath, mcpConfiguration);
         RunInputs.WriteNewText(systemPromptAppendPath, systemPromptAppend);

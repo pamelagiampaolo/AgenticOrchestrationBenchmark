@@ -17,6 +17,7 @@ public sealed class ControlledPublicTestRunner
     private readonly string auditPath;
     private readonly string operation;
     private readonly TimeSpan timeout;
+    private readonly string? testNamePattern;
 
     /// <summary>
     /// Configura il comando pubblico senza accettare argomenti dal chiamante MCP.
@@ -34,7 +35,7 @@ public sealed class ControlledPublicTestRunner
         string workingDirectory,
         string auditPath,
         TimeSpan timeout)
-        : this(nodePath, vitestEntryPoint, configPath, workingDirectory, auditPath, timeout, "public-tests")
+        : this(nodePath, vitestEntryPoint, configPath, workingDirectory, auditPath, timeout, "public-tests", null)
     {
     }
 
@@ -45,7 +46,8 @@ public sealed class ControlledPublicTestRunner
         string workingDirectory,
         string auditPath,
         TimeSpan timeout,
-        string operation)
+        string operation,
+        string? testNamePattern = null)
     {
         this.nodePath = RequireFile(nodePath, nameof(nodePath));
         this.vitestEntryPoint = RequireFile(vitestEntryPoint, nameof(vitestEntryPoint));
@@ -55,6 +57,7 @@ public sealed class ControlledPublicTestRunner
         this.operation = string.IsNullOrWhiteSpace(operation)
             ? throw new ArgumentException("L'operazione deve essere valorizzata.", nameof(operation))
             : operation;
+        this.testNamePattern = testNamePattern;
         if (IsWithin(this.vitestEntryPoint, this.workingDirectory)
             || IsWithin(this.configPath, this.workingDirectory))
         {
@@ -100,6 +103,11 @@ public sealed class ControlledPublicTestRunner
         process.StartInfo.ArgumentList.Add("--config");
         process.StartInfo.ArgumentList.Add(configPath);
         process.StartInfo.ArgumentList.Add("--reporter=json");
+        if (testNamePattern is not null)
+        {
+            process.StartInfo.ArgumentList.Add("--testNamePattern");
+            process.StartInfo.ArgumentList.Add(testNamePattern);
+        }
 
         string status;
         int? exitCode = null;
@@ -171,7 +179,9 @@ public sealed class ControlledPublicTestRunner
             timestampUtc = startedAt,
             operation = result.Operation,
             executable = nodePath,
-            arguments = new[] { vitestEntryPoint, "run", "--config", configPath, "--reporter=json" },
+            arguments = testNamePattern is null
+                ? new[] { vitestEntryPoint, "run", "--config", configPath, "--reporter=json" }
+                : new[] { vitestEntryPoint, "run", "--config", configPath, "--reporter=json", "--testNamePattern", testNamePattern },
             workingDirectory,
             result.Status,
             result.ExitCode,

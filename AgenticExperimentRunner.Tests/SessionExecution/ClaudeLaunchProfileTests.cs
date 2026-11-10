@@ -57,7 +57,8 @@ public sealed class ClaudeLaunchProfileTests
             ["workspace", "agent-tests"],
             new McpDevelopmentToolchain(@"C:\bin\node.exe", @"C:\toolchain\vitest.mjs", @"C:\toolchain\tsc.js"),
             @"C:\AgenticAIResults\r1\mcp-worker",
-            @"C:\AgenticAIResults\r1\mcp-audit"));
+            @"C:\AgenticAIResults\r1\mcp-audit",
+            "T6"));
 
         JsonElement servers = configuration.RootElement.GetProperty("mcpServers");
         JsonElement server = Assert.Single(servers.EnumerateObject()).Value;
@@ -68,6 +69,7 @@ public sealed class ClaudeLaunchProfileTests
             "workspace" + Path.PathSeparator + "agent-tests",
             server.GetProperty("env").GetProperty("MCP_WRITABLE_DIRECTORIES").GetString());
         JsonElement environment = server.GetProperty("env");
+        Assert.Equal("T6", environment.GetProperty("MCP_TASK_ID").GetString());
         Assert.Equal(@"C:\bin\node.exe", environment.GetProperty("MCP_PUBLIC_TEST_NODE").GetString());
         Assert.Equal(@"C:\toolchain\vitest.mjs", environment.GetProperty("MCP_AGENT_TEST_VITEST").GetString());
         Assert.Equal(@"C:\toolchain\tsc.js", environment.GetProperty("MCP_BUILD_TSC").GetString());

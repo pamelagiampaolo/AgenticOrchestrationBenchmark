@@ -68,7 +68,8 @@ try
             nodePath,
             Environment.GetEnvironmentVariable("MCP_PUBLIC_TEST_VITEST") ?? string.Empty,
             commandAuditPath,
-            TimeSpan.FromSeconds(timeoutSeconds));
+            TimeSpan.FromSeconds(timeoutSeconds),
+            Environment.GetEnvironmentVariable("MCP_TASK_ID") ?? string.Empty);
     }
 
     string? buildNodePath = Environment.GetEnvironmentVariable("MCP_BUILD_NODE");

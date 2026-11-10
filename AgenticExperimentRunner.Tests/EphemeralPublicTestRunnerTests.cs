@@ -35,7 +35,8 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
             FindNode(),
             script,
             auditPath,
-            TimeSpan.FromSeconds(10));
+            TimeSpan.FromSeconds(10),
+            "T1");
 
         ControlledCommandResult result = await runner.RunAsync(TestContext.Current.CancellationToken);
 
@@ -69,7 +70,8 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
             FindNode(),
             Path.Combine(benchmark, "node_modules", "vitest", "vitest.mjs"),
             Path.Combine(root, "results", "real-audit.jsonl"),
-            TimeSpan.FromSeconds(30));
+            TimeSpan.FromSeconds(30),
+            "T1");
 
         ControlledCommandResult result = await runner.RunAsync(TestContext.Current.CancellationToken);
 
@@ -94,7 +96,8 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
             FindNode(),
             script,
             Path.Combine(root, "results", "missing-report-audit.jsonl"),
-            TimeSpan.FromSeconds(10));
+            TimeSpan.FromSeconds(10),
+            "T1");
 
         ControlledCommandResult result = await runner.RunAsync(TestContext.Current.CancellationToken);
 
@@ -102,6 +105,40 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
         Assert.Null(result.Tests);
         Assert.DoesNotContain(workerRoot, result.StandardOutput, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("<worker>", result.StandardOutput, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task RunAsync_T6_SelectsOnlyApplicablePublicTests()
+    {
+        string benchmark = Path.Combine(FindRepositoryRoot(), "BenchmarkTarget");
+        string agentRoot = CreateAgentRoot();
+        CopyDirectory(Path.Combine(benchmark, "src"), Path.Combine(agentRoot, "workspace", "src"));
+        File.Copy(Path.Combine(benchmark, "tsconfig.json"), Path.Combine(agentRoot, "workspace", "tsconfig.json"));
+        string publicSource = Path.Combine(benchmark, "tests", "public");
+        string publicDestination = Path.Combine(agentRoot, "public-reference", "tests", "public");
+        Directory.CreateDirectory(publicDestination);
+        foreach (string testName in new[] { "inventory-management.test.ts", "order-management.test.ts" })
+        {
+            File.Copy(Path.Combine(publicSource, testName), Path.Combine(publicDestination, testName));
+        }
+        CopyDirectory(Path.Combine(publicSource, "t6"), Path.Combine(publicDestination, "t6"));
+        string workerRoot = Path.Combine(root, "t6-worker");
+        var runner = new EphemeralPublicTestRunner(
+            agentRoot,
+            workerRoot,
+            FindNode(),
+            Path.Combine(benchmark, "node_modules", "vitest", "vitest.mjs"),
+            Path.Combine(root, "results", "t6-audit.jsonl"),
+            TimeSpan.FromSeconds(30),
+            "T6");
+
+        ControlledCommandResult result = await runner.RunAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(32, result.Tests?.Total);
+        Assert.Equal(21, result.Tests?.Passed);
+        Assert.Equal(5, result.Tests?.Failed);
+        Assert.Equal(6, result.Tests?.Pending);
+        Assert.Empty(Directory.EnumerateFileSystemEntries(workerRoot));
     }
 
     private string CreateAgentRoot()

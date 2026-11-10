@@ -121,12 +121,13 @@ public static class ClaudeLaunchProfile
         IReadOnlyList<string> writableDirectories,
         McpDevelopmentToolchain toolchain,
         string workerRoot,
-        string auditDirectory) => JsonSerializer.Serialize(
+        string auditDirectory,
+        string taskId) => JsonSerializer.Serialize(
         new Dictionary<string, object>
         {
             ["mcpServers"] = new Dictionary<string, object>
             {
-                [McpServerName] = WorkspaceServer(mcpServerPath, agentRoot, writableDirectories, toolchain, workerRoot, auditDirectory),
+                [McpServerName] = WorkspaceServer(mcpServerPath, agentRoot, writableDirectories, toolchain, workerRoot, auditDirectory, taskId),
             },
         },
         JsonOptions);
@@ -153,12 +154,13 @@ public static class ClaudeLaunchProfile
         string auditDirectory,
         string coordinationServerPath,
         string pipeName,
-        TimeSpan toolTimeout) => JsonSerializer.Serialize(
+        TimeSpan toolTimeout,
+        string taskId) => JsonSerializer.Serialize(
         new Dictionary<string, object>
         {
             ["mcpServers"] = new Dictionary<string, object>
             {
-                [McpServerName] = WorkspaceServer(mcpServerPath, agentRoot, writableDirectories, toolchain, workerRoot, auditDirectory),
+                [McpServerName] = WorkspaceServer(mcpServerPath, agentRoot, writableDirectories, toolchain, workerRoot, auditDirectory, taskId),
                 [CoordinationServerName] = new Dictionary<string, object>
                 {
                     ["command"] = coordinationServerPath,
@@ -228,7 +230,8 @@ public static class ClaudeLaunchProfile
         IReadOnlyList<string> writableDirectories,
         McpDevelopmentToolchain toolchain,
         string workerRoot,
-        string auditDirectory) => new()
+        string auditDirectory,
+        string taskId) => new()
     {
         ["command"] = mcpServerPath,
         ["args"] = new[] { agentRoot },
@@ -236,6 +239,7 @@ public static class ClaudeLaunchProfile
         {
             ["ENABLE_CLAUDEAI_MCP_SERVERS"] = "false",
             ["MCP_WRITABLE_DIRECTORIES"] = string.Join(Path.PathSeparator, writableDirectories),
+            ["MCP_TASK_ID"] = taskId,
             ["MCP_PUBLIC_TEST_NODE"] = toolchain.NodePath,
             ["MCP_PUBLIC_TEST_VITEST"] = toolchain.VitestPath,
             ["MCP_PUBLIC_TEST_WORKER_ROOT"] = workerRoot,

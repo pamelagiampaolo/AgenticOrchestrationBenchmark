@@ -307,10 +307,11 @@ public sealed class HierarchicalRunRunner
         string coordinatorMcpConfiguration = ClaudeLaunchProfile.BuildCoordinatorMcpConfigurationJson(
             request.McpServerPath, prepared.AgentRoot, prepared.WritableDirectories, request.McpToolchain,
             Path.Combine(prepared.ResultsDirectory, "mcp-worker"), Path.Combine(prepared.ResultsDirectory, "mcp-audit"),
-            request.CoordinationServerPath, pipeName, request.TimeLimit);
+            request.CoordinationServerPath, pipeName, request.TimeLimit, prepared.TaskId);
         string workerMcpConfiguration = ClaudeLaunchProfile.BuildMcpConfigurationJson(
             request.McpServerPath, prepared.AgentRoot, prepared.WritableDirectories, request.McpToolchain,
-            Path.Combine(prepared.ResultsDirectory, "mcp-worker"), Path.Combine(prepared.ResultsDirectory, "mcp-audit"));
+            Path.Combine(prepared.ResultsDirectory, "mcp-worker"), Path.Combine(prepared.ResultsDirectory, "mcp-audit"),
+            prepared.TaskId);
 
         var conditions = new RunConditions(
             taskPrompt,

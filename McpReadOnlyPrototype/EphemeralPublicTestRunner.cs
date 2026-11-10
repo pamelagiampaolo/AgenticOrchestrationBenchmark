@@ -9,6 +9,21 @@ namespace McpReadOnlyPrototype;
 /// </summary>
 public sealed class EphemeralPublicTestRunner
 {
+    private static readonly string[] T6CompatibleCommonTestNames =
+    [
+        "lists only product data ordered by product identifier",
+        "returns the available quantity for P-001", "returns the available quantity for P-002",
+        "returns the available quantity for P-003", "exposes a stable error code for an unknown product",
+        "copies initial and returned product data", "keeps data independent between instances",
+        "lists orders by textual identifier", "does not consume an identifier when creation fails",
+        "rejects an empty order", "rejects an unknown product", "rejects invalid quantity 0",
+        "rejects invalid quantity -1", "rejects invalid quantity 1.5",
+        "rejects invalid quantity 9007199254740992", "rejects invalid quantity NaN",
+        "rejects invalid quantity Infinity", "blocks a second confirmation without decrementing stock again",
+        "reports ORDER_NOT_FOUND when attempting to read an unknown order",
+        "reports ORDER_NOT_FOUND when attempting to confirm an unknown order",
+        "keeps counters, orders, and stock isolated between instances",
+    ];
     private readonly string agentRoot;
     private readonly string workerRoot;
     private readonly string nodePath;
@@ -20,6 +35,7 @@ public sealed class EphemeralPublicTestRunner
     private readonly string operation;
     private readonly string suiteLabel;
     private readonly string[] excludedPatterns;
+    private readonly string? testNamePattern;
 
     /// <summary>
     /// Configura le sorgenti della composizione e la toolchain fidata.
@@ -30,7 +46,8 @@ public sealed class EphemeralPublicTestRunner
         string nodePath,
         string vitestEntryPoint,
         string auditPath,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        string taskId)
         : this(
             agentRoot,
             workerRoot,
@@ -42,7 +59,8 @@ public sealed class EphemeralPublicTestRunner
             "tests/public/**/*.test.ts",
             "public-tests",
             "pubblici",
-            ["tests/reserved/**"])
+            ["tests/reserved/**"],
+            CreateTestNamePattern(taskId))
     {
     }
 
@@ -57,7 +75,8 @@ public sealed class EphemeralPublicTestRunner
         string includePattern,
         string operation,
         string suiteLabel,
-        string[] excludedPatterns)
+        string[] excludedPatterns,
+        string? testNamePattern = null)
     {
         this.agentRoot = RequireDirectory(agentRoot, nameof(agentRoot));
         this.workerRoot = RequireAbsolutePath(workerRoot, nameof(workerRoot));
@@ -72,6 +91,7 @@ public sealed class EphemeralPublicTestRunner
         this.operation = operation;
         this.suiteLabel = suiteLabel;
         this.excludedPatterns = excludedPatterns;
+        this.testNamePattern = testNamePattern;
 
         RequireDirectory(Path.Combine(this.agentRoot, "workspace"), "workspace");
         RequireDirectory(Path.Combine(this.agentRoot, sourceDirectoryName), sourceDirectoryName);
@@ -104,7 +124,7 @@ public sealed class EphemeralPublicTestRunner
             CopyTree(suiteSource, project, rejectCollisions: true);
             await File.WriteAllTextAsync(
                 configPath,
-                $"export default {{ test: {{ environment: 'node', include: ['{includePattern}'], exclude: [{string.Join(", ", excludedPatterns.Select(pattern => $"'{pattern}'"))}], outputFile: '../output/vitest-results.json' }} }};\n",
+                BuildVitestConfiguration(),
                 Encoding.UTF8,
                 cancellationToken);
 
@@ -115,7 +135,8 @@ public sealed class EphemeralPublicTestRunner
                 project,
                 auditPath,
                 timeout,
-                operation);
+                operation,
+                testNamePattern);
             ControlledCommandResult result = await runner.RunAsync(cancellationToken);
             result = AttachValidatedReport(result, reportPath, invocationRoot);
             string suiteHashAfter = ComputeTreeHash(suiteSource);
@@ -137,6 +158,28 @@ public sealed class EphemeralPublicTestRunner
                 Directory.Delete(invocationRoot, recursive: true);
             }
         }
+    }
+
+    private string BuildVitestConfiguration()
+    {
+        return $"export default {{ test: {{ environment: 'node', include: ['{includePattern}'], exclude: [{string.Join(", ", excludedPatterns.Select(pattern => $"'{pattern}'"))}], outputFile: '../output/vitest-results.json' }} }};\n";
+    }
+
+    private static string? CreateTestNamePattern(string taskId)
+    {
+        if (string.IsNullOrWhiteSpace(taskId) || taskId.Length != 2
+            || taskId[0] is not ('T' or 't') || taskId[1] is < '1' or > '6')
+        {
+            throw new ArgumentException($"Task non valido per la suite pubblica: '{taskId}'.", nameof(taskId));
+        }
+
+        if (!taskId.Equals("T6", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        string commonNames = string.Join("|", T6CompatibleCommonTestNames);
+        return $"(?:{commonNames}|T6-P0[1-5]\\b)";
     }
 
     private ControlledCommandResult AttachValidatedReport(
