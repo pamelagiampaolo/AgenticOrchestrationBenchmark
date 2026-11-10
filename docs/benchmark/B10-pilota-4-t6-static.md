@@ -1,9 +1,10 @@
-# B10 — Pilota 4: T6 con gerarchia statica
+# B10 — Tentativo pilota 4 invalidato: T6 con gerarchia statica
 
 ## Classificazione
 
 - **Data:** 10 novembre 2026.
-- **Stato:** pilota valido per la calibrazione B6.
+- **Stato:** tentativo invalidato per configurazione errata della suite pubblica
+  dell'harness; escluso dalla calibrazione B6.
 - **Ordine:** quarto dei sei piloti congelati.
 - **Run ID:** `20261110T153951Z-badf5ea7`.
 - **Task:** T6.
@@ -57,9 +58,11 @@ lasciato `agent-tests/t6-extra.test.ts`. Implementer e verifier hanno
 rispettivamente 3 e 1 errori strumento, corrispondenti agli exit code negativi
 dei test.
 
-Questi fallimenti non sono guasti infrastrutturali e non autorizzano una
-ripetizione. La valutazione indipendente della submission finale stabilisce
-l'esito funzionale autorevole.
+La successiva analisi congiunta del tentativo single-agent ha dimostrato che
+l'harness eseguiva tutti i 32 casi pubblici, inclusi i sei casi comuni dichiarati
+non applicabili a T6. La configurazione sperimentale era quindi errata e il
+tentativo deve essere ripetuto dopo la correzione, indipendentemente dalla
+correttezza della submission finale.
 
 ## Valutazione indipendente
 
@@ -103,15 +106,14 @@ Hash dei riepiloghi principali:
 | `run-record.json` | `5d8e6c50c2cf96c634bc1e883ab209e4ce7b7708de3f3e6566e6443a6ef1c742` |
 | `evaluation-summary.json` | `72c313a244fa087a7e954d9fe619afe666cff12b306079c9747ba8d36ce3f64a` |
 
-Dopo questo passo l'allowlist dei piloti contiene esattamente:
+Dopo l'invalidazione, l'allowlist dei piloti validi contiene esattamente:
 
 1. `20261109T195256Z-9fc50de5` — T1 adattiva;
 2. `20261109T203833Z-bdd6ac20` — T1 statica;
 3. `20261110T152614Z-c438ecc5` — T1 single-agent;
-4. `20261110T153951Z-badf5ea7` — T6 statica.
 
-Le altre directory presenti nelle root operative sono prove tecniche storiche e
-non fanno parte dei piloti B6.
+La run `20261110T153951Z-badf5ea7` resta conservata come evidenza diagnostica ma
+non fa parte dei piloti validi B6.
 
-Questa prova certifica il solo slot T6 statico. I limiti ufficiali non possono
-essere derivati prima dei due slot rimanenti.
+Questo tentativo non certifica lo slot T6 statico e i suoi consumi non saranno
+usati per derivare i limiti ufficiali.
