@@ -93,6 +93,7 @@ public sealed record SessionHashes(
 /// <param name="McpServerPath">Eseguibile del server MCP.</param>
 /// <param name="RemovedEnvironmentVariables">Nomi delle variabili ereditate rimosse.</param>
 /// <param name="ProtectedIntegrityDifferences">Differenze nei materiali protetti a fine sessione.</param>
+/// <param name="Toolchain">Identità della toolchain dei comandi MCP di sviluppo.</param>
 public sealed record SessionRecord(
     int SchemaVersion,
     string RunId,
@@ -129,7 +130,8 @@ public sealed record SessionRecord(
     string ClaudePath,
     string McpServerPath,
     IReadOnlyList<string> RemovedEnvironmentVariables,
-    IReadOnlyList<string> ProtectedIntegrityDifferences)
+    IReadOnlyList<string> ProtectedIntegrityDifferences,
+    ToolchainIdentity Toolchain)
 {
     /// <summary>Versione corrente del formato.</summary>
     public const int CurrentSchemaVersion = 1;

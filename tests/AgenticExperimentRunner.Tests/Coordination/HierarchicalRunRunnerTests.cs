@@ -93,6 +93,8 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
         Assert.True(File.Exists(Path.Combine(prepared.ResultsDirectory, "agents", "worker-01", "stream.jsonl")));
         Assert.Equal(RunInputs.Sha256(CoordinationMcpServer.DescribeTools()), record.Hashes.DelegateToolDefinition);
         Assert.NotNull(record.Hashes.CoordinationServerAssembly);
+        Assert.Equal("9.9.9 fake", record.Toolchain.NodeVersion);
+        Assert.Equal(cli.ExecutablePath, record.Toolchain.VitestPath);
 
         using JsonDocument json = JsonDocument.Parse(File.ReadAllText(recordPath));
         Assert.Equal("completed", json.RootElement.GetProperty("status").GetString());

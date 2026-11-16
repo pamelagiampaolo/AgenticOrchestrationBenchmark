@@ -98,12 +98,13 @@ public sealed class SingleAgentSessionRunner
 
         SessionInputs inputs = WriteSessionInputs(request, prepared);
         string cliVersion = await AgentProcess.ReadCliVersionAsync(request.ClaudePath, prepared.SessionDirectory, cancellationToken);
+        ToolchainIdentity toolchain = await ToolchainIdentity.InspectAsync(request.McpToolchain, prepared.SessionDirectory, cancellationToken);
 
         ProcessOutcome outcome = await RunCliAsync(request, prepared, inputs, cancellationToken);
 
         IReadOnlyList<string> protectedDifferences =
             RunIntegrity.FindDifferences(manifest, prepared.AgentRoot, IntegrityScope.ProtectedOnly);
-        SessionRecord record = BuildRecord(request, prepared, inputs, cliVersion, outcome, protectedDifferences);
+        SessionRecord record = BuildRecord(request, prepared, inputs, cliVersion, toolchain, outcome, protectedDifferences);
         record.WriteTo(recordPath);
         return (record, recordPath);
     }
@@ -213,6 +214,7 @@ public sealed class SingleAgentSessionRunner
         PrepareRunOutput prepared,
         SessionInputs inputs,
         string cliVersion,
+        ToolchainIdentity toolchain,
         ProcessOutcome outcome,
         IReadOnlyList<string> protectedDifferences)
     {
@@ -259,7 +261,8 @@ public sealed class SingleAgentSessionRunner
             request.ClaudePath,
             request.McpServerPath,
             outcome.RemovedEnvironmentVariables,
-            protectedDifferences);
+            protectedDifferences,
+            toolchain);
     }
 
     private static SessionStatus DetermineStatus(ProcessOutcome outcome, SessionResult? result, long tokensObserved, long tokenBudget)

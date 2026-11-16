@@ -309,9 +309,11 @@ Queste regole sono state date soltanto a Claude e non si estendono a Codex.
   `--max-delegations` (10 proposto), istruzioni `coordinator.md`/`worker.md` in
   bozza. Prove reali: delega di circa 154 s attesa correttamente; T1 completato
   senza deleghe. La gerarchia statica va costruita su `HierarchicalRunRunner`.
-- Codex: worker confinato per build e test in corso (`P9`–`P14`).
-- Bloccante per i piloti B4: finché il worker non esiste l'agente non può
-  eseguire typecheck e test, quindi le sessioni non rappresentano il ciclo di
-  sviluppo reale.
+- Codex: comandi MCP di sviluppo (`run_typecheck`, `run_build`, `run_public_tests`,
+  `run_agent_tests`) completati e collegati ai launcher (P15–P23). Claude (P26):
+  identità della toolchain nei record; prova completa non ufficiale su T1 riuscita
+  per single-agent e gerarchia adattiva.
+- Prima dei piloti B4: istruzioni approvate, toolchain congelata per le run
+  ufficiali, protocollo dei piloti.
 - Da verificare prima delle run ufficiali: terminazione forzata con la CLI reale,
   isolamento della pipe di coordinamento, testi definitivi delle istruzioni.

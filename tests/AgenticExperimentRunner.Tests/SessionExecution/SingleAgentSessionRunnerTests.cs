@@ -54,6 +54,8 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
         Assert.Equal(1, record.ToolErrorCount);
         Assert.Equal(1, record.MalformedLineCount);
         Assert.Equal("9.9.9 fake", record.CliVersion);
+        Assert.Equal("9.9.9 fake", record.Toolchain.NodeVersion);
+        Assert.Equal(GitTestProcess.Sha256(File.ReadAllBytes(cli.ExecutablePath)), record.Toolchain.NodeExecutableSha256);
         Assert.Equal("single-agent", record.Architecture);
         Assert.Equal(prepared.SourceCommit, record.SourceCommit);
         Assert.Empty(record.ProtectedIntegrityDifferences);
