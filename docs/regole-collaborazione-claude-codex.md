@@ -34,7 +34,7 @@ le modifiche non committate e la staging area di uno non compaiono nell'altro.
 
 | | Claude | Codex |
 | --- | --- | --- |
-| Cartella | `C:\repos\TesiAgenticAI-agent` | `C:\repos\TesiAgenticAI` |
+| Cartella | `C:\repos\AgenticOrchestrationBenchmark-agent` | `C:\repos\AgenticOrchestrationBenchmark` |
 | Branch | `feat/single-agent` | `main` |
 | Codice di proprietà | `AgenticExperimentRunner/` (incl. `RunPreparation/`, `SessionExecution/`, `Coordination/`, `Instructions/`) e test nuovi dedicati | `McpReadOnlyPrototype/`, `scripts/*`, `RootedFileAccessTests.cs`, worker confinato per build e test |
 | Documenti | `docs/benchmark/A*` | `docs/benchmark/P*` |
@@ -272,7 +272,7 @@ Queste regole sono state date soltanto a Claude e non si estendono a Codex.
 5. **Branch sempre integrabile:** ogni commit che chiude un'iterazione `A*` è già
    verificato (format, build, suite completa), così Codex può unire in `main`
    qualunque punto del branch che chiude un'iterazione senza attendere Claude.
-6. Lavorare solo in `C:\repos\TesiAgenticAI-agent`.
+6. Lavorare solo in `C:\repos\AgenticOrchestrationBenchmark-agent`.
 
 ---
 
@@ -296,7 +296,7 @@ Queste regole sono state date soltanto a Claude e non si estendono a Codex.
 4. **Prove di accettazione:** lo script `Invoke-McpReadOnlyPrototype.ps1` resta lo
    strumento di verifica dell'isolamento MCP; le fixture devono usare i nomi del
    layout prodotti da `prepare-run`.
-5. Lavorare solo in `C:\repos\TesiAgenticAI`.
+5. Lavorare solo in `C:\repos\AgenticOrchestrationBenchmark`.
 
 ---
 

@@ -2,7 +2,7 @@
 
 - **Data:** 9 novembre 2026
 - **Fase:** verifica di readiness prima dei piloti B4
-- **Branch:** `feat/single-agent` (worktree `C:\repos\TesiAgenticAI-agent`)
+- **Branch:** `feat/single-agent` (worktree `C:\repos\AgenticOrchestrationBenchmark-agent`)
 - **Stato:** completata; modifiche approvate dall'utente
 
 ## Obiettivo

@@ -2,7 +2,7 @@
 
 - **Data:** 9 novembre 2026
 - **Fase:** verifica di readiness prima dei piloti B4
-- **Branch:** `feat/single-agent` (worktree `C:\repos\TesiAgenticAI-agent`)
+- **Branch:** `feat/single-agent` (worktree `C:\repos\AgenticOrchestrationBenchmark-agent`)
 - **Stato:** toolchain congelata creata e verificata; protocollo dei piloti
   definito, **non avviabile** finché manca la gerarchia statica
 

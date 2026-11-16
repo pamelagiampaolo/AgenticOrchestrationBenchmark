@@ -2,7 +2,7 @@
 
 - **Data:** 9 novembre 2026
 - **Fase:** verifica di readiness prima dei piloti B4
-- **Branch:** `feat/single-agent` (worktree `C:\repos\TesiAgenticAI-agent`), dopo
+- **Branch:** `feat/single-agent` (worktree `C:\repos\AgenticOrchestrationBenchmark-agent`), dopo
   l'integrazione di `main` fino a `4fe5235` (P15–P23 di Codex: comandi MCP di
   sviluppo e loro collegamento ai launcher)
 - **Stato:** completata; prova completa non ufficiale eseguita (risultati sotto)

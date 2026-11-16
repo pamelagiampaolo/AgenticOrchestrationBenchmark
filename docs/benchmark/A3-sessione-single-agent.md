@@ -242,8 +242,8 @@ stessa area.
 ### Prova reale (una sessione della CLI con LLM)
 
 ```powershell
-AgenticExperimentRunner.exe prepare-run --repository C:\repos\TesiAgenticAI-agent --commit HEAD --task T1 --runs-root C:\AgenticAIRuns --results-root C:\AgenticAIResults
-AgenticExperimentRunner.exe run-single-agent --prepared-run C:\AgenticAIResults\20261108T173042Z-d8d46f00\prepared-run.json --claude C:\Users\Utente\.local\bin\claude.exe --mcp-server C:\repos\TesiAgenticAI-agent\McpReadOnlyPrototype\bin\Debug\net10.0\McpReadOnlyPrototype.exe --model claude-sonnet-5-5 --time-limit-seconds 600 --token-budget 1000000
+AgenticExperimentRunner.exe prepare-run --repository C:\repos\AgenticOrchestrationBenchmark-agent --commit HEAD --task T1 --runs-root C:\AgenticAIRuns --results-root C:\AgenticAIResults
+AgenticExperimentRunner.exe run-single-agent --prepared-run C:\AgenticAIResults\20261108T173042Z-d8d46f00\prepared-run.json --claude C:\Users\Utente\.local\bin\claude.exe --mcp-server C:\repos\AgenticOrchestrationBenchmark-agent\McpReadOnlyPrototype\bin\Debug\net10.0\McpReadOnlyPrototype.exe --model claude-sonnet-5-5 --time-limit-seconds 600 --token-budget 1000000
 ```
 
 Risultato osservato (`runId` `20261108T173042Z-d8d46f00`, `sourceCommit`

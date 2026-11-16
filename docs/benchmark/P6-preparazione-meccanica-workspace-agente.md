@@ -58,18 +58,18 @@ La prova ha usato:
 
 ```powershell
 .\scripts\New-AgentWorkspace.ps1 `
-  -RepositoryRoot C:\repos\TesiAgenticAI `
+  -RepositoryRoot C:\repos\AgenticOrchestrationBenchmark `
   -SourceCommit HEAD `
   -TaskId T1 `
-  -DestinationRoot C:\repos\TesiAgenticAI\TestResults\workspace-preparation-acceptance\run-001 `
-  -ManifestPath C:\repos\TesiAgenticAI\TestResults\workspace-preparation-acceptance\trusted\run-001-manifest.json
+  -DestinationRoot C:\repos\AgenticOrchestrationBenchmark\TestResults\workspace-preparation-acceptance\run-001 `
+  -ManifestPath C:\repos\AgenticOrchestrationBenchmark\TestResults\workspace-preparation-acceptance\trusted\run-001-manifest.json
 ```
 
 Risultato osservato:
 
 ```text
-WORKSPACE_ROOT=C:\repos\TesiAgenticAI\TestResults\workspace-preparation-acceptance\run-001
-MANIFEST_PATH=C:\repos\TesiAgenticAI\TestResults\workspace-preparation-acceptance\trusted\run-001-manifest.json
+WORKSPACE_ROOT=C:\repos\AgenticOrchestrationBenchmark\TestResults\workspace-preparation-acceptance\run-001
+MANIFEST_PATH=C:\repos\AgenticOrchestrationBenchmark\TestResults\workspace-preparation-acceptance\trusted\run-001-manifest.json
 SOURCE_COMMIT=7359f9c680a53259c1de5e78d9fc3c9240a0a165
 ```
 

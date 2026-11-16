@@ -52,7 +52,7 @@ internal static partial class Program
         string allowedSentinel = Path.Combine(allowedRoot, "allowed.txt");
         string forbiddenSentinel = Path.Combine(forbiddenRoot, "forbidden.txt");
         string linkPath = Path.Combine(allowedRoot, "external-link");
-        string profileName = $"TesiAgenticAI.P11.{Guid.NewGuid():N}";
+        string profileName = $"AgenticOrchestrationBenchmark.P11.{Guid.NewGuid():N}";
         IntPtr appContainerSid = IntPtr.Zero;
         bool profileCreated = false;
 

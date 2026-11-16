@@ -28,7 +28,7 @@ internal static partial class Program
         string forbiddenSentinel = Path.Combine(forbiddenRoot, "forbidden.txt");
         string forbiddenWrite = Path.Combine(forbiddenRoot, "blocked.txt");
         string evidencePath = Path.Combine(evidenceRoot, "p12-results.json");
-        string profileName = $"TesiAgenticAI.P12.{Guid.NewGuid():N}";
+        string profileName = $"AgenticOrchestrationBenchmark.P12.{Guid.NewGuid():N}";
         IntPtr appContainerSid = IntPtr.Zero;
         bool profileCreated = false;
 
