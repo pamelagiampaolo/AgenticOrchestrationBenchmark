@@ -1,7 +1,8 @@
 {
-  "name": "progetto-base",
+  "name": "agentic-ai-benchmark-target",
   "version": "1.0.0",
-  "description": "",
+  "description": "TypeScript benchmark target for experiments on adaptive orchestration of LLM-based agentic systems.",
+  "private": true,
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
