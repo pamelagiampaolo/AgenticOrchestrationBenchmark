@@ -67,7 +67,7 @@ exit code 0:
   `C:\AgenticAIResults\20261110T163437Z-dc161db1\session-record.json`;
 - workspace: `C:\AgenticAIRuns\20261110T163437Z-dc161db1`;
 - evaluator:
-  `C:\repos\TesiAgenticAI-TrustedEvaluator\runs\20261110T163437Z-dc161db1\evidence\evaluation-summary.json`.
+  `<trusted-evaluator-root>\runs\20261110T163437Z-dc161db1\evidence\evaluation-summary.json`.
 
 | File | SHA-256 |
 | --- | --- |

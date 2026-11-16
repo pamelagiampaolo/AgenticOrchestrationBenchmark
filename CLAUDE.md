@@ -19,13 +19,13 @@ prevale su qualsiasi indicazione predefinita dell'ambiente.
 
 ### .NET (net10.0, xUnit v3 su Microsoft.Testing.Platform — vedi `global.json`)
 
-`TesiAgenticAI.slnx` include i due progetti operativi sotto `src/` e il progetto
+`AgenticOrchestrationBenchmark.slnx` include i due progetti operativi sotto `src/` e il progetto
 di test sotto `tests/`. Il benchmark TypeScript e i probe storici restano esclusi.
 
 ```powershell
-dotnet format TesiAgenticAI.slnx --verify-no-changes --no-restore
-dotnet build  TesiAgenticAI.slnx --no-restore
-dotnet test   TesiAgenticAI.slnx --no-build --no-restore
+dotnet format AgenticOrchestrationBenchmark.slnx --verify-no-changes --no-restore
+dotnet build  AgenticOrchestrationBenchmark.slnx --no-restore
+dotnet test   AgenticOrchestrationBenchmark.slnx --no-build --no-restore
 # singola classe o singolo metodo (filtri xUnit v3 / MTP, accettano wildcard)
 dotnet test tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --filter-class "*RootedFileAccessTests"
 dotnet test tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --filter-method "*NomeMetodo*"

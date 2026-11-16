@@ -241,7 +241,7 @@ delle differenze (file mancante, contenuto diverso, file in più):
 
 ## Verifiche eseguite e risultati
 
-Eseguite nel worktree `C:\repos\TesiAgenticAI-agent`, l'8 novembre 2026, con
+Eseguite nel worktree `<legacy-agent-worktree>`, l'8 novembre 2026, con
 `HEAD` = `102c1236447754dd3a3f81a60a27a9dfe62ec97b`.
 
 ```powershell
@@ -263,7 +263,7 @@ dotnet test   AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj
 `AgenticExperimentRunner\bin\Debug\net10.0\AgenticExperimentRunner.exe`:
 
 ```powershell
-AgenticExperimentRunner.exe prepare-run --repository C:\repos\TesiAgenticAI-agent --commit HEAD --task T1 --runs-root C:\AgenticAIRuns --results-root C:\AgenticAIResults
+AgenticExperimentRunner.exe prepare-run --repository <legacy-agent-worktree> --commit HEAD --task T1 --runs-root C:\AgenticAIRuns --results-root C:\AgenticAIResults
 ```
 
 - exit `0`, stderr vuoto, stdout un solo documento JSON con `runId`

@@ -58,7 +58,7 @@ Il valutatore fidato ha prodotto outcome `passed` ed exit code 0:
 - harness: `C:\AgenticAIResults\20261110T161912Z-359958f0`;
 - workspace: `C:\AgenticAIRuns\20261110T161912Z-359958f0`;
 - evaluator:
-  `C:\repos\TesiAgenticAI-TrustedEvaluator\runs\20261110T161912Z-359958f0`.
+  `<trusted-evaluator-root>\runs\20261110T161912Z-359958f0`.
 
 | File | SHA-256 |
 | --- | --- |

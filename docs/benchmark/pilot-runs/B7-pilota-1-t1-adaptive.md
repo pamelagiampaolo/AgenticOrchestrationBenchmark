@@ -80,7 +80,7 @@ L'audit MCP contiene due operazioni completate: typecheck e test pubblici.
 
 ## Valutazione indipendente
 
-Il valutatore fidato `TesiAgenticAI-TrustedEvaluator`, commit
+Il valutatore fidato `<trusted-evaluator-root>`, commit
 `eb573d5a53985abe0bc809299c64a35f300443fd`, ha valutato la submission congelata
 con toolchain Node v24.17.0, TypeScript 7.0.2 e Vitest 5.1.0.
 
@@ -111,7 +111,7 @@ Le evidenze dell'harness sono conservate in
 `C:\AgenticAIResults\20261109T195256Z-9fc50de5` e la workspace congelata in
 `C:\AgenticAIRuns\20261109T195256Z-9fc50de5`. Le evidenze private della
 valutazione sono in
-`C:\repos\TesiAgenticAI-TrustedEvaluator\runs\20261109T195256Z-9fc50de5`.
+`<trusted-evaluator-root>\runs\20261109T195256Z-9fc50de5`.
 
 Questa prova certifica la validità del solo slot T1 adattivo. Non certifica gli
 altri cinque piloti, non determina ancora i limiti ufficiali e non dimostra che

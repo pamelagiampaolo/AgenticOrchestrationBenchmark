@@ -159,7 +159,7 @@ per i file attuali di `benchmark/BenchmarkTarget`).
 
 ## Verifiche eseguite e risultati
 
-Eseguite nel worktree `C:\repos\TesiAgenticAI-agent`, l'8 novembre 2026.
+Eseguite nel worktree `<legacy-agent-worktree>`, l'8 novembre 2026.
 
 ```powershell
 dotnet format AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --verify-no-changes --no-restore

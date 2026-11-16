@@ -2,7 +2,7 @@
 
 - **Data:** 8 novembre 2026
 - **Fase:** realizzazione delle architetture sperimentali (dopo A3, single-agent)
-- **Branch:** `feat/single-agent` (worktree `C:\repos\TesiAgenticAI-agent`)
+- **Branch:** `feat/single-agent` (worktree `<legacy-agent-worktree>`)
 - **Stato:** completata; canale verificato con test automatici, nessuna chiamata LLM
 
 ## Decisioni dell'utente (8 novembre 2026)

@@ -74,7 +74,7 @@ Workspace congelata:
 `C:\AgenticAIRuns\20261110T154825Z-1276f338`.
 
 Evidenze private dell'evaluator:
-`C:\repos\TesiAgenticAI-TrustedEvaluator\runs\20261110T154825Z-1276f338`.
+`<trusted-evaluator-root>\runs\20261110T154825Z-1276f338`.
 
 | File | SHA-256 |
 | --- | --- |
