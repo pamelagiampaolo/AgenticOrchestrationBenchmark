@@ -13,7 +13,7 @@ Usa soltanto sentinelle sintetiche e un eseguibile .NET controllato.
 ## Componenti
 
 - `experiments/legacy-isolation-probes/AppContainerIsolationProbe/`: controllore e processo di probe;
-- `scripts/Invoke-AppContainerIsolationProbe.ps1`: pubblicazione ed esecuzione
+- `scripts/legacy-isolation/Invoke-AppContainerIsolationProbe.ps1`: pubblicazione ed esecuzione
   ripetibile in directory temporanee;
 - AppContainer temporaneo privo di capability;
 - ACL concessa al SID AppContainer soltanto su fixture autorizzata e copia del
@@ -69,7 +69,7 @@ correzioni della fixture e sono descritti per non perdere l'evidenza diagnostica
 ```powershell
 dotnet format experiments\legacy-isolation-probes\AppContainerIsolationProbe\AppContainerIsolationProbe.csproj --verify-no-changes --no-restore
 dotnet build experiments\legacy-isolation-probes\AppContainerIsolationProbe\AppContainerIsolationProbe.csproj --no-restore
-.\scripts\Invoke-AppContainerIsolationProbe.ps1
+.\scripts\legacy-isolation\Invoke-AppContainerIsolationProbe.ps1
 ```
 
 Risultato finale:

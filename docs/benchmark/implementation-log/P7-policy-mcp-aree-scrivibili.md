@@ -58,7 +58,7 @@ Risultato: formattazione superata; build con zero errori e zero avvisi; 10 test
 eseguiti, 10 superati, 0 falliti, 0 ignorati.
 
 ```powershell
-.\scripts\Invoke-McpReadOnlyPrototype.ps1 -Mode Direct
+.\scripts\current\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Direct
 ```
 
 Risultato: exit code `0`; tutti i 16 controlli diretti veri. Evidenze non
@@ -66,7 +66,7 @@ versionate in
 `%TEMP%\mcp-readonly-prototype-cd4f877b90554c6da67696677712a316\evidence`.
 
 ```powershell
-.\scripts\Invoke-McpReadOnlyPrototype.ps1 -Mode Claude
+.\scripts\current\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Claude
 ```
 
 Risultato: exit code `0`; un solo server `benchmark_workspace`, inventario esatto

@@ -16,7 +16,7 @@
   verifica, e ha deciso l'8 novembre 2026 che il **launcher operativo delle run è
   costruito da Claude in C#** nell'orchestratore. Il profilo di avvio riprende
   senza modifiche le opzioni già verificate da Codex in P1, P1.1 e P7; lo script
-  `scripts/Invoke-McpReadOnlyPrototype.ps1` resta la prova di accettazione
+  `scripts/current/Invoke-AgentWorkspaceMcpServerProbe.ps1` resta la prova di accettazione
   dell'isolamento e non viene modificato.
 - B4 fissa le regole dei limiti (budget globale di token `totalTokens`, tempo
   `agentTaskDurationMs`, controllore esterno, stati di superamento) ma rinvia i

@@ -34,7 +34,7 @@ meccanismi di isolamento non dimostra queste proprietà.
 | [`BenchmarkTarget/`](BenchmarkTarget/) | Applicazione TypeScript usata come bersaglio comune dei task sperimentali T1-T6. |
 | [`AgentWorkspaceMcpServer/`](AgentWorkspaceMcpServer/) | Server MCP che confina l'accesso al workspace ed espone file e comandi di sviluppo controllati. |
 | [`docs/benchmark/`](docs/benchmark/) | Progettazione, implementazione, specifiche pubbliche dei task, piloti ed evidenze sperimentali. |
-| [`scripts/`](scripts/) | Script PowerShell di supporto e probe, molti dei quali appartengono alle precedenti iterazioni sull'isolamento. |
+| [`scripts/`](scripts/) | Script PowerShell separati tra verifiche correnti e prove storiche di isolamento. |
 | [`experiments/legacy-isolation-probes/`](experiments/legacy-isolation-probes/) | Prototipi ed evidenze storiche delle precedenti prove con Windows Sandbox e AppContainer; non appartengono all'architettura operativa corrente. |
 
 Le directory `bin/`, `obj/`, `dist/`, `node_modules/`, `results/` e

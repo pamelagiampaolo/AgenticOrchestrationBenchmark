@@ -2,7 +2,7 @@
 param()
 
 $ErrorActionPreference = 'Stop'
-$repositoryRoot = Split-Path -Parent $PSScriptRoot
+$repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $serverProject = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
 $serverDll = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\bin\Debug\net10.0\AgentWorkspaceMcpServer.dll'
 $benchmarkRoot = Join-Path $repositoryRoot 'BenchmarkTarget'
@@ -39,6 +39,7 @@ try {
     Set-Content -LiteralPath $agentTestPath -Encoding utf8 -Value "import { describe, expect, it } from 'vitest'; describe('agent probe', () => { it('runs separately', () => expect(2 + 2).toBe(4)); });"
 
     $environment = [ordered]@{
+        MCP_TASK_ID = 'T1'
         MCP_WRITABLE_DIRECTORIES = 'workspace;agent-tests'
         MCP_PUBLIC_TEST_NODE = $nodePath
         MCP_PUBLIC_TEST_VITEST = $vitestPath

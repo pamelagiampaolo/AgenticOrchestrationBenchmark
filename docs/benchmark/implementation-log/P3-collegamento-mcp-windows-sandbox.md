@@ -48,7 +48,7 @@ alla fixture di timeout; non è controllabile dalla chiamata allo strumento.
 
 ## Client e prove
 
-[`Invoke-McpSandboxBridgeProbe.ps1`](../../../scripts/Invoke-McpSandboxBridgeProbe.ps1)
+[`Invoke-McpSandboxBridgeProbe.ps1`](../../../scripts/legacy-isolation/Invoke-McpSandboxBridgeProbe.ps1)
 avvia il server su stdio, esegue handshake, `tools/list` e quattro chiamate:
 
 1. `run_public_suite` con un parametro `command` vietato;

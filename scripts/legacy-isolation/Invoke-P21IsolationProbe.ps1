@@ -2,7 +2,7 @@
 param()
 
 $ErrorActionPreference = 'Stop'
-$repositoryRoot = Split-Path -Parent $PSScriptRoot
+$repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $probeSourceRoot = Join-Path $repositoryRoot 'experiments\legacy-isolation-probes\P21IsolationProbe'
 $tcpServerScript = Join-Path $PSScriptRoot 'P21TcpSentinelServer.ps1'
 $wsbPath = 'C:\Users\Utente\AppData\Local\Microsoft\WindowsApps\wsb.exe'
@@ -311,11 +311,11 @@ $manifestFiles = @(
     }
     hostHarnessFiles = @(
         [ordered]@{
-            relativePath = 'scripts/Invoke-P21IsolationProbe.ps1'
+            relativePath = 'scripts/legacy-isolation/Invoke-P21IsolationProbe.ps1'
             sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $PSCommandPath).Hash
         },
         [ordered]@{
-            relativePath = 'scripts/P21TcpSentinelServer.ps1'
+            relativePath = 'scripts/legacy-isolation/P21TcpSentinelServer.ps1'
             sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $tcpServerScript).Hash
         }
     )

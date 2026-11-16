@@ -22,7 +22,7 @@ non fa parte del percorso MCP verificato in P5.
   identificazione del server come `workspace-prototype` versione `0.2.0`;
 - `AgenticExperimentRunner.Tests/RootedFileAccessTests.cs`: casi positivi e
   negativi per la scrittura;
-- `scripts/Invoke-McpReadOnlyPrototype.ps1`: inventario `workspace`, prove dirette
+- `scripts/current/Invoke-AgentWorkspaceMcpServerProbe.ps1`: inventario `workspace`, prove dirette
   di scrittura e configurazione predisposta per una futura prova Claude CLI.
 
 I nomi del progetto e dello script conservano per ora il termine storico
@@ -58,7 +58,7 @@ Risultato finale: formattazione superata; build completata con zero avvisi e zer
 errori; 5 test eseguiti, 5 superati, 0 falliti, 0 ignorati.
 
 ```powershell
-.\scripts\Invoke-McpReadOnlyPrototype.ps1 -Mode Direct
+.\scripts\current\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Direct
 ```
 
 Risultato finale: exit code `0`; restore offline e publish riusciti; verifiche

@@ -17,7 +17,7 @@ prova.
 
 ## Configurazione controllata
 
-[`Invoke-ClaudeMcpSandboxProbe.ps1`](../../../scripts/Invoke-ClaudeMcpSandboxProbe.ps1)
+[`Invoke-ClaudeMcpSandboxProbe.ps1`](../../../scripts/legacy-isolation/Invoke-ClaudeMcpSandboxProbe.ps1)
 riusa la combinazione P1.1:
 
 - `--restricted` e `--strict-mcp-config`;

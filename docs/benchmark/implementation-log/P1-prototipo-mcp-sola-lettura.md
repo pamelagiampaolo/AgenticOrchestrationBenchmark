@@ -24,7 +24,7 @@ senza divulgazione, di percorso assoluto esterno, traversal e junction esterna.
 ## Componenti realizzati
 
 - `McpReadOnlyPrototype/`: server JSON-RPC/MCP `stdio` minimale;
-- `scripts/Invoke-McpReadOnlyPrototype.ps1`: preparazione fixture, pubblicazione
+- `scripts/current/Invoke-AgentWorkspaceMcpServerProbe.ps1`: preparazione fixture, pubblicazione
   del server, configurazione, prove dirette e prova Claude CLI;
 - directory runtime distinte sotto una root temporanea:
   `agent-workspace/`, `trusted/server/`, `trusted/configuration/`, `external/` ed
@@ -78,7 +78,7 @@ una chiave API dal launcher.
 La verifica finale è stata avviata con:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-McpReadOnlyPrototype.ps1 -Mode All
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/current/Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode All
 ```
 
 Root dell'esecuzione finale:

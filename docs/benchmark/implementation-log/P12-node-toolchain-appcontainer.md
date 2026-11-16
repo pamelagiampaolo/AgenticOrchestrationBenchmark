@@ -14,7 +14,7 @@ come fallimento del benchmark.
 
 ## Fixture implementata
 
-`scripts/Invoke-NodeAppContainerProbe.ps1` pubblica il probe in una directory
+`scripts/legacy-isolation/Invoke-NodeAppContainerProbe.ps1` pubblica il probe in una directory
 temporanea e gli fornisce:
 
 - baseline copiata fisicamente, senza collegamenti al repository;
@@ -141,7 +141,7 @@ dedicata, previa approvazione architetturale.
 Comando finale:
 
 ```powershell
-.\scripts\Invoke-NodeAppContainerProbe.ps1
+.\scripts\legacy-isolation\Invoke-NodeAppContainerProbe.ps1
 ```
 
 Risultato atteso nello stato corrente: exit code `1`, perché P12 non considera

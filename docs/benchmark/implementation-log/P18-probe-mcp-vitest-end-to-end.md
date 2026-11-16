@@ -9,7 +9,7 @@
 
 ## Implementazione
 
-`scripts/Invoke-McpPublicTestsProbe.ps1` costruisce un layout A2 sintetico con:
+`scripts/current/Invoke-McpPublicTestsProbe.ps1` costruisce un layout A2 sintetico con:
 
 - `agent-root/workspace` contenente la baseline;
 - `agent-root/public-reference/tests/public` contenente i due test comuni;

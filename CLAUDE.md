@@ -51,8 +51,8 @@ Ogni task Tn ha un proprio `vitest.public.tN.config.ts` che include solo
 ### Prove di accettazione dell'harness (PowerShell)
 
 ```powershell
-.\scripts\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Direct   # prova MCP diretta, senza LLM
-.\scripts\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Claude   # sessione Claude CLI reale: consuma chiamate LLM
+.\scripts\current\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Direct   # prova MCP diretta, senza LLM
+.\scripts\current\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Claude   # sessione Claude CLI reale: consuma chiamate LLM
 ```
 
 Gli script creano una root temporanea `%TEMP%\agent-workspace-mcp-server-<guid>\`
