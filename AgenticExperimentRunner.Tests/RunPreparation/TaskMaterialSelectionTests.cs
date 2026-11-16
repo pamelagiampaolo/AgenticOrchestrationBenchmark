@@ -59,7 +59,7 @@ public sealed class TaskMaterialSelectionTests
     [Fact]
     public void TaskPaths_FollowRepositoryConventions()
     {
-        Assert.Equal("docs/benchmark/T3-specifica-pubblica.md", TaskMaterialSelection.TaskSpecificationSourcePath("T3"));
+        Assert.Equal("docs/benchmark/task-specifications/T3-specifica-pubblica.md", TaskMaterialSelection.TaskSpecificationSourcePath("T3"));
         Assert.Equal("tests/public/t3", TaskMaterialSelection.TaskPublicTestsDirectory("T3"));
     }
 }

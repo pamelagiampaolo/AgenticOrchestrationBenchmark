@@ -17,7 +17,7 @@ prova.
 
 ## Configurazione controllata
 
-[`Invoke-ClaudeMcpSandboxProbe.ps1`](../../scripts/Invoke-ClaudeMcpSandboxProbe.ps1)
+[`Invoke-ClaudeMcpSandboxProbe.ps1`](../../../scripts/Invoke-ClaudeMcpSandboxProbe.ps1)
 riusa la combinazione P1.1:
 
 - `--restricted` e `--strict-mcp-config`;
@@ -104,4 +104,4 @@ La prova conserva autenticazione e stato account esistenti e vale soltanto per
 la versione CLI e la singola esecuzione osservate. Non certifica scrittura,
 concorrenza, cancellazione, orchestrazione, valutazione riservata o l'intero
 sistema sperimentale. La sintesi stabile è in
-[`evidence/P4-claude-mcp-sandbox-summary.json`](evidence/P4-claude-mcp-sandbox-summary.json).
+[`evidence/P4-claude-mcp-sandbox-summary.json`](../evidence/P4-claude-mcp-sandbox-summary.json).

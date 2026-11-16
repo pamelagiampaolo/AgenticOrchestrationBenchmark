@@ -177,7 +177,7 @@ delle differenze (file mancante, contenuto diverso, file in più):
    di `BenchmarkTarget` esclusa `tests/public/`; `public-reference/` contiene
    esattamente i 2 test comuni e quello di `t1`; i file di `t2`–`t6` sono in
    `excludedSourcePaths` e assenti da `agent-root`; `task-specification.md` ha lo
-   SHA-256 del blob `docs/benchmark/T1-specifica-pubblica.md`; ogni file ha lo
+   SHA-256 del blob `docs/benchmark/task-specifications/T1-specifica-pubblica.md`; ogni file ha lo
    SHA-256 del proprio blob; `agent-tests/` e `session/` esistono e sono vuote; il
    manifest è in `<resultsRoot>/<runId>/manifest.json` e nulla è scritto
    nell'area di run fuori da `agent-root/` e `session/`.

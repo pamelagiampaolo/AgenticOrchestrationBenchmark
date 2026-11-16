@@ -236,7 +236,7 @@ non fornirà evidenza su questa proprietà.
 
 La ricognizione P2 del 5 novembre 2026 è documentata in [P2 — Ricognizione per
 l'isolamento dei processi che eseguono codice
-agente](P2-isolamento-processi-codice-agente.md). Propone Windows Sandbox come
+agente](../implementation-log/P2-isolamento-processi-codice-agente.md). Propone Windows Sandbox come
 confine candidato proporzionato, ma la funzionalità e la CLI `wsb` non sono
 attualmente disponibili e richiedono una decisione esplicita prima di qualsiasi
 abilitazione o installazione. Nessuna prova di isolamento OS è stata ancora
@@ -246,14 +246,14 @@ eseguita.
 
 **Stato al 5 novembre 2026:** iterazione eseguita. Risultati, comandi, evidenze e
 limiti sono documentati in [P1 — Prototipo Claude CLI con MCP di sola
-lettura](P1-prototipo-mcp-sola-lettura.md). Il confinamento dei due strumenti è
+lettura](../implementation-log/P1-prototipo-mcp-sola-lettura.md). Il confinamento dei due strumenti è
 stato osservato direttamente e attraverso Claude CLI; l'assenza di ogni
 personalizzazione non è stata interamente dimostrata perché la CLI dichiara
 agenti e plugin built-in e non espone hook o fonti effettive nell'evento iniziale.
 La prova successiva sull'esecuzione indiretta di codice non è stata avviata.
 Il chiarimento successivo su agenti, plugin, configurazioni e hook è documentato
 in [P1.1 — Limiti residui della configurazione Claude
-CLI](P1.1-limiti-configurazione-claude-cli.md): i subagenti sono stati rimossi e
+CLI](../implementation-log/P1.1-limiti-configurazione-claude-cli.md): i subagenti sono stati rimossi e
 gli hook non managed disabilitati, mentre i plugin built-in restano dichiarati e
 le managed settings rimangono un controllo obbligatorio per ambiente.
 
@@ -601,7 +601,7 @@ pubblico P2.2 senza coinvolgere Claude o il valutatore. L'operazione sperimental
 restituito 27 test pubblici superati, lasciando zero istanze residue. Parametri
 estranei, timeout e report mancante sono stati riportati come errori. Esiti e
 limiti sono documentati in [P3 — Collegamento sperimentale MCP–Windows
-Sandbox](P3-collegamento-mcp-windows-sandbox.md); la prova non congela l'API MCP
+Sandbox](../implementation-log/P3-collegamento-mcp-windows-sandbox.md); la prova non congela l'API MCP
 completa.
 
 L'approvazione conclude B3 soltanto a livello progettuale e non autorizza

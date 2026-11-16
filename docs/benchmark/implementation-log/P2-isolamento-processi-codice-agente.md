@@ -277,7 +277,7 @@ resta non dimostrato perché agenti e strategie multi-agente erano fuori ambito.
 Comandi, artefatti, distinzione tra output guest ed evidenze PC, esiti e limiti
 sono documentati in [P2.1 — Prova di isolamento in Windows
 Sandbox](P2.1-prova-isolamento-windows-sandbox.md). La sintesi stabile è in
-[`evidence/P2.1-isolation-summary.json`](evidence/P2.1-isolation-summary.json).
+[`evidence/P2.1-isolation-summary.json`](../evidence/P2.1-isolation-summary.json).
 
 ## Esito della verifica della baseline Node.js
 

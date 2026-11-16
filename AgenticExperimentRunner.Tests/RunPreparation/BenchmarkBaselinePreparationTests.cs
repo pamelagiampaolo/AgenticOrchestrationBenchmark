@@ -46,7 +46,7 @@ public sealed class BenchmarkBaselinePreparationTests : IDisposable
             }
         }
 
-        expected["task-specification.md"] = "docs/benchmark/T1-specifica-pubblica.md";
+        expected["task-specification.md"] = "docs/benchmark/task-specifications/T1-specifica-pubblica.md";
 
         Assert.Equal(
             expected.OrderBy(pair => pair.Key, StringComparer.Ordinal),

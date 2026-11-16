@@ -31,7 +31,7 @@ public sealed class RunIntegrityTests : IDisposable
             DateTimeOffset.UnixEpoch,
             new string('a', 40),
             "Target",
-            "docs/benchmark/T1-specifica-pubblica.md",
+            "docs/benchmark/task-specifications/T1-specifica-pubblica.md",
             ["workspace", "agent-tests"],
             files.Count,
             RunManifest.ComputeAggregateSha256(files),

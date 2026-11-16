@@ -93,7 +93,7 @@ Le evidenze temporanee comprendono `direct-results.json`,
 percorsi specifici dell'esecuzione, identificativi di sessione e output grezzo.
 I risultati pertinenti sono conservati stabilmente, senza percorsi temporanei,
 identificativi o segreti, in
-[`evidence/P1-P1.1-evidence-summary.json`](evidence/P1-P1.1-evidence-summary.json).
+[`evidence/P1-P1.1-evidence-summary.json`](../evidence/P1-P1.1-evidence-summary.json).
 
 ### Prove dirette del server
 

@@ -260,7 +260,7 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
         repository.WriteFile("BenchmarkTarget/src/index.ts", "export {};\n");
         repository.WriteFile("BenchmarkTarget/tests/public/common.test.ts", "// comune\n");
         repository.WriteFile("BenchmarkTarget/tests/public/t1/find.test.ts", "// t1\n");
-        repository.WriteFile("docs/benchmark/T1-specifica-pubblica.md", Specification);
+        repository.WriteFile("docs/benchmark/task-specifications/T1-specifica-pubblica.md", Specification);
         repository.CommitAll("baseline");
 
         var command = new PrepareRunCommand(

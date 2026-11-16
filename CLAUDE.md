@@ -66,12 +66,12 @@ autorizzazione: è una chiamata LLM.
 
 - **`BenchmarkTarget/`** — piccolo gestionale ordini/prodotti/magazzino (tutto in
   `src/index.ts`), bersaglio comune dei task T1–T6. Le specifiche pubbliche dei
-  task sono in `docs/benchmark/Tn-specifica-pubblica.md`; i test pubblici in
+  task sono in `docs/benchmark/task-specifications/Tn-specifica-pubblica.md`; i test pubblici in
   `tests/public/`. Lo stato del codice è la **baseline**: non implementare le
   soluzioni dei task.
 - **Test riservati** — non esistono in questo repository e non devono mai
   entrarvi, nemmeno temporaneamente (resterebbero nella cronologia Git). Sono
-  conservati in un'area fidata separata (vedi `docs/benchmark/B3-*.md`).
+  conservati in un'area fidata separata (vedi `docs/benchmark/benchmark-design/B3-*.md`).
 - **`AgentWorkspaceMcpServer/`** — server MCP stdio scritto a mano (JSON-RPC
   riga per riga, senza SDK), identificato come `agent-workspace`. Argomenti:
   `<root-assoluta-consentita> [runner-assoluto]`. Strumenti: `list_files`,
@@ -99,8 +99,8 @@ autorizzazione: è una chiamata LLM.
 
 ## Documentazione sperimentale
 
-`docs/benchmark/` è il registro dell'esperimento: `B1`–`B5` progettazione
-(struttura, task, strategia test, equità, metriche), `P1`–`P5` iterazioni
+`docs/benchmark/` è il registro dell'esperimento: `benchmark-design/` raccoglie
+la progettazione, mentre `implementation-log/` conserva le iterazioni
 dell'harness, ognuna con data, comandi, output osservati e limiti. Prima di
 proseguire leggere il documento P più recente: la sezione finale indica cosa è
 ancora non verificato e la prossima ipotesi da testare. Ogni nuova iterazione

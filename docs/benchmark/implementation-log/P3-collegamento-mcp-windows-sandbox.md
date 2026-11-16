@@ -30,7 +30,7 @@ run_public_suite
 inputSchema: { "type": "object", "properties": {}, "additionalProperties": false }
 ```
 
-[`PublicSuiteRunner.cs`](../../AgentWorkspaceMcpServer/PublicSuiteRunner.cs) riceve
+[`PublicSuiteRunner.cs`](../../../AgentWorkspaceMcpServer/PublicSuiteRunner.cs) riceve
 dal controllore, all'avvio del server, il percorso assoluto del runner P2.2. La
 chiamata MCP non può modificarlo. Il processo avviato è sempre
 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File <runner-fidato>` senza
@@ -48,7 +48,7 @@ alla fixture di timeout; non è controllabile dalla chiamata allo strumento.
 
 ## Client e prove
 
-[`Invoke-McpSandboxBridgeProbe.ps1`](../../scripts/Invoke-McpSandboxBridgeProbe.ps1)
+[`Invoke-McpSandboxBridgeProbe.ps1`](../../../scripts/Invoke-McpSandboxBridgeProbe.ps1)
 avvia il server su stdio, esegue handshake, `tools/list` e quattro chiamate:
 
 1. `run_public_suite` con un parametro `command` vietato;
@@ -61,9 +61,9 @@ risposta, registrando l'istanza osservata. Prima e dopo il rifiuto dei parametri
 dopo ogni scenario registra il numero di istanze attive.
 
 Le fixture
-[`TimeoutRunnerFixture.ps1`](../../experiments/legacy-isolation-probes/McpSandboxBridgeProbe/TimeoutRunnerFixture.ps1)
+[`TimeoutRunnerFixture.ps1`](../../../experiments/legacy-isolation-probes/McpSandboxBridgeProbe/TimeoutRunnerFixture.ps1)
 e
-[`MissingReportRunnerFixture.ps1`](../../experiments/legacy-isolation-probes/McpSandboxBridgeProbe/MissingReportRunnerFixture.ps1)
+[`MissingReportRunnerFixture.ps1`](../../../experiments/legacy-isolation-probes/McpSandboxBridgeProbe/MissingReportRunnerFixture.ps1)
 non contengono materiali del benchmark e non avviano Sandbox: isolano soltanto la
 gestione MCP degli errori.
 
@@ -119,7 +119,7 @@ interno e il blocco `finally` per arrestare l'istanza.
 Questa prova non congela l'API MCP completa, non designa la baseline definitiva e
 non verifica Claude, autorizzazioni per agente, concorrenza, cancellazione MCP o
 valutazione riservata. La sintesi stabile e priva di segreti è in
-[`evidence/P3-mcp-sandbox-bridge-summary.json`](evidence/P3-mcp-sandbox-bridge-summary.json).
+[`evidence/P3-mcp-sandbox-bridge-summary.json`](../evidence/P3-mcp-sandbox-bridge-summary.json).
 
 Il percorso successivo attraverso Claude CLI è stato provato separatamente in
 [P4 — Percorso Claude CLI–MCP–Windows

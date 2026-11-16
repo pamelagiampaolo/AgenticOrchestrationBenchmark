@@ -37,7 +37,7 @@ le modifiche non committate e la staging area di uno non compaiono nell'altro.
 | Cartella | `C:\repos\TesiAgenticAI-agent` | `C:\repos\TesiAgenticAI` |
 | Branch | `feat/single-agent` | `main` |
 | Codice di proprietà | `AgenticExperimentRunner/` (incl. `RunPreparation/`, `SessionExecution/`, `Coordination/`, `Instructions/`) e test nuovi dedicati | `McpReadOnlyPrototype/`, `scripts/*`, `RootedFileAccessTests.cs`, worker confinato per build e test |
-| Documenti | `docs/benchmark/A*` | `docs/benchmark/P*` |
+| Documenti | `docs/benchmark/architecture/A*` | `docs/benchmark/implementation-log/P*` |
 | Architetture | single-agent; livello di coordinamento condiviso; gerarchia adattiva | gerarchia statica (sul livello di coordinamento condiviso) |
 
 1. **Non modificare i file dell'altro.** Se serve una modifica in un'area altrui,

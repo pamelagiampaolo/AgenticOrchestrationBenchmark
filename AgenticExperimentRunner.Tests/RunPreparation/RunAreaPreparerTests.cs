@@ -45,7 +45,7 @@ public sealed class RunAreaPreparerTests : IDisposable
             ["Target/tests/public/t2/receive.test.ts"],
             area.Manifest.ExcludedSourcePaths);
         Assert.Equal(
-            "docs/benchmark/T1-specifica-pubblica.md",
+            "docs/benchmark/task-specifications/T1-specifica-pubblica.md",
             area.Manifest.Files.Single(file => file.Path == "task-specification.md").SourcePath);
         Assert.Equal(
             "Target/tests/public/t1/find.test.ts",
@@ -178,7 +178,7 @@ public sealed class RunAreaPreparerTests : IDisposable
     {
         CommitStandardBaseline();
         // T3 non ha la specifica; T4 ha la specifica ma non la suite pubblica.
-        repository.WriteFile("docs/benchmark/T4-specifica-pubblica.md", "# T4\n");
+        repository.WriteFile("docs/benchmark/task-specifications/T4-specifica-pubblica.md", "# T4\n");
         string commit = repository.CommitAll("materiali incompleti");
 
         RunPreparationException exception = await Assert.ThrowsAsync<RunPreparationException>(
@@ -345,7 +345,7 @@ public sealed class RunAreaPreparerTests : IDisposable
         repository.WriteFile("Target/tests/public/common.test.ts", "// comune\n");
         repository.WriteFile("Target/tests/public/t1/find.test.ts", "// t1\n");
         repository.WriteFile("Target/tests/public/t2/receive.test.ts", "// t2\n");
-        repository.WriteFile("docs/benchmark/T1-specifica-pubblica.md", SpecificationContent);
+        repository.WriteFile("docs/benchmark/task-specifications/T1-specifica-pubblica.md", SpecificationContent);
         repository.WriteFile("Outside/secret.txt", "fuori dalla sorgente");
         return repository.CommitAll("baseline");
     }

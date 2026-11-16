@@ -62,9 +62,9 @@ public static partial class TaskMaterialSelection
     /// Percorso, relativo alla radice del repository, della specifica pubblica del task.
     /// </summary>
     /// <param name="taskId">Identificatore canonico del task.</param>
-    /// <returns>Per esempio <c>docs/benchmark/T1-specifica-pubblica.md</c>.</returns>
+    /// <returns>Per esempio <c>docs/benchmark/task-specifications/T1-specifica-pubblica.md</c>.</returns>
     public static string TaskSpecificationSourcePath(string taskId) =>
-        $"docs/benchmark/{taskId}-specifica-pubblica.md";
+        $"docs/benchmark/task-specifications/{taskId}-specifica-pubblica.md";
 
     /// <summary>
     /// Directory dei test pubblici del task, relativa alla sorgente della baseline.

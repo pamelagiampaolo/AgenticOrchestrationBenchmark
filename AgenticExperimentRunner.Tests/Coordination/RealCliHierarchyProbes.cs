@@ -34,7 +34,7 @@ public sealed class RealCliHierarchyProbes
         repository.WriteFile("BenchmarkTarget/src/index.ts", "export const valore = 1;\nexport const altro = 2;\n");
         repository.WriteFile("BenchmarkTarget/tests/public/common.test.ts", "// comune\n");
         repository.WriteFile("BenchmarkTarget/tests/public/t1/probe.test.ts", "// t1\n");
-        repository.WriteFile("docs/benchmark/T1-specifica-pubblica.md", ProbeSpecification);
+        repository.WriteFile("docs/benchmark/task-specifications/T1-specifica-pubblica.md", ProbeSpecification);
         repository.CommitAll("baseline di prova");
         string runId = $"a5-probe-long-delegation-{DateTimeOffset.UtcNow:yyyyMMddTHHmmssZ}";
         PrepareRunOutput prepared = await PrepareAsync(repository.RootPath, runId);

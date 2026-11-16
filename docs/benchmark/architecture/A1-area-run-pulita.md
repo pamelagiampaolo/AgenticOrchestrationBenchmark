@@ -26,7 +26,7 @@ l'8 novembre 2026 per il single-agent sono:
    presenza dell'uso per singolo messaggio nello stream deve essere verificata
    prima di farvi affidamento (iterazione successiva).
 2. **Prompt:** il prompt comune del task è il contenuto esatto di
-   `docs/benchmark/Tn-specifica-pubblica.md`; l'istruzione architetturale
+   `docs/benchmark/task-specifications/Tn-specifica-pubblica.md`; l'istruzione architetturale
    single-agent è un file separato e breve, senza suggerimenti sulla soluzione.
    Entrambi sono versionati e identificati tramite hash.
 3. **Primo passo:** A1, la preparazione dell'area di run, prerequisito comune
