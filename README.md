@@ -36,6 +36,7 @@ meccanismi di isolamento non dimostra queste proprietà.
 | [`docs/benchmark/`](docs/benchmark/) | Progettazione, implementazione, specifiche pubbliche dei task, piloti ed evidenze sperimentali. |
 | [`scripts/`](scripts/) | Script PowerShell separati tra verifiche correnti e prove storiche di isolamento. |
 | [`experiments/legacy-isolation-probes/`](experiments/legacy-isolation-probes/) | Prototipi ed evidenze storiche delle precedenti prove con Windows Sandbox e AppContainer; non appartengono all'architettura operativa corrente. |
+| [`TesiAgenticAI.slnx`](TesiAgenticAI.slnx) | Solution .NET dell'infrastruttura operativa e dei relativi test; esclude il benchmark TypeScript e i probe storici. |
 
 Le directory `bin/`, `obj/`, `dist/`, `node_modules/`, `results/` e
 `TestResults/` contengono output locali o generati e sono escluse dal controllo
@@ -86,9 +87,8 @@ Prerequisiti correnti ricavabili dai progetti:
 Da PowerShell, nella radice del repository:
 
 ```powershell
-dotnet build .\src\AgenticExperimentRunner\AgenticExperimentRunner.csproj
-dotnet build .\src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj
-dotnet test .\tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj
+dotnet build .\TesiAgenticAI.slnx
+dotnet test .\TesiAgenticAI.slnx --no-build
 
 Push-Location .\benchmark\BenchmarkTarget
 npm ci

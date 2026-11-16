@@ -232,29 +232,29 @@ public static class ClaudeLaunchProfile
         string workerRoot,
         string auditDirectory,
         string taskId) => new()
-    {
-        ["command"] = mcpServerPath,
-        ["args"] = new[] { agentRoot },
-        ["env"] = new Dictionary<string, string>
         {
-            ["ENABLE_CLAUDEAI_MCP_SERVERS"] = "false",
-            ["MCP_WRITABLE_DIRECTORIES"] = string.Join(Path.PathSeparator, writableDirectories),
-            ["MCP_TASK_ID"] = taskId,
-            ["MCP_PUBLIC_TEST_NODE"] = toolchain.NodePath,
-            ["MCP_PUBLIC_TEST_VITEST"] = toolchain.VitestPath,
-            ["MCP_PUBLIC_TEST_WORKER_ROOT"] = workerRoot,
-            ["MCP_TYPECHECK_NODE"] = toolchain.NodePath,
-            ["MCP_TYPECHECK_TSC"] = toolchain.TypeScriptPath,
-            ["MCP_TYPECHECK_WORKER_ROOT"] = workerRoot,
-            ["MCP_BUILD_NODE"] = toolchain.NodePath,
-            ["MCP_BUILD_TSC"] = toolchain.TypeScriptPath,
-            ["MCP_BUILD_WORKER_ROOT"] = workerRoot,
-            ["MCP_AGENT_TEST_NODE"] = toolchain.NodePath,
-            ["MCP_AGENT_TEST_VITEST"] = toolchain.VitestPath,
-            ["MCP_AGENT_TEST_WORKER_ROOT"] = workerRoot,
-            ["MCP_COMMAND_AUDIT_DIRECTORY"] = auditDirectory,
-        },
-    };
+            ["command"] = mcpServerPath,
+            ["args"] = new[] { agentRoot },
+            ["env"] = new Dictionary<string, string>
+            {
+                ["ENABLE_CLAUDEAI_MCP_SERVERS"] = "false",
+                ["MCP_WRITABLE_DIRECTORIES"] = string.Join(Path.PathSeparator, writableDirectories),
+                ["MCP_TASK_ID"] = taskId,
+                ["MCP_PUBLIC_TEST_NODE"] = toolchain.NodePath,
+                ["MCP_PUBLIC_TEST_VITEST"] = toolchain.VitestPath,
+                ["MCP_PUBLIC_TEST_WORKER_ROOT"] = workerRoot,
+                ["MCP_TYPECHECK_NODE"] = toolchain.NodePath,
+                ["MCP_TYPECHECK_TSC"] = toolchain.TypeScriptPath,
+                ["MCP_TYPECHECK_WORKER_ROOT"] = workerRoot,
+                ["MCP_BUILD_NODE"] = toolchain.NodePath,
+                ["MCP_BUILD_TSC"] = toolchain.TypeScriptPath,
+                ["MCP_BUILD_WORKER_ROOT"] = workerRoot,
+                ["MCP_AGENT_TEST_NODE"] = toolchain.NodePath,
+                ["MCP_AGENT_TEST_VITEST"] = toolchain.VitestPath,
+                ["MCP_AGENT_TEST_WORKER_ROOT"] = workerRoot,
+                ["MCP_COMMAND_AUDIT_DIRECTORY"] = auditDirectory,
+            },
+        };
 
     private static void AddIfNotEmpty(List<string> violations, string description, IReadOnlyList<string> values)
     {

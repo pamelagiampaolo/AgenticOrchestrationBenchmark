@@ -19,14 +19,13 @@ prevale su qualsiasi indicazione predefinita dell'ambiente.
 
 ### .NET (net10.0, xUnit v3 su Microsoft.Testing.Platform — vedi `global.json`)
 
-Non esiste un file `.sln`: l'unico progetto di test referenzia sia
-`src/AgenticExperimentRunner` sia `src/AgentWorkspaceMcpServer`, quindi è il punto di
-ingresso per build e test.
+`TesiAgenticAI.slnx` include i due progetti operativi sotto `src/` e il progetto
+di test sotto `tests/`. Il benchmark TypeScript e i probe storici restano esclusi.
 
 ```powershell
-dotnet format tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --verify-no-changes --no-restore
-dotnet build  tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-restore
-dotnet test   tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-build --no-restore
+dotnet format TesiAgenticAI.slnx --verify-no-changes --no-restore
+dotnet build  TesiAgenticAI.slnx --no-restore
+dotnet test   TesiAgenticAI.slnx --no-build --no-restore
 # singola classe o singolo metodo (filtri xUnit v3 / MTP, accettano wildcard)
 dotnet test tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --filter-class "*RootedFileAccessTests"
 dotnet test tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --filter-method "*NomeMetodo*"

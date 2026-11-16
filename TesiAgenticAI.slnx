@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AgenticExperimentRunner/AgenticExperimentRunner.csproj" />
+    <Project Path="src/AgentWorkspaceMcpServer/AgentWorkspaceMcpServer.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AgenticExperimentRunner.Tests/AgenticExperimentRunner.Tests.csproj" />
+  </Folder>
+</Solution>
