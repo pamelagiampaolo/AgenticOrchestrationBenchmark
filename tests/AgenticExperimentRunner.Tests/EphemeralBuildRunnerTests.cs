@@ -11,7 +11,7 @@ public sealed class EphemeralBuildRunnerTests : IDisposable
     public async Task RunAsync_BuildsRealBaselineWithoutWritingWorkspace()
     {
         string repositoryRoot = FindRepositoryRoot();
-        string benchmark = Path.Combine(repositoryRoot, "BenchmarkTarget");
+        string benchmark = Path.Combine(repositoryRoot, "benchmark", "BenchmarkTarget");
         string agentRoot = Path.Combine(root, "agent-root");
         string workspace = Path.Combine(agentRoot, "workspace");
         Directory.CreateDirectory(workspace);
@@ -53,7 +53,7 @@ public sealed class EphemeralBuildRunnerTests : IDisposable
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "BenchmarkTarget")))
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "benchmark", "BenchmarkTarget")))
         {
             directory = directory.Parent;
         }

@@ -257,9 +257,9 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
 
     private async Task<PrepareRunOutput> PrepareAsync()
     {
-        repository.WriteFile("BenchmarkTarget/src/index.ts", "export {};\n");
-        repository.WriteFile("BenchmarkTarget/tests/public/common.test.ts", "// comune\n");
-        repository.WriteFile("BenchmarkTarget/tests/public/t1/find.test.ts", "// t1\n");
+        repository.WriteFile("benchmark/BenchmarkTarget/src/index.ts", "export {};\n");
+        repository.WriteFile("benchmark/BenchmarkTarget/tests/public/common.test.ts", "// comune\n");
+        repository.WriteFile("benchmark/BenchmarkTarget/tests/public/t1/find.test.ts", "// t1\n");
         repository.WriteFile("docs/benchmark/task-specifications/T1-specifica-pubblica.md", Specification);
         repository.CommitAll("baseline");
 

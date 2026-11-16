@@ -8,7 +8,7 @@ namespace AgenticExperimentRunner.RunPreparation;
 /// </summary>
 /// <param name="RepositoryPath">Percorso assoluto di una directory del repository sorgente.</param>
 /// <param name="BaselineReference">Commit, tag o branch della baseline approvata.</param>
-/// <param name="SourceDirectory">Sottodirectory del repository usata come baseline, con separatore <c>/</c> (per esempio <c>BenchmarkTarget</c>).</param>
+/// <param name="SourceDirectory">Sottodirectory del repository usata come baseline, con separatore <c>/</c> (per esempio <c>benchmark/BenchmarkTarget</c>).</param>
 /// <param name="TaskId">Task da preparare (<c>T1</c>, <c>T2</c>, ...).</param>
 /// <param name="RunsRootPath">Percorso assoluto, esterno al repository, che contiene le aree di run temporanee.</param>
 /// <param name="ResultsRootPath">Percorso assoluto, esterno al repository e alle aree di run, che contiene i dati persistenti.</param>

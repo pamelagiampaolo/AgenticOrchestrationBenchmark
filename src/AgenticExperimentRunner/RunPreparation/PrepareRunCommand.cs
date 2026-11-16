@@ -135,7 +135,7 @@ public sealed class PrepareRunCommand
     public const int UsageErrorExitCode = 2;
 
     /// <summary>Sottodirectory del repository che costituisce la baseline del benchmark.</summary>
-    public const string BenchmarkSourceDirectory = "BenchmarkTarget";
+    public const string BenchmarkSourceDirectory = "benchmark/BenchmarkTarget";
 
     /// <summary>Copia dello stdout nella directory dei risultati della run.</summary>
     public const string PreparedRunFileName = "prepared-run.json";

@@ -10,7 +10,7 @@ public sealed class WorkspacePathPolicyTests
     [InlineData("src/", "src")]
     [InlineData(".gitignore", ".gitignore")]
     [InlineData("tests/reserved-notes.md", "tests/reserved-notes.md")]
-    [InlineData("BenchmarkTarget", "BenchmarkTarget")]
+    [InlineData("benchmark/BenchmarkTarget", "benchmark/BenchmarkTarget")]
     public void NormalizeAuthorizedPath_AcceptsAuthorizedPaths(string archivePath, string expected)
     {
         Assert.Equal(expected, WorkspacePathPolicy.NormalizeAuthorizedPath(archivePath));

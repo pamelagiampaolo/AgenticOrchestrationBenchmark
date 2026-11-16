@@ -31,9 +31,9 @@ public sealed class RealCliHierarchyProbes
     public async Task LongDelegation_IsAwaitedByRealCoordinator()
     {
         using var repository = new TemporaryGitRepository();
-        repository.WriteFile("BenchmarkTarget/src/index.ts", "export const valore = 1;\nexport const altro = 2;\n");
-        repository.WriteFile("BenchmarkTarget/tests/public/common.test.ts", "// comune\n");
-        repository.WriteFile("BenchmarkTarget/tests/public/t1/probe.test.ts", "// t1\n");
+        repository.WriteFile("benchmark/BenchmarkTarget/src/index.ts", "export const valore = 1;\nexport const altro = 2;\n");
+        repository.WriteFile("benchmark/BenchmarkTarget/tests/public/common.test.ts", "// comune\n");
+        repository.WriteFile("benchmark/BenchmarkTarget/tests/public/t1/probe.test.ts", "// t1\n");
         repository.WriteFile("docs/benchmark/task-specifications/T1-specifica-pubblica.md", ProbeSpecification);
         repository.CommitAll("baseline di prova");
         string runId = $"a5-probe-long-delegation-{DateTimeOffset.UtcNow:yyyyMMddTHHmmssZ}";
@@ -82,7 +82,7 @@ public sealed class RealCliHierarchyProbes
     private static McpDevelopmentToolchain RealToolchain()
     {
         string repositoryRoot = FindRepositoryRoot();
-        string benchmark = Path.Combine(repositoryRoot, "BenchmarkTarget");
+        string benchmark = Path.Combine(repositoryRoot, "benchmark", "BenchmarkTarget");
         string node = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
             .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
             .Select(directory => Path.Combine(directory, "node.exe"))
@@ -96,7 +96,7 @@ public sealed class RealCliHierarchyProbes
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "BenchmarkTarget")))
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "benchmark", "BenchmarkTarget")))
         {
             directory = directory.Parent;
         }

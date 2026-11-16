@@ -37,7 +37,7 @@ l'8 novembre 2026 per il single-agent sono:
 Implementare nell'orchestratore la preparazione di un'area di run nuova e pulita
 (passi 2–5 del flusso B3), a partire da un commit approvato della baseline:
 
-- copia esclusiva dei file **versionati** di `BenchmarkTarget` in quel commit;
+- copia esclusiva dei file **versionati** di `benchmark/BenchmarkTarget` in quel commit;
 - nessuna directory `.git`, file non versionati, `node_modules`, `dist`,
   credenziali o test riservati;
 - manifest con provenienza e hash, conservato fuori dalla workspace dell'agente.
@@ -58,7 +58,7 @@ all'iterazione che avvierà la sessione dell'agente.
 ## Comportamento atteso
 
 Input espliciti: percorso del repository, riferimento della baseline (risolto in
-SHA completo del commit), sottodirectory sorgente (`BenchmarkTarget`), root delle
+SHA completo del commit), sottodirectory sorgente (`benchmark/BenchmarkTarget`), root delle
 run (percorso assoluto) e `runId`.
 
 Struttura prodotta:
@@ -96,7 +96,7 @@ Struttura prodotta:
 ## Criteri oggettivi di accettazione
 
 1. L'insieme dei file della workspace coincide con
-   `git ls-tree -r --name-only <sha> -- BenchmarkTarget` e ogni file ha lo stesso
+   `git ls-tree -r --name-only <sha> -- benchmark/BenchmarkTarget` e ogni file ha lo stesso
    SHA-256 del blob corrispondente (test di integrazione sul repository reale).
 2. Un file non versionato presente nell'albero di lavoro sorgente non compare
    nella workspace.
@@ -148,14 +148,14 @@ verificata: la configurazione di sistema di Git for Windows
 - senza override l'output contiene `\r\n`;
 - con `-c core.autocrlf=false` lo SHA-256 è
   `a301939014881cd53ea1d635f1261c8fdc7155f91d9fc1b5352144676b6dfa39`, identico a
-  `git cat-file blob HEAD:BenchmarkTarget/package.json`.
+  `git cat-file blob HEAD:benchmark/BenchmarkTarget/package.json`.
 
 Il comando è stato reso indipendente dalla configurazione host con
 `-c core.autocrlf=false -c core.eol=lf` ed è stato aggiunto il test di regressione
 `PrepareAsync_WithHostAutoCrlf_KeepsExactCommittedBytes`. Senza la correzione, la
 stessa baseline avrebbe prodotto contenuti diversi su macchine configurate
 diversamente, violando B4. La workspace contiene quindi i fine riga dei blob (LF
-per i file attuali di `BenchmarkTarget`).
+per i file attuali di `benchmark/BenchmarkTarget`).
 
 ## Verifiche eseguite e risultati
 

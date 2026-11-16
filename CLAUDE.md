@@ -36,7 +36,7 @@ dotnet test tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.cs
 
 ### BenchmarkTarget (TypeScript strict, ESM `nodenext`, Vitest)
 
-Eseguire da `BenchmarkTarget/`; installazione riproducibile con `npm ci`.
+Eseguire da `benchmark/BenchmarkTarget/`; installazione riproducibile con `npm ci`.
 
 ```powershell
 npm run build        # tsc -> dist/
@@ -64,7 +64,7 @@ autorizzazione: è una chiamata LLM.
 
 ## Architettura
 
-- **`BenchmarkTarget/`** — piccolo gestionale ordini/prodotti/magazzino (tutto in
+- **`benchmark/BenchmarkTarget/`** — piccolo gestionale ordini/prodotti/magazzino (tutto in
   `src/index.ts`), bersaglio comune dei task T1–T6. Le specifiche pubbliche dei
   task sono in `docs/benchmark/task-specifications/Tn-specifica-pubblica.md`; i test pubblici in
   `tests/public/`. Lo stato del codice è la **baseline**: non implementare le

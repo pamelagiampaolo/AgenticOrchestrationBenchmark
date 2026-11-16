@@ -7,7 +7,7 @@ using Xunit;
 /// </summary>
 public sealed class BenchmarkBaselinePreparationTests : IDisposable
 {
-    private const string SourceDirectory = "BenchmarkTarget";
+    private const string SourceDirectory = "benchmark/BenchmarkTarget";
     private const string PublicTestsPrefix = SourceDirectory + "/tests/public/";
 
     private readonly string temporaryBase = Path.Combine(Path.GetTempPath(), $"a2-benchmark-{Guid.NewGuid():N}");

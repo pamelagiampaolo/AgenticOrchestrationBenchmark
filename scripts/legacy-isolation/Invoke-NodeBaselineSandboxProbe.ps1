@@ -3,7 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$benchmarkRoot = Join-Path $repositoryRoot 'BenchmarkTarget'
+$benchmarkRoot = Join-Path $repositoryRoot 'benchmark\BenchmarkTarget'
 $guestScript = Join-Path $repositoryRoot 'experiments\legacy-isolation-probes\NodeBaselineSandboxProbe\Run-NodeBaselineGuest.ps1'
 $wsbPath = (Get-Command wsb.exe -ErrorAction Stop).Source
 $nodePath = (Get-Command node.exe -ErrorAction Stop).Source
@@ -11,7 +11,7 @@ $npmPath = (Get-Command npm.cmd -ErrorAction Stop).Source
 $nodeRuntimeRoot = Split-Path -Parent $nodePath
 $runRoot = Join-Path ([IO.Path]::GetTempPath()) ("node-baseline-sandbox-" + [guid]::NewGuid().ToString('N'))
 $inputRoot = Join-Path $runRoot 'authorized-input'
-$inputBenchmarkRoot = Join-Path $inputRoot 'BenchmarkTarget'
+$inputBenchmarkRoot = Join-Path $inputRoot 'benchmark\BenchmarkTarget'
 $inputRuntimeRoot = Join-Path $inputRoot 'runtime'
 $outputRoot = Join-Path $runRoot 'sandbox-output'
 $hostEvidenceRoot = Join-Path $runRoot 'host-evidence'
@@ -96,12 +96,12 @@ New-Item -ItemType Directory -Path $inputRoot, $inputRuntimeRoot, $outputRoot, $
 
 $baselineCommit = (& git -C $repositoryRoot rev-parse HEAD | Out-String).Trim()
 $branch = (& git -C $repositoryRoot branch --show-current | Out-String).Trim()
-$benchmarkDiff = & git -C $repositoryRoot status --porcelain --untracked-files=all -- BenchmarkTarget
+$benchmarkDiff = & git -C $repositoryRoot status --porcelain --untracked-files=all -- benchmark/BenchmarkTarget
 if ($LASTEXITCODE -ne 0 -or $benchmarkDiff) {
     throw 'BenchmarkTarget non corrisponde a una copia pulita del commit sorgente.'
 }
 
-& git -C $repositoryRoot archive --format=zip --output=$archivePath $baselineCommit BenchmarkTarget
+& git -C $repositoryRoot archive --format=zip --output=$archivePath $baselineCommit benchmark/BenchmarkTarget
 if ($LASTEXITCODE -ne 0) {
     throw 'Creazione archivio della baseline non riuscita.'
 }

@@ -11,7 +11,7 @@ public sealed class EphemeralTypecheckRunnerTests : IDisposable
     public async Task RunAsync_TypechecksRealBaselineAndRemovesWorker()
     {
         string repositoryRoot = FindRepositoryRoot();
-        string benchmark = Path.Combine(repositoryRoot, "BenchmarkTarget");
+        string benchmark = Path.Combine(repositoryRoot, "benchmark", "BenchmarkTarget");
         string agentRoot = Path.Combine(root, "agent-root");
         string workspace = Path.Combine(agentRoot, "workspace");
         Directory.CreateDirectory(workspace);
@@ -50,7 +50,7 @@ public sealed class EphemeralTypecheckRunnerTests : IDisposable
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "BenchmarkTarget")))
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "benchmark", "BenchmarkTarget")))
         {
             directory = directory.Parent;
         }

@@ -88,7 +88,7 @@ AgenticExperimentRunner prepare-run
 ```
 
 - `--run-id` predefinito: `yyyyMMddTHHmmssZ-<8 esadecimali casuali>` (UTC).
-- La sorgente è sempre `BenchmarkTarget`; la specifica è
+- La sorgente è sempre `benchmark/BenchmarkTarget`; la specifica è
   `docs/benchmark/<Tn>-specifica-pubblica.md` **dello stesso commit**.
 - Il comando va invocato come eseguibile compilato, non con `dotnet run`, per non
   mescolare output di build allo stdout JSON.
@@ -117,7 +117,7 @@ AgenticExperimentRunner prepare-run
 I percorsi interni all'area agente sono relativi ad `agentRoot`, con separatore
 `/`, nello stesso formato atteso da `MCP_WRITABLE_DIRECTORIES`.
 
-### Smistamento dei file della baseline (`BenchmarkTarget` del commit)
+### Smistamento dei file della baseline (`benchmark/BenchmarkTarget` del commit)
 
 | Percorso relativo alla sorgente | Destinazione |
 |---|---|
@@ -174,7 +174,7 @@ delle differenze (file mancante, contenuto diverso, file in più):
 ## Criteri oggettivi di accettazione
 
 1. **Repository reale, T1 da HEAD:** `workspace/` coincide con i file versionati
-   di `BenchmarkTarget` esclusa `tests/public/`; `public-reference/` contiene
+   di `benchmark/BenchmarkTarget` esclusa `tests/public/`; `public-reference/` contiene
    esattamente i 2 test comuni e quello di `t1`; i file di `t2`–`t6` sono in
    `excludedSourcePaths` e assenti da `agent-root`; `task-specification.md` ha lo
    SHA-256 del blob `docs/benchmark/task-specifications/T1-specifica-pubblica.md`; ogni file ha lo

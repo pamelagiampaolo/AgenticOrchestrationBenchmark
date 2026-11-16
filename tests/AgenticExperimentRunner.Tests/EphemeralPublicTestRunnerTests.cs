@@ -51,7 +51,7 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
     public async Task RunAsync_ExecutesRealPublicVitestSuite()
     {
         string repositoryRoot = FindRepositoryRoot();
-        string benchmark = Path.Combine(repositoryRoot, "BenchmarkTarget");
+        string benchmark = Path.Combine(repositoryRoot, "benchmark", "BenchmarkTarget");
         string agentRoot = CreateAgentRoot();
         CopyDirectory(Path.Combine(benchmark, "src"), Path.Combine(agentRoot, "workspace", "src"));
         File.Copy(
@@ -110,7 +110,7 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
     [Fact]
     public async Task RunAsync_T6_SelectsOnlyApplicablePublicTests()
     {
-        string benchmark = Path.Combine(FindRepositoryRoot(), "BenchmarkTarget");
+        string benchmark = Path.Combine(FindRepositoryRoot(), "benchmark", "BenchmarkTarget");
         string agentRoot = CreateAgentRoot();
         CopyDirectory(Path.Combine(benchmark, "src"), Path.Combine(agentRoot, "workspace", "src"));
         File.Copy(Path.Combine(benchmark, "tsconfig.json"), Path.Combine(agentRoot, "workspace", "tsconfig.json"));
@@ -162,7 +162,7 @@ public sealed class EphemeralPublicTestRunnerTests : IDisposable
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "BenchmarkTarget")))
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "benchmark", "BenchmarkTarget")))
         {
             directory = directory.Parent;
         }

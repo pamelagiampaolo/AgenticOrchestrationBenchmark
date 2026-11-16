@@ -31,7 +31,7 @@ meccanismi di isolamento non dimostra queste proprietà.
 | --- | --- |
 | [`src/AgenticExperimentRunner/`](src/AgenticExperimentRunner/) | Orchestratore .NET: preparazione delle run, esecuzione delle tre condizioni, coordinamento e raccolta delle metriche. |
 | [`tests/AgenticExperimentRunner.Tests/`](tests/AgenticExperimentRunner.Tests/) | Test automatici dell'orchestratore e del server MCP. |
-| [`BenchmarkTarget/`](BenchmarkTarget/) | Applicazione TypeScript usata come bersaglio comune dei task sperimentali T1-T6. |
+| [`benchmark/BenchmarkTarget/`](benchmark/BenchmarkTarget/) | Applicazione TypeScript usata come bersaglio comune dei task sperimentali T1-T6. |
 | [`src/AgentWorkspaceMcpServer/`](src/AgentWorkspaceMcpServer/) | Server MCP che confina l'accesso al workspace ed espone file e comandi di sviluppo controllati. |
 | [`docs/benchmark/`](docs/benchmark/) | Progettazione, implementazione, specifiche pubbliche dei task, piloti ed evidenze sperimentali. |
 | [`scripts/`](scripts/) | Script PowerShell separati tra verifiche correnti e prove storiche di isolamento. |
@@ -65,7 +65,7 @@ ai limiti sperimentali approvati in
 
 ### Benchmark
 
-`BenchmarkTarget/` contiene:
+`benchmark/BenchmarkTarget/` contiene:
 
 - `src/`: codice TypeScript del sistema sottoposto ai task;
 - `tests/public/`: test accessibili agli agenti;
@@ -90,7 +90,7 @@ dotnet build .\src\AgenticExperimentRunner\AgenticExperimentRunner.csproj
 dotnet build .\src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj
 dotnet test .\tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj
 
-Push-Location .\BenchmarkTarget
+Push-Location .\benchmark\BenchmarkTarget
 npm ci
 npm run typecheck
 npm test
