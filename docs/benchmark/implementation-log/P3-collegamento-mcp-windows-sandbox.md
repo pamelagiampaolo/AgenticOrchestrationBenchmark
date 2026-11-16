@@ -30,7 +30,7 @@ run_public_suite
 inputSchema: { "type": "object", "properties": {}, "additionalProperties": false }
 ```
 
-[`PublicSuiteRunner.cs`](../../../AgentWorkspaceMcpServer/PublicSuiteRunner.cs) riceve
+[`PublicSuiteRunner.cs`](../../../src/AgentWorkspaceMcpServer/PublicSuiteRunner.cs) riceve
 dal controllore, all'avvio del server, il percorso assoluto del runner P2.2. La
 chiamata MCP non può modificarlo. Il processo avviato è sempre
 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File <runner-fidato>` senza

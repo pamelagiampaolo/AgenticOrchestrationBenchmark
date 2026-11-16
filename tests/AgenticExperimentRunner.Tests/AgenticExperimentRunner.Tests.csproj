@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AgenticExperimentRunner\AgenticExperimentRunner.csproj" />
-    <ProjectReference Include="..\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj" />
+    <ProjectReference Include="..\..\src\AgenticExperimentRunner\AgenticExperimentRunner.csproj" />
+    <ProjectReference Include="..\..\src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj" />
   </ItemGroup>
 
 </Project>

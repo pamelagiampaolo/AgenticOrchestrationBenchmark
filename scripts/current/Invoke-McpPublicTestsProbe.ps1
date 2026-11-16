@@ -3,8 +3,8 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$serverProject = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
-$serverDll = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\bin\Debug\net10.0\AgentWorkspaceMcpServer.dll'
+$serverProject = Join-Path $repositoryRoot 'src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
+$serverDll = Join-Path $repositoryRoot 'src\AgentWorkspaceMcpServer\bin\Debug\net10.0\AgentWorkspaceMcpServer.dll'
 $benchmarkRoot = Join-Path $repositoryRoot 'BenchmarkTarget'
 $nodePath = (Get-Command node.exe -ErrorAction Stop).Source
 $vitestPath = Join-Path $benchmarkRoot 'node_modules\vitest\vitest.mjs'

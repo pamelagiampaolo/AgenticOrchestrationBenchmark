@@ -36,7 +36,7 @@ le modifiche non committate e la staging area di uno non compaiono nell'altro.
 | --- | --- | --- |
 | Cartella | `C:\repos\TesiAgenticAI-agent` | `C:\repos\TesiAgenticAI` |
 | Branch | `feat/single-agent` | `main` |
-| Codice di proprietà | `AgenticExperimentRunner/` (incl. `RunPreparation/`, `SessionExecution/`, `Coordination/`, `Instructions/`) e test nuovi dedicati | `McpReadOnlyPrototype/`, `scripts/*`, `RootedFileAccessTests.cs`, worker confinato per build e test |
+| Codice di proprietà | `src/AgenticExperimentRunner/` (incl. `RunPreparation/`, `SessionExecution/`, `Coordination/`, `Instructions/`) e test nuovi dedicati | `src/AgentWorkspaceMcpServer/`, `scripts/*`, `RootedFileAccessTests.cs`, worker confinato per build e test |
 | Documenti | `docs/benchmark/architecture/A*` | `docs/benchmark/implementation-log/P*` |
 | Architetture | single-agent; livello di coordinamento condiviso; gerarchia adattiva | gerarchia statica (sul livello di coordinamento condiviso) |
 
@@ -53,7 +53,7 @@ le modifiche non committate e la staging area di uno non compaiono nell'altro.
 5. **File necessariamente condivisi** (`CLAUDE.md`, `AGENTS.md`, `.csproj` del
    progetto di test, documenti `B*`): toccarli solo se indispensabile; i conflitti
    su questi file si risolvono al merge.
-6. **Progetto di test condiviso.** `AgenticExperimentRunner.Tests` copre sia
+6. **Progetto di test condiviso.** `tests/AgenticExperimentRunner.Tests` copre sia
    l'orchestratore sia il server MCP: ciascuno aggiunge file di test propri e non
    modifica quelli dell'altro.
 
@@ -226,7 +226,7 @@ sessioni con questo stesso profilo.
    avviata dall'orchestratore con lo stesso profilo isolato; i subagenti nativi
    della CLI restano disattivati.
 2. **Livello di coordinamento condiviso:** un solo meccanismo, in
-   `AgenticExperimentRunner/Coordination/`, usato da entrambe le gerarchie; la
+   `src/AgenticExperimentRunner/Coordination/`, usato da entrambe le gerarchie; la
    gerarchia statica ne è una configurazione con ruoli e deleghe prefissati e non
    ne crea uno proprio.
 3. **Un lavoratore alla volta:** lo strumento `delegate_task` è bloccante e al
@@ -291,7 +291,7 @@ Queste regole sono state date soltanto a Claude e non si estendono a Codex.
    Condizioni: il worktree di Codex è pulito con tutto committato, e dopo il merge
    build e suite completa passano; l'esito si riporta con comandi e output reali.
 3. **Gerarchia statica:** va costruita come configurazione del livello di
-   coordinamento condiviso (`AgenticExperimentRunner/Coordination/`) e del launcher
+   coordinamento condiviso (`src/AgenticExperimentRunner/Coordination/`) e del launcher
    C#; se servono modifiche a quel codice, si chiedono a Claude tramite l'utente.
 4. **Prove di accettazione:** lo script `Invoke-McpReadOnlyPrototype.ps1` resta lo
    strumento di verifica dell'isolamento MCP; le fixture devono usare i nomi del

@@ -3,7 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$projectPath = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
+$projectPath = Join-Path $repositoryRoot 'src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
 $runnerPath = Join-Path $repositoryRoot 'scripts\legacy-isolation\Invoke-NodeBaselineSandboxProbe.ps1'
 $claudePath = (Get-Command claude -ErrorAction Stop).Source
 $wsbPath = (Get-Command wsb.exe -ErrorAction Stop).Source

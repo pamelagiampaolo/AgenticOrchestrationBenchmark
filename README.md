@@ -29,10 +29,10 @@ meccanismi di isolamento non dimostra queste proprietà.
 
 | Percorso | Ruolo |
 | --- | --- |
-| [`AgenticExperimentRunner/`](AgenticExperimentRunner/) | Orchestratore .NET: preparazione delle run, esecuzione delle tre condizioni, coordinamento e raccolta delle metriche. |
-| [`AgenticExperimentRunner.Tests/`](AgenticExperimentRunner.Tests/) | Test automatici dell'orchestratore e del server MCP. |
+| [`src/AgenticExperimentRunner/`](src/AgenticExperimentRunner/) | Orchestratore .NET: preparazione delle run, esecuzione delle tre condizioni, coordinamento e raccolta delle metriche. |
+| [`tests/AgenticExperimentRunner.Tests/`](tests/AgenticExperimentRunner.Tests/) | Test automatici dell'orchestratore e del server MCP. |
 | [`BenchmarkTarget/`](BenchmarkTarget/) | Applicazione TypeScript usata come bersaglio comune dei task sperimentali T1-T6. |
-| [`AgentWorkspaceMcpServer/`](AgentWorkspaceMcpServer/) | Server MCP che confina l'accesso al workspace ed espone file e comandi di sviluppo controllati. |
+| [`src/AgentWorkspaceMcpServer/`](src/AgentWorkspaceMcpServer/) | Server MCP che confina l'accesso al workspace ed espone file e comandi di sviluppo controllati. |
 | [`docs/benchmark/`](docs/benchmark/) | Progettazione, implementazione, specifiche pubbliche dei task, piloti ed evidenze sperimentali. |
 | [`scripts/`](scripts/) | Script PowerShell separati tra verifiche correnti e prove storiche di isolamento. |
 | [`experiments/legacy-isolation-probes/`](experiments/legacy-isolation-probes/) | Prototipi ed evidenze storiche delle precedenti prove con Windows Sandbox e AppContainer; non appartengono all'architettura operativa corrente. |
@@ -43,7 +43,7 @@ di versione.
 
 ### Orchestratore
 
-`AgenticExperimentRunner/` è suddiviso per responsabilità:
+`src/AgenticExperimentRunner/` è suddiviso per responsabilità:
 
 - `RunPreparation/`: prepara da un commit una copia pulita della baseline;
 - `SessionExecution/`: esegue e misura la condizione single-agent;
@@ -86,9 +86,9 @@ Prerequisiti correnti ricavabili dai progetti:
 Da PowerShell, nella radice del repository:
 
 ```powershell
-dotnet build .\AgenticExperimentRunner\AgenticExperimentRunner.csproj
-dotnet build .\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj
-dotnet test .\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj
+dotnet build .\src\AgenticExperimentRunner\AgenticExperimentRunner.csproj
+dotnet build .\src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj
+dotnet test .\tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj
 
 Push-Location .\BenchmarkTarget
 npm ci

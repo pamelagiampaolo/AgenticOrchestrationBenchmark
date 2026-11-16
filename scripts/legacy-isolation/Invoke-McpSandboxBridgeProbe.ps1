@@ -3,8 +3,8 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$serverProject = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
-$serverDll = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\bin\Debug\net10.0\AgentWorkspaceMcpServer.dll'
+$serverProject = Join-Path $repositoryRoot 'src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
+$serverDll = Join-Path $repositoryRoot 'src\AgentWorkspaceMcpServer\bin\Debug\net10.0\AgentWorkspaceMcpServer.dll'
 $realRunner = Join-Path $repositoryRoot 'scripts\legacy-isolation\Invoke-NodeBaselineSandboxProbe.ps1'
 $timeoutRunner = Join-Path $repositoryRoot 'experiments\legacy-isolation-probes\McpSandboxBridgeProbe\TimeoutRunnerFixture.ps1'
 $missingReportRunner = Join-Path $repositoryRoot 'experiments\legacy-isolation-probes\McpSandboxBridgeProbe\MissingReportRunnerFixture.ps1'

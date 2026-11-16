@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$projectPath = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
+$projectPath = Join-Path $repositoryRoot 'src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
 $runRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("agent-workspace-mcp-server-" + [guid]::NewGuid().ToString('N'))
 $trustedRoot = Join-Path $runRoot 'trusted'
 $agentRoot = Join-Path $runRoot 'agent-workspace'

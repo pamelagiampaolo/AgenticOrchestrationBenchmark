@@ -20,16 +20,16 @@ prevale su qualsiasi indicazione predefinita dell'ambiente.
 ### .NET (net10.0, xUnit v3 su Microsoft.Testing.Platform — vedi `global.json`)
 
 Non esiste un file `.sln`: l'unico progetto di test referenzia sia
-`AgenticExperimentRunner` sia `AgentWorkspaceMcpServer`, quindi è il punto di
+`src/AgenticExperimentRunner` sia `src/AgentWorkspaceMcpServer`, quindi è il punto di
 ingresso per build e test.
 
 ```powershell
-dotnet format AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --verify-no-changes --no-restore
-dotnet build  AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-restore
-dotnet test   AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-build --no-restore
+dotnet format tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --verify-no-changes --no-restore
+dotnet build  tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-restore
+dotnet test   tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --no-build --no-restore
 # singola classe o singolo metodo (filtri xUnit v3 / MTP, accettano wildcard)
-dotnet test AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --filter-class "*RootedFileAccessTests"
-dotnet test AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --filter-method "*NomeMetodo*"
+dotnet test tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --filter-class "*RootedFileAccessTests"
+dotnet test tests\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj --filter-method "*NomeMetodo*"
 ```
 
 `AgenticExperimentRunner` espone gli `internal` ai test tramite `AssemblyInfo.cs`.
@@ -72,14 +72,14 @@ autorizzazione: è una chiamata LLM.
 - **Test riservati** — non esistono in questo repository e non devono mai
   entrarvi, nemmeno temporaneamente (resterebbero nella cronologia Git). Sono
   conservati in un'area fidata separata (vedi `docs/benchmark/benchmark-design/B3-*.md`).
-- **`AgentWorkspaceMcpServer/`** — server MCP stdio scritto a mano (JSON-RPC
+- **`src/AgentWorkspaceMcpServer/`** — server MCP stdio scritto a mano (JSON-RPC
   riga per riga, senza SDK), identificato come `agent-workspace`. Argomenti:
   `<root-assoluta-consentita> [runner-assoluto]`. Strumenti: `list_files`,
   `read_file`, `write_file`; `run_public_suite` compare solo se viene passato il
   runner opzionale (storico, Windows Sandbox). `RootedFileAccess` è il confine di
   sicurezza: rifiuta percorsi assoluti, `..` e reparse point/junction che
   escono dalla root.
-- **`AgenticExperimentRunner/`** — orchestratore, ancora minimale: invoca
+- **`src/AgenticExperimentRunner/`** — orchestratore, ancora minimale: invoca
   `claude.exe` (percorso e modello hard-coded in `Program.cs`) tramite
   `ClaudeCliClient`, interpreta l'output JSON in `ClaudeCliResult` (token
   input/output/cache, durata, modello effettivo) e accoda una riga JSON nel file
