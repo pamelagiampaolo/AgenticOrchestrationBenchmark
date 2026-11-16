@@ -20,7 +20,7 @@ prevale su qualsiasi indicazione predefinita dell'ambiente.
 ### .NET (net10.0, xUnit v3 su Microsoft.Testing.Platform — vedi `global.json`)
 
 Non esiste un file `.sln`: l'unico progetto di test referenzia sia
-`AgenticExperimentRunner` sia `McpReadOnlyPrototype`, quindi è il punto di
+`AgenticExperimentRunner` sia `AgentWorkspaceMcpServer`, quindi è il punto di
 ingresso per build e test.
 
 ```powershell
@@ -51,11 +51,11 @@ Ogni task Tn ha un proprio `vitest.public.tN.config.ts` che include solo
 ### Prove di accettazione dell'harness (PowerShell)
 
 ```powershell
-.\scripts\Invoke-McpReadOnlyPrototype.ps1 -Mode Direct   # prova MCP diretta, senza LLM
-.\scripts\Invoke-McpReadOnlyPrototype.ps1 -Mode Claude   # sessione Claude CLI reale: consuma chiamate LLM
+.\scripts\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Direct   # prova MCP diretta, senza LLM
+.\scripts\Invoke-AgentWorkspaceMcpServerProbe.ps1 -Mode Claude   # sessione Claude CLI reale: consuma chiamate LLM
 ```
 
-Gli script creano una root temporanea `%TEMP%\mcp-readonly-prototype-<guid>\`
+Gli script creano una root temporanea `%TEMP%\agent-workspace-mcp-server-<guid>\`
 con sottocartelle `trusted`, `agent-workspace`, `external` (sentinelle per i
 tentativi di uscita) ed `evidence`. Le evidenze restano fuori dal repository;
 nei documenti si riporta il percorso e si versiona solo un riepilogo in
@@ -72,13 +72,13 @@ autorizzazione: è una chiamata LLM.
 - **Test riservati** — non esistono in questo repository e non devono mai
   entrarvi, nemmeno temporaneamente (resterebbero nella cronologia Git). Sono
   conservati in un'area fidata separata (vedi `docs/benchmark/B3-*.md`).
-- **`McpReadOnlyPrototype/`** — server MCP stdio scritto a mano (JSON-RPC
-  riga per riga, senza SDK), identificato come `workspace-prototype`. Argomenti:
+- **`AgentWorkspaceMcpServer/`** — server MCP stdio scritto a mano (JSON-RPC
+  riga per riga, senza SDK), identificato come `agent-workspace`. Argomenti:
   `<root-assoluta-consentita> [runner-assoluto]`. Strumenti: `list_files`,
   `read_file`, `write_file`; `run_public_suite` compare solo se viene passato il
   runner opzionale (storico, Windows Sandbox). `RootedFileAccess` è il confine di
   sicurezza: rifiuta percorsi assoluti, `..` e reparse point/junction che
-  escono dalla root. Il nome "ReadOnly" è storico.
+  escono dalla root.
 - **`AgenticExperimentRunner/`** — orchestratore, ancora minimale: invoca
   `claude.exe` (percorso e modello hard-coded in `Program.cs`) tramite
   `ClaudeCliClient`, interpreta l'output JSON in `ClaudeCliResult` (token

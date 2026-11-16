@@ -1,4 +1,4 @@
-namespace McpReadOnlyPrototype;
+namespace AgentWorkspaceMcpServer;
 
 /// <summary>
 /// Fornisce accesso a file e directory contenuti in una root fissata.

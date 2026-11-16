@@ -32,7 +32,7 @@ meccanismi di isolamento non dimostra queste proprietà.
 | [`AgenticExperimentRunner/`](AgenticExperimentRunner/) | Orchestratore .NET: preparazione delle run, esecuzione delle tre condizioni, coordinamento e raccolta delle metriche. |
 | [`AgenticExperimentRunner.Tests/`](AgenticExperimentRunner.Tests/) | Test automatici dell'orchestratore e del server MCP. |
 | [`BenchmarkTarget/`](BenchmarkTarget/) | Applicazione TypeScript usata come bersaglio comune dei task sperimentali T1-T6. |
-| [`McpReadOnlyPrototype/`](McpReadOnlyPrototype/) | Server MCP del workspace. Il nome è storico: il componente offre oggi accesso ai file e comandi di sviluppo controllati, non soltanto lettura. |
+| [`AgentWorkspaceMcpServer/`](AgentWorkspaceMcpServer/) | Server MCP che confina l'accesso al workspace ed espone file e comandi di sviluppo controllati. |
 | [`docs/benchmark/`](docs/benchmark/) | Progettazione, implementazione, specifiche pubbliche dei task, piloti ed evidenze sperimentali. |
 | [`scripts/`](scripts/) | Script PowerShell di supporto e probe, molti dei quali appartengono alle precedenti iterazioni sull'isolamento. |
 | [`AppContainerIsolationProbe/`](AppContainerIsolationProbe/) | Prototipo storico per le prove di isolamento con Windows AppContainer. |
@@ -90,7 +90,7 @@ Da PowerShell, nella radice del repository:
 
 ```powershell
 dotnet build .\AgenticExperimentRunner\AgenticExperimentRunner.csproj
-dotnet build .\McpReadOnlyPrototype\McpReadOnlyPrototype.csproj
+dotnet build .\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj
 dotnet test .\AgenticExperimentRunner.Tests\AgenticExperimentRunner.Tests.csproj
 
 Push-Location .\BenchmarkTarget

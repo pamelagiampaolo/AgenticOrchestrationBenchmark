@@ -52,7 +52,7 @@ public sealed class ClaudeLaunchProfileTests
     public void BuildMcpConfigurationJson_DeclaresOnlyWorkspaceServerWithWritablePolicy()
     {
         using JsonDocument configuration = JsonDocument.Parse(ClaudeLaunchProfile.BuildMcpConfigurationJson(
-            @"C:\server\McpReadOnlyPrototype.exe",
+            @"C:\server\AgentWorkspaceMcpServer.exe",
             @"C:\AgenticAIRuns\r1\agent-root",
             ["workspace", "agent-tests"],
             new McpDevelopmentToolchain(@"C:\bin\node.exe", @"C:\toolchain\vitest.mjs", @"C:\toolchain\tsc.js"),
@@ -63,7 +63,7 @@ public sealed class ClaudeLaunchProfileTests
         JsonElement servers = configuration.RootElement.GetProperty("mcpServers");
         JsonElement server = Assert.Single(servers.EnumerateObject()).Value;
         Assert.Equal("benchmark_workspace", servers.EnumerateObject().Single().Name);
-        Assert.Equal(@"C:\server\McpReadOnlyPrototype.exe", server.GetProperty("command").GetString());
+        Assert.Equal(@"C:\server\AgentWorkspaceMcpServer.exe", server.GetProperty("command").GetString());
         Assert.Equal([@"C:\AgenticAIRuns\r1\agent-root"], server.GetProperty("args").EnumerateArray().Select(value => value.GetString()));
         Assert.Equal(
             "workspace" + Path.PathSeparator + "agent-tests",

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace McpReadOnlyPrototype;
+namespace AgentWorkspaceMcpServer;
 
 /// <summary>
 /// Esegue TypeScript typecheck su una copia effimera della workspace con comando fisso.

@@ -23,7 +23,7 @@ public sealed class CoordinatorLaunchProfileTests
     public void BuildCoordinatorMcpConfigurationJson_DeclaresWorkspaceAndRelayWithTimeout()
     {
         string json = ClaudeLaunchProfile.BuildCoordinatorMcpConfigurationJson(
-            @"C:\server\McpReadOnlyPrototype.exe",
+            @"C:\server\AgentWorkspaceMcpServer.exe",
             @"C:\AgenticAIRuns\r1\agent-root",
             ["workspace", "agent-tests"],
             new McpDevelopmentToolchain(@"C:\bin\node.exe", @"C:\toolchain\vitest.mjs", @"C:\toolchain\tsc.js"),

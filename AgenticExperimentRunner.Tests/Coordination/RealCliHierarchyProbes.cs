@@ -53,7 +53,7 @@ public sealed class RealCliHierarchyProbes
             new HierarchicalRunRequest(
                 Path.Combine(prepared.ResultsDirectory, PrepareRunCommand.PreparedRunFileName),
                 ClaudePath,
-                Path.Combine(AppContext.BaseDirectory, "McpReadOnlyPrototype.exe"),
+                Path.Combine(AppContext.BaseDirectory, "AgentWorkspaceMcpServer.exe"),
                 RealToolchain(),
                 Path.Combine(AppContext.BaseDirectory, "AgenticExperimentRunner.exe"),
                 Model,

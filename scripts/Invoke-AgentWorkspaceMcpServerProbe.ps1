@@ -6,15 +6,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$projectPath = Join-Path $repositoryRoot 'McpReadOnlyPrototype\McpReadOnlyPrototype.csproj'
-$runRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("mcp-readonly-prototype-" + [guid]::NewGuid().ToString('N'))
+$projectPath = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
+$runRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("agent-workspace-mcp-server-" + [guid]::NewGuid().ToString('N'))
 $trustedRoot = Join-Path $runRoot 'trusted'
 $agentRoot = Join-Path $runRoot 'agent-workspace'
 $externalRoot = Join-Path $runRoot 'external'
 $evidenceRoot = Join-Path $runRoot 'evidence'
 $serverRoot = Join-Path $trustedRoot 'server'
 $configurationRoot = Join-Path $trustedRoot 'configuration'
-$serverPath = Join-Path $serverRoot 'McpReadOnlyPrototype.exe'
+$serverPath = Join-Path $serverRoot 'AgentWorkspaceMcpServer.exe'
 $mcpConfigurationPath = Join-Path $configurationRoot 'mcp.json'
 $settingsPath = Join-Path $configurationRoot 'settings.json'
 $nugetConfigurationPath = Join-Path $configurationRoot 'NuGet.Config'

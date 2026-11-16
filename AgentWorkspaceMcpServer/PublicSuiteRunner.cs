@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace McpReadOnlyPrototype;
+namespace AgentWorkspaceMcpServer;
 
 /// <summary>
 /// Esegue l'unico runner fidato della suite pubblica e valida il report P2.2.

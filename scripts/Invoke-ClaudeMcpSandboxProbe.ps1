@@ -3,7 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$projectPath = Join-Path $repositoryRoot 'McpReadOnlyPrototype\McpReadOnlyPrototype.csproj'
+$projectPath = Join-Path $repositoryRoot 'AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
 $runnerPath = Join-Path $repositoryRoot 'scripts\Invoke-NodeBaselineSandboxProbe.ps1'
 $claudePath = (Get-Command claude -ErrorAction Stop).Source
 $wsbPath = (Get-Command wsb.exe -ErrorAction Stop).Source
@@ -13,7 +13,7 @@ $serverRoot = Join-Path $trustedRoot 'server'
 $configurationRoot = Join-Path $trustedRoot 'configuration'
 $agentRoot = Join-Path $runRoot 'agent-workspace'
 $evidenceRoot = Join-Path $runRoot 'host-evidence'
-$serverPath = Join-Path $serverRoot 'McpReadOnlyPrototype.exe'
+$serverPath = Join-Path $serverRoot 'AgentWorkspaceMcpServer.exe'
 $mcpConfigurationPath = Join-Path $configurationRoot 'mcp.json'
 $settingsPath = Join-Path $configurationRoot 'settings.json'
 $nugetConfigurationPath = Join-Path $configurationRoot 'NuGet.Config'

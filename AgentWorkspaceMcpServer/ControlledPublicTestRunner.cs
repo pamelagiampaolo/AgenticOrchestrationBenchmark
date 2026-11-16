@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace McpReadOnlyPrototype;
+namespace AgentWorkspaceMcpServer;
 
 /// <summary>
 /// Esegue Vitest con eseguibile, entry point, configurazione e directory fissati dal controllore.

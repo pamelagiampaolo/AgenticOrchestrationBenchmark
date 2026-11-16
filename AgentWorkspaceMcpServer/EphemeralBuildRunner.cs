@@ -1,4 +1,4 @@
-namespace McpReadOnlyPrototype;
+namespace AgentWorkspaceMcpServer;
 
 /// <summary>
 /// Esegue la build TypeScript nella copia effimera senza modificare la workspace dell'agente.

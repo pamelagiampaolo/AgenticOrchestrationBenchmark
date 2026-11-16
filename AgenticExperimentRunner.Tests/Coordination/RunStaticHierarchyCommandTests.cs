@@ -9,7 +9,7 @@ public sealed class RunStaticHierarchyCommandTests
     [
         "--prepared-run", @"C:\AgenticAIResults\r1\prepared-run.json",
         "--claude", @"C:\cli\claude.exe",
-        "--mcp-server", @"C:\server\McpReadOnlyPrototype.exe",
+        "--mcp-server", @"C:\server\AgentWorkspaceMcpServer.exe",
         "--node", @"C:\bin\node.exe",
         "--vitest", @"C:\toolchain\vitest.mjs",
         "--typescript", @"C:\toolchain\tsc.js",

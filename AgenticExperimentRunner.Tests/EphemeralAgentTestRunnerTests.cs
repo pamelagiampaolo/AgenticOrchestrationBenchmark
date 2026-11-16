@@ -1,5 +1,5 @@
 using System.Text.Json;
-using McpReadOnlyPrototype;
+using AgentWorkspaceMcpServer;
 using Xunit;
 
 namespace AgenticExperimentRunner.Tests;

@@ -1,4 +1,4 @@
-namespace McpReadOnlyPrototype;
+namespace AgentWorkspaceMcpServer;
 
 internal static class StartupExceptionPolicy
 {

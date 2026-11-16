@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using McpReadOnlyPrototype;
+using AgentWorkspaceMcpServer;
 using Xunit;
 
 namespace AgenticExperimentRunner.Tests;
@@ -17,7 +17,7 @@ public sealed class McpServerStartupTests
         Directory.CreateDirectory(Path.Combine(root, "workspace"));
         try
         {
-            string server = Path.Combine(AppContext.BaseDirectory, "McpReadOnlyPrototype.dll");
+            string server = Path.Combine(AppContext.BaseDirectory, "AgentWorkspaceMcpServer.dll");
             using var process = new Process
             {
                 StartInfo = new ProcessStartInfo

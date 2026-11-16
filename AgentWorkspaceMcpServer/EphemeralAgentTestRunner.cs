@@ -1,4 +1,4 @@
-namespace McpReadOnlyPrototype;
+namespace AgentWorkspaceMcpServer;
 
 /// <summary>
 /// Compone una copia effimera del progetto ed esegue esclusivamente i test creati dall'agente.

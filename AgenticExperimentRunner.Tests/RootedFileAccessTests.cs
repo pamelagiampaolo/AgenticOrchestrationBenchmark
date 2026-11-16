@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using McpReadOnlyPrototype;
+using AgentWorkspaceMcpServer;
 using Xunit;
 
 public sealed class RootedFileAccessTests : IDisposable

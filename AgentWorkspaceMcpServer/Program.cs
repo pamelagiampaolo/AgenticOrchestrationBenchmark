@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using McpReadOnlyPrototype;
+using AgentWorkspaceMcpServer;
 
 // JSON-RPC stdio richiede UTF-8. Su Windows l'encoding ereditato può essere la
 // code page OEM anche con pipe redirette, corrompendo gli argomenti non ASCII.
@@ -11,7 +11,7 @@ if (args.Length is < 1 or > 2
     || !Path.IsPathFullyQualified(args[0])
     || (args.Length == 2 && !Path.IsPathFullyQualified(args[1])))
 {
-    Console.Error.WriteLine("Uso: McpReadOnlyPrototype <root-assoluta-consentita> [runner-P2.2-assoluto]");
+    Console.Error.WriteLine("Uso: AgentWorkspaceMcpServer <root-assoluta-consentita> [runner-P2.2-assoluto]");
     return 2;
 }
 
@@ -175,7 +175,7 @@ static async Task<string> HandleRequestAsync(
             {
                 protocolVersion = "2025-06-18",
                 capabilities = new { tools = new { } },
-                serverInfo = new { name = "workspace-prototype", version = "0.2.0" }
+                serverInfo = new { name = "agent-workspace", version = "0.2.0" }
             },
             "ping" => new { },
             "tools/list" => CreateToolList(publicSuiteRunner is not null, controlledPublicTestRunner is not null, typecheckRunner is not null, buildRunner is not null, agentTestRunner is not null),
