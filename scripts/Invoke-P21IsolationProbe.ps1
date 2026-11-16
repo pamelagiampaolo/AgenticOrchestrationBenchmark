@@ -3,7 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$probeSourceRoot = Join-Path $repositoryRoot 'P21IsolationProbe'
+$probeSourceRoot = Join-Path $repositoryRoot 'experiments\legacy-isolation-probes\P21IsolationProbe'
 $tcpServerScript = Join-Path $PSScriptRoot 'P21TcpSentinelServer.ps1'
 $wsbPath = 'C:\Users\Utente\AppData\Local\Microsoft\WindowsApps\wsb.exe'
 $runRoot = Join-Path ([IO.Path]::GetTempPath()) ("p21-isolation-" + [guid]::NewGuid().ToString('N'))

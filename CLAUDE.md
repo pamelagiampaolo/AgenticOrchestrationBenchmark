@@ -92,7 +92,8 @@ autorizzazione: è una chiamata LLM.
   ```powershell
   AgenticExperimentRunner.exe prepare-run --repository <assoluto> --commit <rif> --task T1 --runs-root C:\AgenticAIRuns --results-root C:\AgenticAIResults [--run-id <id>]
   ```
-- **`P21IsolationProbe/`, `NodeBaselineSandboxProbe/`, `McpSandboxBridgeProbe/`,
+- **`experiments/legacy-isolation-probes/`**, inclusi `P21IsolationProbe/`,
+  `NodeBaselineSandboxProbe/` e `McpSandboxBridgeProbe/`,
   script `*Sandbox*`/`P21*` e `.wsb`** — evidenze storiche del percorso Windows
   Sandbox, non più parte dell'architettura operativa (vedi `AGENTS.md`).
 

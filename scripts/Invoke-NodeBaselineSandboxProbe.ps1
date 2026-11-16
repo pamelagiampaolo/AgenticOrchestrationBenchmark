@@ -4,7 +4,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $benchmarkRoot = Join-Path $repositoryRoot 'BenchmarkTarget'
-$guestScript = Join-Path $repositoryRoot 'NodeBaselineSandboxProbe\Run-NodeBaselineGuest.ps1'
+$guestScript = Join-Path $repositoryRoot 'experiments\legacy-isolation-probes\NodeBaselineSandboxProbe\Run-NodeBaselineGuest.ps1'
 $wsbPath = (Get-Command wsb.exe -ErrorAction Stop).Source
 $nodePath = (Get-Command node.exe -ErrorAction Stop).Source
 $npmPath = (Get-Command npm.cmd -ErrorAction Stop).Source

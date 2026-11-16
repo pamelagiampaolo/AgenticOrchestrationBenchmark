@@ -3,7 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$projectPath = Join-Path $repositoryRoot 'AppContainerIsolationProbe\AppContainerIsolationProbe.csproj'
+$projectPath = Join-Path $repositoryRoot 'experiments\legacy-isolation-probes\AppContainerIsolationProbe\AppContainerIsolationProbe.csproj'
 $baselineRoot = Join-Path $repositoryRoot 'BenchmarkTarget'
 $nodePath = (Get-Command node -ErrorAction Stop).Source
 $temporaryRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())

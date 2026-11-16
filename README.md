@@ -35,10 +35,7 @@ meccanismi di isolamento non dimostra queste proprietà.
 | [`AgentWorkspaceMcpServer/`](AgentWorkspaceMcpServer/) | Server MCP che confina l'accesso al workspace ed espone file e comandi di sviluppo controllati. |
 | [`docs/benchmark/`](docs/benchmark/) | Progettazione, implementazione, specifiche pubbliche dei task, piloti ed evidenze sperimentali. |
 | [`scripts/`](scripts/) | Script PowerShell di supporto e probe, molti dei quali appartengono alle precedenti iterazioni sull'isolamento. |
-| [`AppContainerIsolationProbe/`](AppContainerIsolationProbe/) | Prototipo storico per le prove di isolamento con Windows AppContainer. |
-| [`McpSandboxBridgeProbe/`](McpSandboxBridgeProbe/) | Fixture storiche per il collegamento tra MCP e Windows Sandbox. |
-| [`NodeBaselineSandboxProbe/`](NodeBaselineSandboxProbe/) | Probe storico della baseline Node.js in Windows Sandbox. |
-| [`P21IsolationProbe/`](P21IsolationProbe/) | Materiale della prova storica P21 sull'isolamento in Windows Sandbox. |
+| [`experiments/legacy-isolation-probes/`](experiments/legacy-isolation-probes/) | Prototipi ed evidenze storiche delle precedenti prove con Windows Sandbox e AppContainer; non appartengono all'architettura operativa corrente. |
 
 Le directory `bin/`, `obj/`, `dist/`, `node_modules/`, `results/` e
 `TestResults/` contengono output locali o generati e sono escluse dal controllo

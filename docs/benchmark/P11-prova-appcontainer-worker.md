@@ -12,7 +12,7 @@ Usa soltanto sentinelle sintetiche e un eseguibile .NET controllato.
 
 ## Componenti
 
-- `AppContainerIsolationProbe/`: controllore e processo di probe;
+- `experiments/legacy-isolation-probes/AppContainerIsolationProbe/`: controllore e processo di probe;
 - `scripts/Invoke-AppContainerIsolationProbe.ps1`: pubblicazione ed esecuzione
   ripetibile in directory temporanee;
 - AppContainer temporaneo privo di capability;
@@ -67,8 +67,8 @@ correzioni della fixture e sono descritti per non perdere l'evidenza diagnostica
 ## Verifiche eseguite
 
 ```powershell
-dotnet format AppContainerIsolationProbe\AppContainerIsolationProbe.csproj --verify-no-changes --no-restore
-dotnet build AppContainerIsolationProbe\AppContainerIsolationProbe.csproj --no-restore
+dotnet format experiments\legacy-isolation-probes\AppContainerIsolationProbe\AppContainerIsolationProbe.csproj --verify-no-changes --no-restore
+dotnet build experiments\legacy-isolation-probes\AppContainerIsolationProbe\AppContainerIsolationProbe.csproj --no-restore
 .\scripts\Invoke-AppContainerIsolationProbe.ps1
 ```
 

@@ -30,7 +30,7 @@ run_public_suite
 inputSchema: { "type": "object", "properties": {}, "additionalProperties": false }
 ```
 
-[`PublicSuiteRunner.cs`](../../McpReadOnlyPrototype/PublicSuiteRunner.cs) riceve
+[`PublicSuiteRunner.cs`](../../AgentWorkspaceMcpServer/PublicSuiteRunner.cs) riceve
 dal controllore, all'avvio del server, il percorso assoluto del runner P2.2. La
 chiamata MCP non può modificarlo. Il processo avviato è sempre
 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File <runner-fidato>` senza
@@ -61,9 +61,9 @@ risposta, registrando l'istanza osservata. Prima e dopo il rifiuto dei parametri
 dopo ogni scenario registra il numero di istanze attive.
 
 Le fixture
-[`TimeoutRunnerFixture.ps1`](../../McpSandboxBridgeProbe/TimeoutRunnerFixture.ps1)
+[`TimeoutRunnerFixture.ps1`](../../experiments/legacy-isolation-probes/McpSandboxBridgeProbe/TimeoutRunnerFixture.ps1)
 e
-[`MissingReportRunnerFixture.ps1`](../../McpSandboxBridgeProbe/MissingReportRunnerFixture.ps1)
+[`MissingReportRunnerFixture.ps1`](../../experiments/legacy-isolation-probes/McpSandboxBridgeProbe/MissingReportRunnerFixture.ps1)
 non contengono materiali del benchmark e non avviano Sandbox: isolano soltanto la
 gestione MCP degli errori.
 

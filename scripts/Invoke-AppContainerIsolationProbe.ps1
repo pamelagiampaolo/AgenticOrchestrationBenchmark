@@ -3,7 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$projectPath = Join-Path $repositoryRoot 'AppContainerIsolationProbe\AppContainerIsolationProbe.csproj'
+$projectPath = Join-Path $repositoryRoot 'experiments\legacy-isolation-probes\AppContainerIsolationProbe\AppContainerIsolationProbe.csproj'
 $temporaryRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $probeId = [guid]::NewGuid().ToString('N')
 $publishRoot = [IO.Path]::GetFullPath((Join-Path $temporaryRoot "p11-publish-$probeId"))
