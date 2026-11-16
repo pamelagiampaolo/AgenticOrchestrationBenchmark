@@ -293,9 +293,10 @@ Queste regole sono state date soltanto a Claude e non si estendono a Codex.
 3. **Gerarchia statica:** va costruita come configurazione del livello di
    coordinamento condiviso (`src/AgenticExperimentRunner/Coordination/`) e del launcher
    C#; se servono modifiche a quel codice, si chiedono a Claude tramite l'utente.
-4. **Prove di accettazione:** lo script `Invoke-McpReadOnlyPrototype.ps1` resta lo
-   strumento di verifica dell'isolamento MCP; le fixture devono usare i nomi del
-   layout prodotti da `prepare-run`.
+4. **Prove di accettazione:** lo script
+   `scripts/current/Invoke-AgentWorkspaceMcpServerProbe.ps1` resta lo strumento
+   di verifica dell'isolamento MCP; le fixture devono usare i nomi del layout
+   prodotti da `prepare-run`.
 5. Lavorare solo in `C:\repos\TesiAgenticAI`.
 
 ---
