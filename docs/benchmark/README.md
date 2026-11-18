@@ -29,6 +29,8 @@ Il commit sorgente designato per il freeze corrente è registrato in
 [`B24 — Designazione del commit di freeze finale`](benchmark-design/B24-designazione-commit-freeze-finale.md).
 Il protocollo corrente dei sei nuovi piloti è in
 [`B25 — Protocollo dei sei piloti sul freeze finale`](benchmark-design/B25-protocollo-sei-piloti-freeze-finale.md).
+I limiti ufficiali approvati dopo i piloti sono registrati in
+[`B32 — Limiti ufficiali dai sei piloti`](benchmark-design/B32-proposta-limiti-da-sei-piloti.md).
 La precedente calibrazione è conservata come evidenza storica in
 [`B19 — Calibrazione storica dei limiti`](benchmark-design/B19-calibrazione-limiti-ufficiali.md);
 la neutralità delle istruzioni e la toolchain precedente sono documentate in

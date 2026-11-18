@@ -1,11 +1,11 @@
-# B32 — Proposta dei limiti dai sei piloti del freeze finale
+# B32 — Limiti ufficiali dai sei piloti del freeze finale
 
 ## Stato e obiettivo
 
 - **Data:** 18 novembre 2026.
 - **Fase:** calibrazione dopo i sei piloti B25.
-- **Stato:** valori calcolati, **in attesa dell'approvazione esplicita**;
-  non sono ancora limiti ufficiali congelati.
+- **Stato:** limiti approvati esplicitamente dall'utente e congelati il
+  18 novembre 2026 per la configurazione sperimentale corrente.
 - **Chiamate LLM:** nessuna in questa iterazione.
 
 Obiettivo: applicare la formula predefinita in B25 ai sei piloti validi, senza
@@ -39,7 +39,7 @@ Entrambi i massimi provengono dallo slot 4, T6 gerarchia statica:
 - massimo `totalTokens`: `352308`; raddoppio `704616`; arrotondamento ai
   100000 superiori: **800000 token**.
 
-La proposta è quindi un limite comune di **240 secondi e 800000 token** per
+Il limite ufficiale congelato è quindi **240 secondi e 800000 token** per
 ogni run ufficiale. Il parametro adattivo `--max-delegations 10` rimane quello
 previsto dal protocollo; non deriva dal calcolo dei massimi.
 
@@ -67,7 +67,8 @@ calcolo.
 
 ## Passi successivi
 
-Sottoporre la proposta all'utente. Solo dopo approvazione esplicita i valori
-potranno essere registrati come limiti ufficiali congelati; prima delle 54 run
-restano piano deterministico, controlli pre-avvio e autorizzazione esplicita.
-Questo documento non autorizza run o chiamate LLM.
+L'utente ha approvato esplicitamente la proposta di 240 secondi e 800000 token.
+Prima delle 54 run restano piano deterministico, controlli pre-avvio e
+autorizzazione esplicita. L'approvazione dei limiti non autorizza run o chiamate
+LLM. Un cambiamento degli elementi congelati richiede la valutazione d'impatto
+prevista da B22.
