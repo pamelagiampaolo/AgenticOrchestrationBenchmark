@@ -1,10 +1,10 @@
-# B31 — Preparazione del sesto pilota T6 adattivo
+# B31 — Sesto pilota T6 adattivo
 
 ## Obiettivo e stato
 
 - **Data:** 18 novembre 2026.
 - **Fase:** preparazione dello slot 6 del protocollo B25.
-- **Stato:** area preparata; pilota non avviato; nessuna chiamata LLM.
+- **Stato:** pilota eseguito e valutato dopo autorizzazione esplicita.
 
 Preparare un'area T6 nuova per la gerarchia adattiva, separata dai piloti già
 eseguiti. Componenti: preparatore congelato, commit sorgente, area agente e
@@ -33,7 +33,7 @@ zero differenze o file aggiuntivi; sessione e `agent-tests` vuoti. SHA-256:
 
 Questa verifica riguarda l'area preparata e non dimostra l'isolamento completo.
 
-## Comando previsto, non eseguito
+## Comando predisposto ed eseguito
 
 ```powershell
 & 'C:\AgenticAIHarness\aee8d1162bb496895990a00095cc14c2651ff752\AgenticExperimentRunner\AgenticExperimentRunner.exe' run-adaptive-hierarchy `
@@ -47,7 +47,41 @@ Questa verifica riguarda l'area preparata e non dimostra l'isolamento completo.
   --max-delegations 10 --run-kind pilot --repetition 1 --order-seed d9dc66a --order-position 6
 ```
 
-Prima dell'avvio verificare gli input congelati e l'area secondo B25 e ottenere
-l'autorizzazione esplicita alle chiamate LLM. Dopo la run verificare record,
-metriche, integrità e residui ed eseguire la valutazione indipendente. Nessuna
-run viene autorizzata da questo documento.
+Il comando è stato eseguito dopo l'autorizzazione esplicita dell'utente e i
+controlli pre-run. Nessun'altra run viene autorizzata da questo documento.
+
+## Controlli pre-run ed esito
+
+Prima dell'avvio: area 15/15, harness 16/16, toolchain 1148/1148 e baseline
+19/19 conformi ai manifest; CLI, evaluator, manifest pubblici e riservati e
+schema conformi alle identità congelate. Le verifiche degli identificatori dei
+test nei manifest pubblico e riservato sono terminate con exit code 0.
+
+Il pilota è terminato con exit code 0 e stato `completed`.
+
+- `agentTaskDurationMs`: 30175; `totalTokens`: 46049, misurazione completa.
+- Input non in cache: 8; cache read: 26880; cache creation: 13701; output:
+  5460. Uso dello stream coerente con quello autorevole; quattro messaggi LLM.
+- Deleghe richieste, avviate e completate: 0/0/0. La scelta di non delegare è
+  ammessa dalla condizione adattiva.
+- Violazioni di configurazione, differenze d'integrità protetta, errori
+  strumento e righe malformate: zero.
+- Cinque file runtime confrontati con gli hash nel record: 5/5 conformi. Stderr
+  e sessione vuoti; nessun processo ancora attivo con percorso dell'harness o
+  della CLI congelati. Audit: un typecheck e un test pubblico, entrambi
+  completati con exit code 0.
+
+L'evaluator al commit congelato ha restituito `passed`, exit code 0: build
+superata, test pubblici 26/26 e riservati 4/4; nessun test fallito, saltato,
+mancante o inatteso. Input originale, copia archiviata e manifest delle suite
+integri; diagnostica vuota. Durata della valutazione: 2792 ms.
+
+- `run-record.json`, SHA-256:
+  `6d7e2a38c285186e508907c7938fe009382a89fd31d0b4014276dca2b384b74e`;
+- `evaluation-summary.json`, SHA-256:
+  `e15e76f9d97d1f3558afc20b5e2e0d9941b9958bb4d1f4c05ee94664087c2c29`.
+
+Il pilota è valido per la calibrazione B25 sulla base delle verifiche riportate.
+Sono disponibili sei piloti validi; calcolo e approvazione dei limiti ufficiali
+restano un passo separato. Le evidenze riservate restano nell'area fidata
+dell'evaluator.
