@@ -27,6 +27,8 @@ L'algoritmo che materializzerà i 54 slot dopo il freeze è definito in
 [`B23 — Ordine riproducibile delle run ufficiali`](benchmark-design/B23-ordine-run-ufficiali.md).
 Il commit sorgente designato per il freeze corrente è registrato in
 [`B24 — Designazione del commit di freeze finale`](benchmark-design/B24-designazione-commit-freeze-finale.md).
+Il protocollo corrente dei sei nuovi piloti è in
+[`B25 — Protocollo dei sei piloti sul freeze finale`](benchmark-design/B25-protocollo-sei-piloti-freeze-finale.md).
 La precedente calibrazione è conservata come evidenza storica in
 [`B19 — Calibrazione storica dei limiti`](benchmark-design/B19-calibrazione-limiti-ufficiali.md);
 la neutralità delle istruzioni e la toolchain precedente sono documentate in
