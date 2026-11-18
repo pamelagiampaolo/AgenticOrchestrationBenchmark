@@ -66,5 +66,9 @@ elementi congelati che possono influire su comportamento, durata, token o
 valutazione, B22 richiede una valutazione esplicita dell'impatto e la
 ripetizione dei piloti. Nessuna conclusione automatica viene tratta qui.
 
+**Decisione successiva:** l'utente ha scelto di rinviare la correzione e
+proseguire accettando la limitazione; vedere B35. Il risultato negativo di
+questa prova resta invariato e l'inaccessibilità non è dimostrata.
+
 Questa prova non modifica baseline, harness o toolchain congelati e non
 autorizza run o chiamate LLM.
