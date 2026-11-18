@@ -1,6 +1,13 @@
 ﻿using AgenticExperimentRunner.Coordination;
+using AgenticExperimentRunner.ExperimentPlanning;
 using AgenticExperimentRunner.RunPreparation;
 using AgenticExperimentRunner.SessionExecution;
+
+if (args.Length > 0 && args[0] == GenerateExperimentPlanCommand.Name)
+{
+    Environment.ExitCode = await GenerateExperimentPlanCommand.ExecuteAsync(args[1..], Console.Out, Console.Error);
+    return;
+}
 
 if (args.Length > 0 && args[0] == CoordinationServerCommand.Name)
 {

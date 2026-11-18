@@ -23,6 +23,8 @@ proseguire con i documenti B nella stessa directory. La politica corrente per
 completare la readiness, congelare la configurazione e ricalibrare i limiti è
 descritta in
 [`B22 — Politica di freeze finale e ricalibrazione`](benchmark-design/B22-politica-freeze-e-ricalibrazione.md).
+L'algoritmo che materializzerà i 54 slot dopo il freeze è definito in
+[`B23 — Ordine riproducibile delle run ufficiali`](benchmark-design/B23-ordine-run-ufficiali.md).
 La precedente calibrazione è conservata come evidenza storica in
 [`B19 — Calibrazione storica dei limiti`](benchmark-design/B19-calibrazione-limiti-ufficiali.md);
 la neutralità delle istruzioni e la toolchain precedente sono documentate in

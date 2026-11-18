@@ -55,6 +55,7 @@ di versione.
 I sottocomandi pubblici dell'orchestratore sono:
 
 - `prepare-run`;
+- `generate-experiment-plan`;
 - `run-single-agent`;
 - `run-static-hierarchy`;
 - `run-adaptive-hierarchy`.
