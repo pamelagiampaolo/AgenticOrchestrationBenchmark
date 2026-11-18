@@ -93,6 +93,21 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
         Assert.Equal(60_000, coordinationServer.GetProperty("timeout").GetInt64());
         using JsonDocument workerConfig = JsonDocument.Parse(File.ReadAllText(Path.Combine(prepared.ResultsDirectory, "worker-mcp-config.json")));
         Assert.Equal(["benchmark_workspace"], workerConfig.RootElement.GetProperty("mcpServers").EnumerateObject().Select(server => server.Name));
+        Assert.Equal(
+            RunInputs.Sha256(File.ReadAllBytes(Path.Combine(prepared.ResultsDirectory, "coordinator-system-prompt-append.md"))),
+            record.Hashes.CoordinatorSystemPromptAppend);
+        Assert.Equal(
+            RunInputs.Sha256(File.ReadAllBytes(Path.Combine(prepared.ResultsDirectory, "worker-system-prompt-append.md"))),
+            record.Hashes.WorkerSystemPromptAppend);
+        Assert.Equal(
+            RunInputs.Sha256(File.ReadAllBytes(Path.Combine(prepared.ResultsDirectory, "cli-settings.json"))),
+            record.Hashes.CliSettings);
+        Assert.Equal(
+            RunInputs.Sha256(File.ReadAllBytes(Path.Combine(prepared.ResultsDirectory, "coordinator-mcp-config.json"))),
+            record.Hashes.CoordinatorMcpConfiguration);
+        Assert.Equal(
+            RunInputs.Sha256(File.ReadAllBytes(Path.Combine(prepared.ResultsDirectory, "worker-mcp-config.json"))),
+            record.Hashes.WorkerMcpConfiguration);
         Assert.True(File.Exists(Path.Combine(prepared.ResultsDirectory, "agents", "coordinator", "stream.jsonl")));
         Assert.True(File.Exists(Path.Combine(prepared.ResultsDirectory, "agents", "worker-01", "stream.jsonl")));
         Assert.Equal(RunInputs.Sha256(CoordinationMcpServer.DescribeTools()), record.Hashes.DelegateToolDefinition);

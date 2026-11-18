@@ -79,6 +79,15 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
         Assert.StartsWith("# Ambiente di lavoro", appended);
         Assert.Contains("# Modalità di esecuzione: single-agent", appended);
         Assert.DoesNotContain("\r", appended);
+        Assert.Equal(
+            RunInputs.Sha256(File.ReadAllBytes(Path.Combine(prepared.ResultsDirectory, "system-prompt-append.md"))),
+            record.Hashes.SystemPromptAppend);
+        Assert.Equal(
+            RunInputs.Sha256(File.ReadAllBytes(Path.Combine(prepared.ResultsDirectory, "cli-settings.json"))),
+            record.Hashes.CliSettings);
+        Assert.Equal(
+            RunInputs.Sha256(File.ReadAllBytes(Path.Combine(prepared.ResultsDirectory, "mcp-config.json"))),
+            record.Hashes.McpConfiguration);
 
         using JsonDocument json = JsonDocument.Parse(await File.ReadAllTextAsync(recordPath, Token));
         Assert.Equal(2, json.RootElement.GetProperty("schemaVersion").GetInt32());
