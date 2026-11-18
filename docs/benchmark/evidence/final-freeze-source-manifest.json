@@ -1,0 +1,561 @@
+{
+    "schemaVersion":  1,
+    "sourceCommit":  "aee8d1162bb496895990a00095cc14c2651ff752",
+    "sourceTree":  "7543e5dddc103dfbc7250566c26b765c370fbda0",
+    "aggregateAlgorithm":  "sha256(category NUL path NUL length NUL sha256 LF), paths ordered ordinally",
+    "aggregateSha256":  "82dc5305d6a268f12342b0e736778b78dd4f0f3d4e59a7944d95128fe9fc1836",
+    "fileCount":  88,
+    "scopes":  {
+                   "benchmark":  [
+                                     "benchmark/BenchmarkTarget"
+                                 ],
+                   "publicSpecifications":  [
+                                                "docs/benchmark/task-specifications"
+                                            ],
+                   "instructions":  [
+                                        "src/AgenticExperimentRunner/Instructions"
+                                    ],
+                   "trustedHarness":  [
+                                          "AgenticOrchestrationBenchmark.slnx",
+                                          "global.json",
+                                          "src/AgenticExperimentRunner",
+                                          "src/AgentWorkspaceMcpServer"
+                                      ]
+               },
+    "exclusions":  [
+                       "compiled executables and generated runtime configurations (frozen separately)",
+                       "toolchain (frozen separately)",
+                       "trusted evaluator and reserved tests (frozen separately and never exposed to agents)",
+                       "build outputs, node_modules, test results and repository history"
+                   ],
+    "files":  [
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "AgenticOrchestrationBenchmark.slnx",
+                      "length":  357,
+                      "sha256":  "9d92268d0e0db111683970c50a621a62ce1fd1c4134fb79854af2124285237ca"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/package-lock.json",
+                      "length":  48373,
+                      "sha256":  "586b704e70cb3fcf9e99a889d627fae98c6880ce042247cd4d37471594b5e739"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/package.json",
+                      "length":  965,
+                      "sha256":  "b1e216f0c2331114401929075f5c2798d7f540bec43e8fa95967148f660443da"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/src/index.ts",
+                      "length":  7950,
+                      "sha256":  "e1d3f96d470f78153802f1a4b18f6d9065d0f7a214e5785064b4b1b15c5fc5ca"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tests/public/inventory-management.test.ts",
+                      "length":  2433,
+                      "sha256":  "86da69407beec8a68c8c67215c6c6f1803f0e88c13256ceb3c572d9356e07b2a"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tests/public/order-management.test.ts",
+                      "length":  6600,
+                      "sha256":  "15dba02dbba51602f83ca533418edbdb76d7390268dbc256b046f64f6b8f3e3d"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tests/public/t1/find-products-below-stock.test.ts",
+                      "length":  2092,
+                      "sha256":  "c352a5d78e17377da3b496a5bff0388e7d3ceaab6ea4970729987c3eea1f9643"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tests/public/t2/receive-stock.test.ts",
+                      "length":  2956,
+                      "sha256":  "2eb5cd9a6751ea53526ee03a36459873dbe08be1dca113e777e8180b02449f72"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tests/public/t3/confirm-duplicate-order-lines.test.ts",
+                      "length":  3805,
+                      "sha256":  "3395d3303c66aed161b7c88403f37f40f5e99b38917b33a2aa4bc7dca418b790"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tests/public/t4/product-suspension.test.ts",
+                      "length":  5086,
+                      "sha256":  "321ff4e5f374be937b100e8095a396498036cbfd37526ba538b3c6707989bad4"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tests/public/t5/repository-separation.test.ts",
+                      "length":  5862,
+                      "sha256":  "9c15651fe4b468b436d1e1dbcdea032ec17494aae16d92b57f2503ac9345ad87"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tests/public/t6/partial-fulfillment.test.ts",
+                      "length":  5622,
+                      "sha256":  "bec499ca0acdd44cd90cc77dd9eba0b85aac2b6657489bc38728fdef9648b94e"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/tsconfig.json",
+                      "length":  1148,
+                      "sha256":  "59b4d7d09044c646efa6d5bd5b2fd197418c5faea4e92a97c9333d795cfe0e32"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/vitest.public.config.ts",
+                      "length":  277,
+                      "sha256":  "062946d348a0ff00c4643754d6e8cf0ca8c4cabbbe0c3a427d0799d9128b1816"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/vitest.public.t1.config.ts",
+                      "length":  225,
+                      "sha256":  "2294b92206d8b4e1c756b1f54fa4eda520c6318daeb7d76ba30c6c8655ffe56a"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/vitest.public.t2.config.ts",
+                      "length":  213,
+                      "sha256":  "ca8de60191fe52ff982edf32ae9a7ad7783b10d4d24540b027853de04715d8df"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/vitest.public.t3.config.ts",
+                      "length":  229,
+                      "sha256":  "fb32274c2bc1c39c1b32112169726b3d0b35a27d0efdc3a2e70bbc1c54588133"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/vitest.public.t4.config.ts",
+                      "length":  218,
+                      "sha256":  "ec731b20357c9fbb29a3fb290b4d98aefeef046c4083fe24e9c415d560028dc3"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/vitest.public.t5.config.ts",
+                      "length":  332,
+                      "sha256":  "7a5ebd1511d4af5a8e1de80ab3d9447a6574f029eb89348f8af6d9e6d1857627"
+                  },
+                  {
+                      "category":  "benchmark",
+                      "path":  "benchmark/BenchmarkTarget/vitest.public.t6.config.ts",
+                      "length":  1602,
+                      "sha256":  "1d65b7de3a14db9c75db0ffbabeb484eb515f4f2a59637eee890cf2aacd7ee0d"
+                  },
+                  {
+                      "category":  "publicSpecifications",
+                      "path":  "docs/benchmark/task-specifications/T1-specifica-pubblica.md",
+                      "length":  1869,
+                      "sha256":  "b25e79915aaaeb24d36dd38c068170aaf73ca2fae1839de33e6a1a1cb6801736"
+                  },
+                  {
+                      "category":  "publicSpecifications",
+                      "path":  "docs/benchmark/task-specifications/T2-specifica-pubblica.md",
+                      "length":  2102,
+                      "sha256":  "9f7fa7dd3dd674bf6e72b19a56e8333e478b34e71bf5c5bde89eee81931c210e"
+                  },
+                  {
+                      "category":  "publicSpecifications",
+                      "path":  "docs/benchmark/task-specifications/T3-specifica-pubblica.md",
+                      "length":  2283,
+                      "sha256":  "21753e9ee18206623c870bebc81362b71dd0c17eab6a5501c3329d2958e8af12"
+                  },
+                  {
+                      "category":  "publicSpecifications",
+                      "path":  "docs/benchmark/task-specifications/T4-specifica-pubblica.md",
+                      "length":  2797,
+                      "sha256":  "dfbe5fd2673d45719c87103494e20159915c7df8a0125a593fb406d37660f194"
+                  },
+                  {
+                      "category":  "publicSpecifications",
+                      "path":  "docs/benchmark/task-specifications/T5-specifica-pubblica.md",
+                      "length":  3398,
+                      "sha256":  "1f1a52e20b9814a4da5f0b1030012cb79cb4c49f7fc86b67e83b116bdfb3a878"
+                  },
+                  {
+                      "category":  "publicSpecifications",
+                      "path":  "docs/benchmark/task-specifications/T6-specifica-pubblica.md",
+                      "length":  3869,
+                      "sha256":  "fcd1a6b21c66439657b4c97c3e21ac564ec5dd3c3e80ef9e303194c9129cb42c"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "global.json",
+                      "length":  63,
+                      "sha256":  "9384d5f057ed52752aa3dc5407e75b2265495154fb3a6597afe70b79f8776f93"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/AgentWorkspaceMcpServer.csproj",
+                      "length":  240,
+                      "sha256":  "acd95014af5198a4b92c655ddd680cef3448692ea96fd8613b512fa321816cd9"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/AssemblyInfo.cs",
+                      "length":  104,
+                      "sha256":  "c891906ffa8d14ab600e459444cf895efa2f51cea850042580bcd6353aa8f97d"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/ControlledPublicTestRunner.cs",
+                      "length":  9714,
+                      "sha256":  "b78bc04b6d188c25636570aaab6bb0b3105fd8514ca4d4ce99143cc9aa80f12b"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/EphemeralAgentTestRunner.cs",
+                      "length":  2639,
+                      "sha256":  "1fa24c33e17c9e8c96b9f6c5ae9ec1893c7fad44128e2363003a336884362fc4"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/EphemeralBuildRunner.cs",
+                      "length":  1108,
+                      "sha256":  "68584f2a06214d12f04c3dccb6732588dcfd6aa5f49e99976d686db99863c47d"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/EphemeralPublicTestRunner.cs",
+                      "length":  14274,
+                      "sha256":  "d3547f217b7befc5e60b193a38a1c5035fd0f52676c8ddb063eba196059e7fa1"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/EphemeralTypecheckRunner.cs",
+                      "length":  10843,
+                      "sha256":  "704845c6475b2e4c82e24ef385cdfca1c1d9650499c09739f0543f7a62659975"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/Program.cs",
+                      "length":  20836,
+                      "sha256":  "7b51d044adf6a47cd7a3b2a2ad788a2cd42fcfd204f1d2ef6b2e798dcffa29b1"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/PublicSuiteRunner.cs",
+                      "length":  9021,
+                      "sha256":  "9f0a8854317c969d26c8f32c3de10d058a5eb1d5ca6cf4dac4e57e79aeed1d43"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/RootedFileAccess.cs",
+                      "length":  13899,
+                      "sha256":  "df65164f30d41646cbd5f055fccc2c60894e8bd28b592329689161a6f6f2db68"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgentWorkspaceMcpServer/StartupExceptionPolicy.cs",
+                      "length":  320,
+                      "sha256":  "3780890fbb162d866b8151ea414b51c99264bc24ee5285a16632852b046e17a1"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/AgenticExperimentRunner.csproj",
+                      "length":  491,
+                      "sha256":  "6dc410de405259a56fa6e052fa8f99f3f51e857f19647022bd52a58221f5354f"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/AssemblyInfo.cs",
+                      "length":  104,
+                      "sha256":  "c891906ffa8d14ab600e459444cf895efa2f51cea850042580bcd6353aa8f97d"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/ClaudeCliClient.cs",
+                      "length":  8042,
+                      "sha256":  "2e98decfd6c24070e860c03596ee2953c905f98533eaf3d7b847a77f94e42a50"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/ClaudeCliResult.cs",
+                      "length":  2724,
+                      "sha256":  "144d0310b9c0cb9b9ba15d1921405eaf46902e16857b3ae85903284634b276d8"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/CommandLineOptions.cs",
+                      "length":  5440,
+                      "sha256":  "79b7fb06859b0f31321dc1d56780e4fb69d43639977065c1403df038db7d0ee3"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Adaptive/RunAdaptiveHierarchyCommand.cs",
+                      "length":  6790,
+                      "sha256":  "2021afc0a6b2de01a399639039478e776ba49025483b296f4227056072266175"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Adaptive/WorkerDelegationHandler.cs",
+                      "length":  7985,
+                      "sha256":  "8acbcd4a173b175e1e9559804d58d18235082be320d4bb7fb1720b473baccd94"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Mcp/CoordinationMcpServer.cs",
+                      "length":  8764,
+                      "sha256":  "48516785faaaf1f06b809d4c91c8891a382d0c082dbb1dfd7425c30f60218519"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Runtime/HierarchicalRunRecord.cs",
+                      "length":  13072,
+                      "sha256":  "e117a7a565e69eb13c33febeee3dd051dc5335b4ac223965c23efab2e2a172d0"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Runtime/HierarchicalRunRunner.cs",
+                      "length":  25302,
+                      "sha256":  "aa3a76a6ac221e96086666fa05a34b1d6eb56e449e77739c0677de5565ea8d90"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Static/RunStaticHierarchyCommand.cs",
+                      "length":  6336,
+                      "sha256":  "8b6b97354e8819a161a8278b08a00fe62663bff11f761a8ccac1a0c041256a37"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Static/StaticDelegationHandler.cs",
+                      "length":  4055,
+                      "sha256":  "da6a65c69bdd5cf4767eb5436015fd0e540b087f279f67260eca24da97e4fdcf"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Static/StaticHierarchyPlan.cs",
+                      "length":  4329,
+                      "sha256":  "12be7312c7680f6c62edd4cf04afde3193c3c19f53c92f033ea774d05e409384"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Transport/CoordinationHost.cs",
+                      "length":  5829,
+                      "sha256":  "f3fef978222c105d856c818c988bf6d7399095f7a4665bba756cfc9197d2b811"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Transport/CoordinationRelay.cs",
+                      "length":  2705,
+                      "sha256":  "ec19796c341194df1836e65fb90e86215ac60deb6feb604ad4cf08818d0f8d3e"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Transport/CoordinationServerCommand.cs",
+                      "length":  4971,
+                      "sha256":  "1ecab9a432341e520f4b163f25640b0ae3b88d615b91d3bc90423424714990c9"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Transport/DelegationContracts.cs",
+                      "length":  4999,
+                      "sha256":  "7b13d4b4b780980148f348e1a97c715c17c63c56691bd4541b19f8640a8abafe"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Coordination/Transport/DelegationPipeClient.cs",
+                      "length":  6789,
+                      "sha256":  "13ba8ca9c18db9795cb9b573f4eaad781766620a61223619ea499c40d088ff88"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/ExperimentPlanning/ExperimentPlan.cs",
+                      "length":  8626,
+                      "sha256":  "4d0acaa30366b7c627248281fb345052426c7c7760b42e4d2471e713aafa7917"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/ExperimentPlanning/GenerateExperimentPlanCommand.cs",
+                      "length":  1952,
+                      "sha256":  "e817c1e82c460b07e8a2b0efda1530978a82a14fbab1af0466a13ac9ef4b06ff"
+                  },
+                  {
+                      "category":  "instructions",
+                      "path":  "src/AgenticExperimentRunner/Instructions/common-environment.md",
+                      "length":  1438,
+                      "sha256":  "91d28494ce8bff89139a975f95897c42e447bee2f925117ae6eb6b5cccf2ddd3"
+                  },
+                  {
+                      "category":  "instructions",
+                      "path":  "src/AgenticExperimentRunner/Instructions/coordinator.md",
+                      "length":  1006,
+                      "sha256":  "ae2ff6c8730eeb0e25d547d0ad96637e056fc5502eade2bbbf66908aea413f79"
+                  },
+                  {
+                      "category":  "instructions",
+                      "path":  "src/AgenticExperimentRunner/Instructions/single-agent.md",
+                      "length":  239,
+                      "sha256":  "b2ea314300b579c10d280c3f25e1fc1676b538127d2094c7ef9feaee9697a7d0"
+                  },
+                  {
+                      "category":  "instructions",
+                      "path":  "src/AgenticExperimentRunner/Instructions/static-analyst.md",
+                      "length":  257,
+                      "sha256":  "71ddc9a65162f00073f63864f134c053eefd2537d60a906af3af82867a73af8d"
+                  },
+                  {
+                      "category":  "instructions",
+                      "path":  "src/AgenticExperimentRunner/Instructions/static-coordinator.md",
+                      "length":  600,
+                      "sha256":  "6cb60e00ff7c95da3f408e10937f2484e616280acc5d6d7605358fc333425cf1"
+                  },
+                  {
+                      "category":  "instructions",
+                      "path":  "src/AgenticExperimentRunner/Instructions/static-implementer.md",
+                      "length":  255,
+                      "sha256":  "ac82d463091f5e5dcb45f18c82e86e93f1479e7562ba442df578e0f189edbdca"
+                  },
+                  {
+                      "category":  "instructions",
+                      "path":  "src/AgenticExperimentRunner/Instructions/static-verifier.md",
+                      "length":  265,
+                      "sha256":  "816f5db0256cabad8ea1509bed3b46c06bad6f02b95be23eb27e6d64ce2a0ac6"
+                  },
+                  {
+                      "category":  "instructions",
+                      "path":  "src/AgenticExperimentRunner/Instructions/worker.md",
+                      "length":  426,
+                      "sha256":  "a657cdfabb0ac967ae3e14ddb72596ce1a7ab3aa7f0d45037c2bbbded9e10775"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/Program.cs",
+                      "length":  9654,
+                      "sha256":  "f632a74bb033870bc02a8206bf28b1f729a21edd080b9e4d73d0b1826961e99e"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/Commands/PrepareRunCommand.cs",
+                      "length":  10349,
+                      "sha256":  "cdfd1c90826ff9676988a0ef28a2aa0acb17c992400bb596961485467d20aa6f"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/Git/GitCommandRunner.cs",
+                      "length":  6703,
+                      "sha256":  "caba5c231e428b04a0fbaa5ec8d3bc0fcbb1d91e4f0dde14a1db81d002583801"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/Integrity/RunIntegrity.cs",
+                      "length":  3180,
+                      "sha256":  "639191b2d3ddbc40b61c54258d244c44309ac464ca695b98de0f1b7ef980248c"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/Manifests/RunManifest.cs",
+                      "length":  7811,
+                      "sha256":  "1f52b1f57ed60797daeeae80e235dbc1b4e75b7be6e6a69681a9529781d7d7ef"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/Policies/SessionAncestorPolicy.cs",
+                      "length":  2712,
+                      "sha256":  "4927ee6e987b024cc0d70e15e2426e3218fd5bcfcd41307f34877ebaccf056b9"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/Policies/TaskMaterialSelection.cs",
+                      "length":  5186,
+                      "sha256":  "fb4c061de9e04759dfe7fd7cd43e07713686895a9168a803fba8a759d4aa5082"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/Policies/WorkspacePathPolicy.cs",
+                      "length":  4054,
+                      "sha256":  "0370011f221318623b82be18c95aff690e589864e9f07b7dfc7f7a4ebc1cacc4"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/RunAreaPreparer.cs",
+                      "length":  23491,
+                      "sha256":  "a4de9ea0527f36c2c0fe36b2c0d3f5dbf4e4361af9071dbf619f7f7893f68486"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/RunPreparation/RunPreparationException.cs",
+                      "length":  970,
+                      "sha256":  "1654f23dd1e42f83c2edd1c02c866eefdef9bb5bf428a651099b1e36cf80f103"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Inputs/RunInputs.cs",
+                      "length":  6181,
+                      "sha256":  "1d3aad221f5c309a9cdf4cc1a570d3dae9af4a82b5e2098ae92fbcf0d52fde0a"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Metrics/SessionRecord.cs",
+                      "length":  8256,
+                      "sha256":  "c95eff0ba6ebc8583218bf75e54fe028ebbc5943a481d4e3f54437ffa8e907d5"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Metrics/StreamUsageTracker.cs",
+                      "length":  16905,
+                      "sha256":  "cdceb18da2e3d447b15e803de7d19569106ab5e28e5b79fcc5d5ebe535e5eaf7"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Process/AgentProcess.cs",
+                      "length":  13320,
+                      "sha256":  "b0bb3a9e22f5715470267f5304932f0dc7464ff5cba570a18f673c3751027004"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Process/ClaudeLaunchProfile.cs",
+                      "length":  13905,
+                      "sha256":  "959395cff45ba33b5cc13b0f148799dc531d520a12e1c4d4e345e76002928ab8"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Process/RunLimitController.cs",
+                      "length":  6357,
+                      "sha256":  "5fd488ffe7c0b2a92ccdb358d7983ba517e6b0156fff9f4fa009a4ea26e7fb51"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Protocol/ExperimentProtocol.cs",
+                      "length":  967,
+                      "sha256":  "5850e19e1e03fbc737f1a92747531805b4bae5ffb8bb8d1543697d76fe5b80b5"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Protocol/ExperimentRunMetadata.cs",
+                      "length":  1801,
+                      "sha256":  "6c09e7b2180445861486bc0a6eeb4ab8cdc4ee61b6a6198e77a7941c2e52b8f8"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/SingleAgent/RunSingleAgentCommand.cs",
+                      "length":  5541,
+                      "sha256":  "5a3adbd2ccd04d0edbdf533ff1d6457f1cd229fc892a5865bba95c0cfb87e8cc"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/SingleAgent/SingleAgentSessionRunner.cs",
+                      "length":  14807,
+                      "sha256":  "1bd4e72b91afcd74e15b08e0d32a59d6c9fc1cf0494fe1fac8d41dfaec73d0c5"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Toolchain/McpDevelopmentToolchain.cs",
+                      "length":  517,
+                      "sha256":  "885f93237ac4edbfea303374d27d44dbf9ce91c92289fb9742e00f74ec22c697"
+                  },
+                  {
+                      "category":  "trustedHarness",
+                      "path":  "src/AgenticExperimentRunner/SessionExecution/Toolchain/ToolchainIdentity.cs",
+                      "length":  6194,
+                      "sha256":  "aab28e1bf8f38abef48710056ecac088f23735deae715ab62196a4aa5b569e2d"
+                  }
+              ]
+}
