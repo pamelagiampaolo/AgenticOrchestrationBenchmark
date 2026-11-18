@@ -32,6 +32,7 @@ $trustedHookSentinelPath = Join-Path $evidenceRoot 'trusted-hook-fired.txt'
 $hookControlSentinelPath = Join-Path $evidenceRoot 'hook-positive-control-fired.txt'
 $hookControlSettingsPath = Join-Path $configurationRoot 'hook-positive-control-settings.json'
 $hookControlOutputPath = Join-Path $evidenceRoot 'hook-positive-control-stream.jsonl'
+$frozenModel = 'claude-sonnet-5-5'
 $projectClaudeRoot = Join-Path $agentRoot '.claude'
 $projectSettingsPath = Join-Path $projectClaudeRoot 'settings.json'
 $projectHookPath = Join-Path $projectClaudeRoot 'project-hook.ps1'
@@ -177,6 +178,7 @@ function Invoke-ClaudeVerification {
 
     $arguments = @(
         '-p',
+        '--model', $frozenModel,
         '--output-format', 'stream-json',
         '--verbose',
         '--include-hook-events',
@@ -330,6 +332,7 @@ function Invoke-HookPositiveControl {
     $claudePath = (Get-Command claude -ErrorAction Stop).Source
     $controlArguments = @(
         '-p',
+        '--model', $frozenModel,
         '--output-format', 'stream-json',
         '--verbose',
         '--include-hook-events',
