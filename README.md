@@ -47,9 +47,10 @@ di versione.
 `src/AgenticExperimentRunner/` è suddiviso per responsabilità:
 
 - `RunPreparation/`: prepara da un commit una copia pulita della baseline;
-- `SessionExecution/`: esegue e misura la condizione single-agent;
-- `Coordination/`: implementa coordinamento, deleghe e gerarchie statica e
-  adattiva;
+- `SessionExecution/`: esegue e misura le sessioni, separando input, processo,
+  protocollo sperimentale, metriche, toolchain e flusso single-agent;
+- `Coordination/`: implementa il coordinamento separando trasporto, server MCP,
+  runtime gerarchico e strategie statica e adattiva;
 - `Instructions/`: contiene le istruzioni versionate assegnate agli agenti.
 
 I sottocomandi pubblici dell'orchestratore sono:
