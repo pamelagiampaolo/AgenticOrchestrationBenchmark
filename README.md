@@ -46,7 +46,8 @@ di versione.
 
 `src/AgenticExperimentRunner/` è suddiviso per responsabilità:
 
-- `RunPreparation/`: prepara da un commit una copia pulita della baseline;
+- `RunPreparation/`: prepara da un commit una copia pulita della baseline,
+  separando accesso Git, policy, manifest, verifiche di integrità e comando;
 - `SessionExecution/`: esegue e misura le sessioni, separando input, processo,
   protocollo sperimentale, metriche, toolchain e flusso single-agent;
 - `Coordination/`: implementa il coordinamento separando trasporto, server MCP,
