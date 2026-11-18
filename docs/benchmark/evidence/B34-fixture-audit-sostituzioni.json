@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "kind": "simulated-fixture-not-official-runs",
+  "seed": "aee8d1162bb496895990a00095cc14c2651ff752",
+  "cases": [
+    {
+      "name": "documented-infrastructure-replacement",
+      "slot": "official-t5-hierarchical-adaptive-r3",
+      "position": 1,
+      "task": "T5",
+      "architecture": "hierarchical-adaptive",
+      "repetition": 3,
+      "attempts": [
+        { "runId": "fixture-infra-original", "attempt": 1, "previousRunId": null, "classification": "INFRA_PROVIDER", "evidence": "fixture-provider-log", "decision": "invalid", "metricsAvailable": false },
+        { "runId": "fixture-infra-replacement", "attempt": 2, "previousRunId": "fixture-infra-original", "authorizationEvidence": "fixture-user-approval", "classification": "completed", "evidence": "fixture-result", "decision": "valid", "metricsAvailable": true }
+      ],
+      "slotOutcome": "valid"
+    },
+    {
+      "name": "unknown-cause",
+      "slot": "fixture-unknown",
+      "position": 2,
+      "task": "T5",
+      "architecture": "hierarchical-static",
+      "repetition": 3,
+      "attempts": [
+        { "runId": "fixture-unknown-original", "attempt": 1, "previousRunId": null, "classification": "non-classificabile", "evidence": "fixture-ambiguous-log", "decision": "review", "metricsAvailable": false }
+      ],
+      "slotOutcome": "review"
+    },
+    {
+      "name": "functional-failure",
+      "slot": "fixture-functional",
+      "position": 3,
+      "task": "T5",
+      "architecture": "single-agent",
+      "repetition": 3,
+      "attempts": [
+        { "runId": "fixture-functional-original", "attempt": 1, "previousRunId": null, "classification": "test-failures", "evidence": "fixture-evaluation", "decision": "valid", "metricsAvailable": true }
+      ],
+      "slotOutcome": "valid"
+    },
+    {
+      "name": "replacement-exhausted",
+      "slot": "fixture-exhausted",
+      "position": 4,
+      "task": "T2",
+      "architecture": "single-agent",
+      "repetition": 1,
+      "attempts": [
+        { "runId": "fixture-exhausted-original", "attempt": 1, "previousRunId": null, "classification": "INFRA_PROVIDER", "evidence": "fixture-provider-log-1", "decision": "invalid", "metricsAvailable": false },
+        { "runId": "fixture-exhausted-replacement", "attempt": 2, "previousRunId": "fixture-exhausted-original", "authorizationEvidence": "fixture-user-approval", "classification": "INFRA_PROVIDER", "evidence": "fixture-provider-log-2", "decision": "invalid", "metricsAvailable": false }
+      ],
+      "slotOutcome": "incomplete"
+    }
+  ]
+}
