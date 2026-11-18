@@ -1,14 +1,18 @@
 [CmdletBinding()]
-param()
+param(
+    [string]$NodePath,
+    [string]$VitestPath,
+    [string]$TypeScriptPath
+)
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $serverProject = Join-Path $repositoryRoot 'src\AgentWorkspaceMcpServer\AgentWorkspaceMcpServer.csproj'
 $serverDll = Join-Path $repositoryRoot 'src\AgentWorkspaceMcpServer\bin\Debug\net10.0\AgentWorkspaceMcpServer.dll'
 $benchmarkRoot = Join-Path $repositoryRoot 'benchmark\BenchmarkTarget'
-$nodePath = (Get-Command node.exe -ErrorAction Stop).Source
-$vitestPath = Join-Path $benchmarkRoot 'node_modules\vitest\vitest.mjs'
-$typeScriptPath = Join-Path $benchmarkRoot 'node_modules\typescript\lib\tsc.js'
+$nodePath = if ($NodePath) { $NodePath } else { (Get-Command node.exe -ErrorAction Stop).Source }
+$vitestPath = if ($VitestPath) { $VitestPath } else { Join-Path $benchmarkRoot 'node_modules\vitest\vitest.mjs' }
+$typeScriptPath = if ($TypeScriptPath) { $TypeScriptPath } else { Join-Path $benchmarkRoot 'node_modules\typescript\lib\tsc.js' }
 $probeRoot = Join-Path $repositoryRoot ('TestResults\mcp-public-tests-' + [guid]::NewGuid().ToString('N'))
 $agentRoot = Join-Path $probeRoot 'agent-root'
 $workspace = Join-Path $agentRoot 'workspace'

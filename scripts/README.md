@@ -15,7 +15,9 @@ Contiene verifiche pertinenti al server MCP e alla toolchain attualmente usati:
   versionati del freeze e ne genera il manifest deterministico SHA-256;
 - `New-FrozenHarness.ps1`: pubblica due volte runner e server MCP dal commit
   congelato, ne verifica l'identità byte-per-byte e crea l'harness in sola
-  lettura con manifest SHA-256.
+  lettura con manifest SHA-256;
+- `New-FrozenNodeToolchain.ps1`: esegue due installazioni `npm ci` dal lockfile
+  congelato e crea la toolchain Node in sola lettura con manifest SHA-256.
 
 Il fatto che un singolo probe sia superato certifica soltanto le proprietà
 osservate da quella prova, non l'intero isolamento dell'harness.
