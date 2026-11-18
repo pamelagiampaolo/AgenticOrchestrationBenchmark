@@ -17,7 +17,10 @@ Contiene verifiche pertinenti al server MCP e alla toolchain attualmente usati:
   congelato, ne verifica l'identità byte-per-byte e crea l'harness in sola
   lettura con manifest SHA-256;
 - `New-FrozenNodeToolchain.ps1`: esegue due installazioni `npm ci` dal lockfile
-  congelato e crea la toolchain Node in sola lettura con manifest SHA-256.
+  congelato e crea la toolchain Node in sola lettura con manifest SHA-256;
+- `Test-OfficialAudit.cjs`: controlla in sola lettura coerenza strutturale e
+  hash delle evidenze di un registro delle run rispetto al piano ufficiale;
+  contratto e limiti sono documentati in P38.
 
 Il fatto che un singolo probe sia superato certifica soltanto le proprietà
 osservate da quella prova, non l'intero isolamento dell'harness.
