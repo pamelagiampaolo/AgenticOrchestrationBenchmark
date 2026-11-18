@@ -76,7 +76,7 @@ if (args.Length > 0 && args[0] == RunSingleAgentCommand.Name)
 }
 
 const string claudeCliPath = @"C:\Users\Utente\.local\bin\claude.exe";
-const string requestedModel = "claude-sonnet-5-5";
+const string requestedModel = ExperimentProtocol.RequiredModel;
 
 if (!TryPrepareResultsFile(args, out string percorsoRisultati, out string? erroreConfigurazione))
 {

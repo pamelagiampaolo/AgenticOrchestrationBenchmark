@@ -48,6 +48,7 @@ public sealed class RunAdaptiveHierarchyCommandTests
     [InlineData("--token-budget", "0")]
     [InlineData("--time-limit-seconds", "1.5")]
     [InlineData("--claude", "claude.exe")]
+    [InlineData("--model", "claude-opus-5-5")]
     [InlineData("--run-kind", "Official")]
     [InlineData("--repetition", "0")]
     [InlineData("--order-position", "-1")]

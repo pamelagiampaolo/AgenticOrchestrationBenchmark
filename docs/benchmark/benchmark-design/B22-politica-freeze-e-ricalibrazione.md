@@ -66,6 +66,9 @@ finale.
 
 - Piloti e run ufficiali devono usare lo stesso commit, istruzioni, modello,
   toolchain, configurazioni MCP, evaluator e materiali di test.
+- Il modello richiesto è esattamente `claude-sonnet-5-5`; alias, differenze di
+  maiuscole e altri modelli non appartengono alla configurazione congelata e
+  devono essere rifiutati prima dell'avvio della CLI.
 - Qualunque modifica successiva a un elemento congelato invalida il freeze e
   richiede una valutazione esplicita dell'impatto; se può influire su
   comportamento, durata, token o valutazione, i piloti devono essere ripetuti.

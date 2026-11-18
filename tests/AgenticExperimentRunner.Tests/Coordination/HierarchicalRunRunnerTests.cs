@@ -347,6 +347,19 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
         return new FakeHierarchyCli(Path.Combine(temporaryBase, "cli"), scripts);
     }
 
+    [Fact]
+    public async Task RunAsync_WrongModel_IsRejectedBeforeCoordinatorStarts()
+    {
+        PrepareRunOutput prepared = await PrepareAsync();
+        FakeHierarchyCli cli = CreateCli([FakeHierarchyCli.Result("fine", 1, 1, 1, 1)], []);
+
+        SessionExecutionException exception = await Assert.ThrowsAsync<SessionExecutionException>(
+            () => runner.RunAsync(Request(prepared, cli) with { Model = "claude-opus-5-5" }, Token));
+
+        Assert.Contains(ExperimentProtocol.RequiredModel, exception.Message);
+        Assert.Empty(cli.PromptsOf("coordinator"));
+    }
+
     private static HierarchicalRunRequest Request(PrepareRunOutput prepared, FakeHierarchyCli cli) => new(
         Path.Combine(prepared.ResultsDirectory, PrepareRunCommand.PreparedRunFileName),
         cli.ExecutablePath,

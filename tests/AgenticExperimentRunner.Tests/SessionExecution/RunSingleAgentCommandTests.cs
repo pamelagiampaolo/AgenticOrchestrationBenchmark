@@ -43,6 +43,7 @@ public sealed class RunSingleAgentCommandTests
     [InlineData("--token-budget", "0")]
     [InlineData("--claude", "claude.exe")]
     [InlineData("--prepared-run", "prepared-run.json")]
+    [InlineData("--model", "claude-opus-5-5")]
     [InlineData("--run-kind", "trial")]
     [InlineData("--repetition", "0")]
     [InlineData("--order-seed", " ")]

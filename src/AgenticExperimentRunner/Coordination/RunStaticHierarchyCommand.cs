@@ -117,6 +117,12 @@ public sealed class RunStaticHierarchyCommand
             return false;
         }
 
+        error = ExperimentProtocol.FindModelValidationError(values["--model"]);
+        if (error is not null)
+        {
+            return false;
+        }
+
         if (!CommandLineOptions.TryParseExperimentMetadata(values, out ExperimentRunMetadata? metadata, out error))
         {
             return false;

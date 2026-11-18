@@ -14,7 +14,7 @@ using AgenticExperimentRunner.SessionExecution;
 /// </remarks>
 internal sealed class FakeClaudeCli
 {
-    public const string Model = "fake-model-1";
+    public const string Model = ExperimentProtocol.RequiredModel;
 
     private const string Script = """
         $ErrorActionPreference = 'Stop'

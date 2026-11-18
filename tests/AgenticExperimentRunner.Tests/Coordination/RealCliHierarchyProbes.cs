@@ -11,7 +11,7 @@ using Xunit;
 public sealed class RealCliHierarchyProbes
 {
     private const string ClaudePath = @"C:\Users\Utente\.local\bin\claude.exe";
-    private const string Model = "claude-sonnet-5-5";
+    private const string Model = ExperimentProtocol.RequiredModel;
     private static readonly TimeSpan DelegationDelay = TimeSpan.FromSeconds(150);
 
     private const string ProbeSpecification = """

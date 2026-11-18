@@ -249,6 +249,19 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
         await Assert.ThrowsAsync<SessionExecutionException>(() => runner.RunAsync(Request(prepared, cli), Token));
     }
 
+    [Fact]
+    public async Task RunAsync_WrongModel_IsRejectedBeforeCliStarts()
+    {
+        PrepareRunOutput prepared = await PrepareAsync();
+        var cli = new FakeClaudeCli(Path.Combine(temporaryBase, "cli"), [FakeClaudeCli.Result(1, 1, 1, 1)]);
+
+        SessionExecutionException exception = await Assert.ThrowsAsync<SessionExecutionException>(
+            () => runner.RunAsync(Request(prepared, cli) with { Model = "claude-opus-5-5" }, Token));
+
+        Assert.Contains(ExperimentProtocol.RequiredModel, exception.Message);
+        Assert.False(File.Exists(cli.PromptPath));
+    }
+
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     private static System.Text.Encoding Encoding() => new System.Text.UTF8Encoding(false);

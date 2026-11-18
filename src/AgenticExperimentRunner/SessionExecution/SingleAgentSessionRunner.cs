@@ -129,9 +129,10 @@ public sealed class SingleAgentSessionRunner
             }
         }
 
-        if (string.IsNullOrWhiteSpace(request.Model))
+        string? modelError = ExperimentProtocol.FindModelValidationError(request.Model);
+        if (modelError is not null)
         {
-            throw new SessionExecutionException("Il modello deve essere specificato.");
+            throw new SessionExecutionException(modelError);
         }
 
         if (request.TimeLimit <= TimeSpan.Zero || request.TokenBudget <= 0)

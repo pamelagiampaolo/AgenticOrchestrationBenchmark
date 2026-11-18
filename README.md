@@ -62,6 +62,8 @@ I sottocomandi pubblici dell'orchestratore sono:
 
 Le run richiedono percorsi assoluti, toolchain, limiti e metadati sperimentali
 espliciti: `--run-kind`, `--repetition`, `--order-seed` e `--order-position`.
+Il modello congelato per piloti e run ufficiali è esclusivamente
+`claude-sonnet-5-5`; i comandi rifiutano identificatori differenti.
 Non usare valori di esempio per una run ufficiale: fare riferimento alla
 configurazione e ai limiti sperimentali approvati in
 [`docs/benchmark/`](docs/benchmark/).

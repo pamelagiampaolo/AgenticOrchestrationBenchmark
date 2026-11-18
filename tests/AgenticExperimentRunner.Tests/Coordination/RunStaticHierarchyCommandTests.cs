@@ -43,6 +43,7 @@ public sealed class RunStaticHierarchyCommandTests
     [InlineData("--token-budget", "0")]
     [InlineData("--node", "node.exe")]
     [InlineData("--vitest", "vitest.mjs")]
+    [InlineData("--model", "claude-opus-5-5")]
     [InlineData("--run-kind", "other")]
     [InlineData("--repetition", "0")]
     [InlineData("--order-position", "0")]
