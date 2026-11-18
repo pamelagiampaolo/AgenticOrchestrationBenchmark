@@ -22,7 +22,9 @@ Contiene verifiche pertinenti al server MCP e alla toolchain attualmente usati:
   hash delle evidenze di un registro delle run rispetto al piano ufficiale;
   contratto e limiti sono documentati in P38;
 - `Save-OfficialAudit.cjs`: crea snapshot esclusivi del registro con una catena
-  di hash e un anchor esterno; contratto e limiti sono documentati in P39.
+  di hash e un anchor esterno; contratto e limiti sono documentati in P39;
+- `Probe-AgentTestConfinement.cjs`: verifica con una sentinella sintetica se i
+  test agente possono leggere file esterni; interpretazione e limiti in P43.
 
 Il fatto che un singolo probe sia superato certifica soltanto le proprietà
 osservate da quella prova, non l'intero isolamento dell'harness.
