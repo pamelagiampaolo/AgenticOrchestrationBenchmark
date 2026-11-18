@@ -24,7 +24,9 @@ Contiene verifiche pertinenti al server MCP e alla toolchain attualmente usati:
 - `Save-OfficialAudit.cjs`: crea snapshot esclusivi del registro con una catena
   di hash e un anchor esterno; contratto e limiti sono documentati in P39;
 - `Probe-AgentTestConfinement.cjs`: verifica con una sentinella sintetica se i
-  test agente possono leggere file esterni; interpretazione e limiti in P43.
+  test agente possono leggere file esterni; interpretazione e limiti in P43;
+- `Check-RunUsage.cjs`: verifica in sola lettura campi grezzi e totali dei token
+  nei risultati di una run; contratto e limiti sono documentati in P51.
 
 Il fatto che un singolo probe sia superato certifica soltanto le proprietà
 osservate da quella prova, non l'intero isolamento dell'harness.
