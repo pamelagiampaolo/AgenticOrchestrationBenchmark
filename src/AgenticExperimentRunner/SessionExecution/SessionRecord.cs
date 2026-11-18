@@ -61,6 +61,10 @@ public sealed record SessionHashes(
 /// <param name="RunId">Identificatore della run.</param>
 /// <param name="TaskId">Task.</param>
 /// <param name="Architecture">Architettura (<c>single-agent</c>).</param>
+/// <param name="RunKind">Classificazione pilota o ufficiale.</param>
+/// <param name="Repetition">Ripetizione della coppia task–architettura.</param>
+/// <param name="OrderSeed">Seed usato per generare l'ordine.</param>
+/// <param name="OrderPosition">Posizione globale nell'ordine.</param>
 /// <param name="SourceCommit">Commit della baseline.</param>
 /// <param name="Status">Esito sperimentale.</param>
 /// <param name="StartedAtUtc">Istante di avvio del processo.</param>
@@ -99,6 +103,10 @@ public sealed record SessionRecord(
     string RunId,
     string TaskId,
     string Architecture,
+    ExperimentRunKind RunKind,
+    int Repetition,
+    string OrderSeed,
+    int OrderPosition,
     string SourceCommit,
     SessionStatus Status,
     DateTimeOffset StartedAtUtc,
@@ -134,7 +142,7 @@ public sealed record SessionRecord(
     ToolchainIdentity Toolchain)
 {
     /// <summary>Versione corrente del formato.</summary>
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     /// <summary>Opzioni di serializzazione: camelCase e stati in kebab-case.</summary>
     public static readonly JsonSerializerOptions SerializerOptions = new()

@@ -59,7 +59,8 @@ public sealed class RealCliHierarchyProbes
                 Model,
                 TimeSpan.FromMinutes(15),
                 300_000,
-                10),
+                10,
+                new ExperimentRunMetadata(ExperimentRunKind.Pilot, 1, "real-cli-probe", 1)),
             TestContext.Current.CancellationToken);
 
         TestContext.Current.SendDiagnosticMessage($"record: {recordPath}");

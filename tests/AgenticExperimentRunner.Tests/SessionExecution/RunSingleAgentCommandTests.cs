@@ -14,6 +14,10 @@ public sealed class RunSingleAgentCommandTests
         "--model", "claude-sonnet-5-5",
         "--time-limit-seconds", "900",
         "--token-budget", "2000000",
+        "--run-kind", "pilot",
+        "--repetition", "1",
+        "--order-seed", "seed-1",
+        "--order-position", "2",
     ];
 
     [Fact]
@@ -25,6 +29,10 @@ public sealed class RunSingleAgentCommandTests
         Assert.Equal(TimeSpan.FromSeconds(900), request!.TimeLimit);
         Assert.Equal(2_000_000, request.TokenBudget);
         Assert.Equal("claude-sonnet-5-5", request.Model);
+        Assert.Equal(ExperimentRunKind.Pilot, request.ExperimentMetadata.Kind);
+        Assert.Equal(1, request.ExperimentMetadata.Repetition);
+        Assert.Equal("seed-1", request.ExperimentMetadata.OrderSeed);
+        Assert.Equal(2, request.ExperimentMetadata.OrderPosition);
     }
 
     [Theory]
@@ -35,6 +43,10 @@ public sealed class RunSingleAgentCommandTests
     [InlineData("--token-budget", "0")]
     [InlineData("--claude", "claude.exe")]
     [InlineData("--prepared-run", "prepared-run.json")]
+    [InlineData("--run-kind", "trial")]
+    [InlineData("--repetition", "0")]
+    [InlineData("--order-seed", " ")]
+    [InlineData("--order-position", "0")]
     public void TryParse_InvalidValue_IsRejected(string option, string value)
     {
         string[] arguments = [.. ValidArguments];
@@ -51,11 +63,12 @@ public sealed class RunSingleAgentCommandTests
         var output = new StringWriter();
         var error = new StringWriter();
 
-        int exitCode = await command.ExecuteAsync(ValidArguments[..^2], output, error, TestContext.Current.CancellationToken);
+        string[] arguments = [.. ValidArguments[..^8]];
+        int exitCode = await command.ExecuteAsync(arguments, output, error, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, exitCode);
         Assert.Equal(string.Empty, output.ToString());
-        Assert.Contains("--token-budget", error.ToString());
+        Assert.Contains("--run-kind", error.ToString());
     }
 
     [Fact]

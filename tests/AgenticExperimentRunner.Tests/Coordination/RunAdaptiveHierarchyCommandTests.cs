@@ -1,4 +1,5 @@
 using AgenticExperimentRunner.Coordination;
+using AgenticExperimentRunner.SessionExecution;
 using Xunit;
 
 public sealed class RunAdaptiveHierarchyCommandTests
@@ -17,6 +18,10 @@ public sealed class RunAdaptiveHierarchyCommandTests
         "--time-limit-seconds", "600",
         "--token-budget", "500000",
         "--max-delegations", "10",
+        "--run-kind", "official",
+        "--repetition", "3",
+        "--order-seed", "official-seed",
+        "--order-position", "54",
     ];
 
     [Fact]
@@ -29,6 +34,10 @@ public sealed class RunAdaptiveHierarchyCommandTests
         Assert.Equal(500_000, request.TokenBudget);
         Assert.Equal(10, request.MaxDelegations);
         Assert.Equal("claude-sonnet-5-5", request.Model);
+        Assert.Equal(ExperimentRunKind.Official, request.ExperimentMetadata.Kind);
+        Assert.Equal(3, request.ExperimentMetadata.Repetition);
+        Assert.Equal("official-seed", request.ExperimentMetadata.OrderSeed);
+        Assert.Equal(54, request.ExperimentMetadata.OrderPosition);
     }
 
     [Theory]
@@ -39,6 +48,9 @@ public sealed class RunAdaptiveHierarchyCommandTests
     [InlineData("--token-budget", "0")]
     [InlineData("--time-limit-seconds", "1.5")]
     [InlineData("--claude", "claude.exe")]
+    [InlineData("--run-kind", "Official")]
+    [InlineData("--repetition", "0")]
+    [InlineData("--order-position", "-1")]
     public void TryParse_InvalidValue_IsRejected(string option, string value)
     {
         string[] arguments = (string[])ValidArguments.Clone();
@@ -51,7 +63,8 @@ public sealed class RunAdaptiveHierarchyCommandTests
     [Fact]
     public void TryParse_MissingMaxDelegations_IsRejected()
     {
-        Assert.False(RunAdaptiveHierarchyCommand.TryParse(ValidArguments[..^2], Relay, out _, out string? error));
+        string[] arguments = [.. ValidArguments[..^10], .. ValidArguments[^8..]];
+        Assert.False(RunAdaptiveHierarchyCommand.TryParse(arguments, Relay, out _, out string? error));
         Assert.Contains("--max-delegations", error);
     }
 }

@@ -1,4 +1,5 @@
 using AgenticExperimentRunner.Coordination;
+using AgenticExperimentRunner.SessionExecution;
 using Xunit;
 
 public sealed class RunStaticHierarchyCommandTests
@@ -16,6 +17,10 @@ public sealed class RunStaticHierarchyCommandTests
         "--model", "claude-sonnet-5-5",
         "--time-limit-seconds", "600",
         "--token-budget", "500000",
+        "--run-kind", "pilot",
+        "--repetition", "1",
+        "--order-seed", "pilot-seed",
+        "--order-position", "4",
     ];
 
     [Fact]
@@ -28,6 +33,8 @@ public sealed class RunStaticHierarchyCommandTests
         Assert.Equal(3, request.MaxDelegations);
         Assert.Equal(TimeSpan.FromSeconds(600), request.TimeLimit);
         Assert.Equal(500_000, request.TokenBudget);
+        Assert.Equal(ExperimentRunKind.Pilot, request.ExperimentMetadata.Kind);
+        Assert.Equal(4, request.ExperimentMetadata.OrderPosition);
     }
 
     [Theory]
@@ -36,6 +43,9 @@ public sealed class RunStaticHierarchyCommandTests
     [InlineData("--token-budget", "0")]
     [InlineData("--node", "node.exe")]
     [InlineData("--vitest", "vitest.mjs")]
+    [InlineData("--run-kind", "other")]
+    [InlineData("--repetition", "0")]
+    [InlineData("--order-position", "0")]
     public void TryParse_InvalidValue_IsRejected(string option, string value)
     {
         string[] arguments = (string[])ValidArguments.Clone();

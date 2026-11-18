@@ -21,10 +21,10 @@ public sealed class RunSingleAgentCommand
     public const int UsageErrorExitCode = 2;
 
     private const string Usage =
-        "Uso: run-single-agent --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --node <assoluto> --vitest <assoluto> --typescript <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n>";
+        "Uso: run-single-agent --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --node <assoluto> --vitest <assoluto> --typescript <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n> --run-kind <pilot|official> --repetition <n> --order-seed <valore> --order-position <n>";
 
     private static readonly string[] RequiredOptions =
-        ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript", "--model", "--time-limit-seconds", "--token-budget"];
+        ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript", "--model", "--time-limit-seconds", "--token-budget", .. CommandLineOptions.ExperimentMetadataOptions];
 
     private readonly SingleAgentSessionRunner runner;
 
@@ -109,6 +109,11 @@ public sealed class RunSingleAgentCommand
             return false;
         }
 
+        if (!CommandLineOptions.TryParseExperimentMetadata(values, out ExperimentRunMetadata? metadata, out error))
+        {
+            return false;
+        }
+
         request = new SingleAgentSessionRequest(
             values["--prepared-run"],
             values["--claude"],
@@ -116,7 +121,8 @@ public sealed class RunSingleAgentCommand
             new McpDevelopmentToolchain(values["--node"], values["--vitest"], values["--typescript"]),
             values["--model"],
             TimeSpan.FromSeconds(seconds),
-            budget);
+            budget,
+            metadata!);
         return true;
     }
 }

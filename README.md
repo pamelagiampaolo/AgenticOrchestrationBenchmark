@@ -59,9 +59,10 @@ I sottocomandi pubblici dell'orchestratore sono:
 - `run-static-hierarchy`;
 - `run-adaptive-hierarchy`.
 
-Le run richiedono percorsi assoluti, toolchain e limiti espliciti. Non usare
-valori di esempio per una run ufficiale: fare riferimento alla configurazione e
-ai limiti sperimentali approvati in
+Le run richiedono percorsi assoluti, toolchain, limiti e metadati sperimentali
+espliciti: `--run-kind`, `--repetition`, `--order-seed` e `--order-position`.
+Non usare valori di esempio per una run ufficiale: fare riferimento alla
+configurazione e ai limiti sperimentali approvati in
 [`docs/benchmark/`](docs/benchmark/).
 
 ### Benchmark

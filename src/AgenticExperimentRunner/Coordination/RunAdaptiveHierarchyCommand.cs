@@ -23,10 +23,10 @@ public sealed class RunAdaptiveHierarchyCommand
     public const int UsageErrorExitCode = 2;
 
     private const string Usage =
-        "Uso: run-adaptive-hierarchy --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --node <assoluto> --vitest <assoluto> --typescript <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n> --max-delegations <n>";
+        "Uso: run-adaptive-hierarchy --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --node <assoluto> --vitest <assoluto> --typescript <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n> --max-delegations <n> --run-kind <pilot|official> --repetition <n> --order-seed <valore> --order-position <n>";
 
     private static readonly string[] RequiredOptions =
-        ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript", "--model", "--time-limit-seconds", "--token-budget", "--max-delegations"];
+        ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript", "--model", "--time-limit-seconds", "--token-budget", "--max-delegations", .. CommandLineOptions.ExperimentMetadataOptions];
 
     private readonly HierarchicalRunRunner runner;
     private readonly string coordinationServerPath;
@@ -129,6 +129,11 @@ public sealed class RunAdaptiveHierarchyCommand
             return false;
         }
 
+        if (!CommandLineOptions.TryParseExperimentMetadata(values, out ExperimentRunMetadata? metadata, out error))
+        {
+            return false;
+        }
+
         request = new HierarchicalRunRequest(
             values["--prepared-run"],
             values["--claude"],
@@ -138,7 +143,8 @@ public sealed class RunAdaptiveHierarchyCommand
             values["--model"],
             TimeSpan.FromSeconds(seconds),
             budget,
-            (int)maxDelegations);
+            (int)maxDelegations,
+            metadata!);
         return true;
     }
 

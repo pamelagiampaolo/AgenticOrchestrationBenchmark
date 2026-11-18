@@ -23,10 +23,10 @@ public sealed class RunStaticHierarchyCommand
     public const int UsageErrorExitCode = 2;
 
     private const string Usage =
-        "Uso: run-static-hierarchy --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --node <assoluto> --vitest <assoluto> --typescript <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n>";
+        "Uso: run-static-hierarchy --prepared-run <assoluto> --claude <assoluto> --mcp-server <assoluto> --node <assoluto> --vitest <assoluto> --typescript <assoluto> --model <id> --time-limit-seconds <n> --token-budget <n> --run-kind <pilot|official> --repetition <n> --order-seed <valore> --order-position <n>";
 
     private static readonly string[] RequiredOptions =
-        ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript", "--model", "--time-limit-seconds", "--token-budget"];
+        ["--prepared-run", "--claude", "--mcp-server", "--node", "--vitest", "--typescript", "--model", "--time-limit-seconds", "--token-budget", .. CommandLineOptions.ExperimentMetadataOptions];
 
     private readonly HierarchicalRunRunner runner;
     private readonly string coordinationServerPath;
@@ -117,6 +117,11 @@ public sealed class RunStaticHierarchyCommand
             return false;
         }
 
+        if (!CommandLineOptions.TryParseExperimentMetadata(values, out ExperimentRunMetadata? metadata, out error))
+        {
+            return false;
+        }
+
         request = new HierarchicalRunRequest(
             values["--prepared-run"],
             values["--claude"],
@@ -126,7 +131,8 @@ public sealed class RunStaticHierarchyCommand
             values["--model"],
             TimeSpan.FromSeconds(seconds),
             budget,
-            StaticHierarchyPlan.Steps.Count);
+            StaticHierarchyPlan.Steps.Count,
+            metadata!);
         return true;
     }
 

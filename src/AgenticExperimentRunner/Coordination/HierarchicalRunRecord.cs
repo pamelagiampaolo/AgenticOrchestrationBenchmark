@@ -186,6 +186,10 @@ public sealed record HierarchyHashes(
 /// <param name="RunId">Identificatore della run.</param>
 /// <param name="TaskId">Task.</param>
 /// <param name="Architecture">Architettura.</param>
+/// <param name="RunKind">Classificazione pilota o ufficiale.</param>
+/// <param name="Repetition">Ripetizione della coppia task–architettura.</param>
+/// <param name="OrderSeed">Seed usato per generare l'ordine.</param>
+/// <param name="OrderPosition">Posizione globale nell'ordine.</param>
 /// <param name="SourceCommit">Commit della baseline.</param>
 /// <param name="Status">Esito sperimentale della run.</param>
 /// <param name="StartedAtUtc">Avvio del controllore, immediatamente prima del coordinatore.</param>
@@ -217,6 +221,10 @@ public sealed record HierarchicalRunRecord(
     string RunId,
     string TaskId,
     string Architecture,
+    ExperimentRunKind RunKind,
+    int Repetition,
+    string OrderSeed,
+    int OrderPosition,
     string SourceCommit,
     SessionStatus Status,
     DateTimeOffset StartedAtUtc,
@@ -245,7 +253,7 @@ public sealed record HierarchicalRunRecord(
     ToolchainIdentity Toolchain)
 {
     /// <summary>Versione corrente del formato.</summary>
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     /// <summary>
     /// Scrive il record come JSON UTF-8 senza BOM. Il file non deve già esistere.

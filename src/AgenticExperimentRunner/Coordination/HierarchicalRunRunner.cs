@@ -15,6 +15,7 @@ namespace AgenticExperimentRunner.Coordination;
 /// <param name="TimeLimit">Limite di <c>agentTaskDurationMs</c> della run.</param>
 /// <param name="TokenBudget">Budget globale di <c>totalTokens</c>.</param>
 /// <param name="MaxDelegations">Tetto tecnico delle deleghe.</param>
+/// <param name="ExperimentMetadata">Identità della run nel piano sperimentale.</param>
 public sealed record HierarchicalRunRequest(
     string PreparedRunPath,
     string ClaudePath,
@@ -24,7 +25,8 @@ public sealed record HierarchicalRunRequest(
     string Model,
     TimeSpan TimeLimit,
     long TokenBudget,
-    int MaxDelegations);
+    int MaxDelegations,
+    ExperimentRunMetadata ExperimentMetadata);
 
 /// <summary>
 /// Esegue una run della gerarchia adattiva: un coordinatore che può delegare tramite il
@@ -262,6 +264,12 @@ public sealed class HierarchicalRunRunner
         {
             throw new SessionExecutionException("Limite di tempo, budget di token e numero massimo di deleghe devono essere positivi.");
         }
+
+        string? metadataError = request.ExperimentMetadata?.FindValidationError();
+        if (metadataError is not null || request.ExperimentMetadata is null)
+        {
+            throw new SessionExecutionException(metadataError ?? "I metadati sperimentali devono essere specificati.");
+        }
     }
 
     /// <summary>
@@ -437,6 +445,10 @@ public sealed class HierarchicalRunRunner
             prepared.RunId,
             prepared.TaskId,
             usesStaticPlan ? StaticHierarchyPlan.ArchitectureName : ArchitectureName,
+            request.ExperimentMetadata.Kind,
+            request.ExperimentMetadata.Repetition,
+            request.ExperimentMetadata.OrderSeed,
+            request.ExperimentMetadata.OrderPosition,
             prepared.SourceCommit,
             status,
             startedAt,

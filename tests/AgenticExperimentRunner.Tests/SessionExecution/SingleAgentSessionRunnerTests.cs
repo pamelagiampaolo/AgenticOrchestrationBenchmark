@@ -57,6 +57,10 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
         Assert.Equal("9.9.9 fake", record.Toolchain.NodeVersion);
         Assert.Equal(GitTestProcess.Sha256(File.ReadAllBytes(cli.ExecutablePath)), record.Toolchain.NodeExecutableSha256);
         Assert.Equal("single-agent", record.Architecture);
+        Assert.Equal(ExperimentRunKind.Pilot, record.RunKind);
+        Assert.Equal(1, record.Repetition);
+        Assert.Equal("test-seed", record.OrderSeed);
+        Assert.Equal(1, record.OrderPosition);
         Assert.Equal(prepared.SourceCommit, record.SourceCommit);
         Assert.Empty(record.ProtectedIntegrityDifferences);
         Assert.Equal(
@@ -77,7 +81,9 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
         Assert.DoesNotContain("\r", appended);
 
         using JsonDocument json = JsonDocument.Parse(await File.ReadAllTextAsync(recordPath, Token));
+        Assert.Equal(2, json.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.Equal("completed", json.RootElement.GetProperty("status").GetString());
+        Assert.Equal("pilot", json.RootElement.GetProperty("runKind").GetString());
     }
 
     [Fact]
@@ -255,7 +261,8 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
         new McpDevelopmentToolchain(cli.ExecutablePath, cli.ExecutablePath, cli.ExecutablePath),
         FakeClaudeCli.Model,
         TimeSpan.FromSeconds(60),
-        1_000_000);
+        1_000_000,
+        new ExperimentRunMetadata(ExperimentRunKind.Pilot, 1, "test-seed", 1));
 
     private async Task<PrepareRunOutput> PrepareAsync()
     {

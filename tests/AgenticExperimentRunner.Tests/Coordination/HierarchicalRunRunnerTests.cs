@@ -48,6 +48,10 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
         Assert.Equal(SessionStatus.Completed, record.Status);
         Assert.Equal(Path.Combine(prepared.ResultsDirectory, "run-record.json"), recordPath);
         Assert.Equal("hierarchical-adaptive", record.Architecture);
+        Assert.Equal(ExperimentRunKind.Pilot, record.RunKind);
+        Assert.Equal(1, record.Repetition);
+        Assert.Equal("test-seed", record.OrderSeed);
+        Assert.Equal(1, record.OrderPosition);
         Assert.Equal(["coordinator", "worker-01"], record.Agents.Select(agent => agent.AgentId));
         Assert.Equal(["coordinator", "worker"], record.Agents.Select(agent => agent.Role));
         Assert.All(record.Agents, agent => Assert.Empty(agent.ConfigurationViolations));
@@ -97,7 +101,9 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
         Assert.Equal(cli.ExecutablePath, record.Toolchain.VitestPath);
 
         using JsonDocument json = JsonDocument.Parse(File.ReadAllText(recordPath));
+        Assert.Equal(2, json.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.Equal("completed", json.RootElement.GetProperty("status").GetString());
+        Assert.Equal("pilot", json.RootElement.GetProperty("runKind").GetString());
         Assert.Equal("completed", json.RootElement.GetProperty("delegations")[0].GetProperty("status").GetString());
     }
 
@@ -351,7 +357,8 @@ public sealed class HierarchicalRunRunnerTests : IDisposable
         FakeClaudeCli.Model,
         TimeSpan.FromSeconds(60),
         1_000_000,
-        10);
+        10,
+        new ExperimentRunMetadata(ExperimentRunKind.Pilot, 1, "test-seed", 1));
 
     private async Task<PrepareRunOutput> PrepareAsync()
     {

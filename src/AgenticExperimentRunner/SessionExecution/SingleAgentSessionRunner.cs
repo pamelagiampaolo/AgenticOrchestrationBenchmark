@@ -12,6 +12,7 @@ namespace AgenticExperimentRunner.SessionExecution;
 /// <param name="Model">Identificatore esatto del modello.</param>
 /// <param name="TimeLimit">Limite di <c>agentTaskDurationMs</c>.</param>
 /// <param name="TokenBudget">Budget di <c>totalTokens</c>.</param>
+/// <param name="ExperimentMetadata">Identità della run nel piano sperimentale.</param>
 public sealed record SingleAgentSessionRequest(
     string PreparedRunPath,
     string ClaudePath,
@@ -19,7 +20,8 @@ public sealed record SingleAgentSessionRequest(
     McpDevelopmentToolchain McpToolchain,
     string Model,
     TimeSpan TimeLimit,
-    long TokenBudget);
+    long TokenBudget,
+    ExperimentRunMetadata ExperimentMetadata);
 
 /// <summary>
 /// Esegue una sessione single-agent sull'area preparata e applica dall'esterno i
@@ -136,6 +138,12 @@ public sealed class SingleAgentSessionRunner
         {
             throw new SessionExecutionException("Limite di tempo e budget di token devono essere positivi.");
         }
+
+        string? metadataError = request.ExperimentMetadata?.FindValidationError();
+        if (metadataError is not null || request.ExperimentMetadata is null)
+        {
+            throw new SessionExecutionException(metadataError ?? "I metadati sperimentali devono essere specificati.");
+        }
     }
 
     private SessionInputs WriteSessionInputs(SingleAgentSessionRequest request, PrepareRunOutput prepared)
@@ -230,6 +238,10 @@ public sealed class SingleAgentSessionRunner
             prepared.RunId,
             prepared.TaskId,
             ArchitectureName,
+            request.ExperimentMetadata.Kind,
+            request.ExperimentMetadata.Repetition,
+            request.ExperimentMetadata.OrderSeed,
+            request.ExperimentMetadata.OrderPosition,
             prepared.SourceCommit,
             status,
             outcome.StartedAt,

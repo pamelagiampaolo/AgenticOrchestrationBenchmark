@@ -1,3 +1,6 @@
+using System.Globalization;
+using AgenticExperimentRunner.SessionExecution;
+
 namespace AgenticExperimentRunner;
 
 /// <summary>
@@ -5,6 +8,10 @@ namespace AgenticExperimentRunner;
 /// </summary>
 public static class CommandLineOptions
 {
+    /// <summary>Opzioni obbligatorie che identificano una run nel piano sperimentale.</summary>
+    public static string[] ExperimentMetadataOptions =>
+        ["--run-kind", "--repetition", "--order-seed", "--order-position"];
+
     /// <summary>
     /// Interpreta gli argomenti: ogni opzione richiede un valore non vuoto e può comparire una sola volta.
     /// </summary>
@@ -75,5 +82,58 @@ public static class CommandLineOptions
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Interpreta i metadati sperimentali comuni ai comandi di esecuzione.
+    /// </summary>
+    /// <param name="values">Opzioni già interpretate.</param>
+    /// <param name="metadata">Metadati risultanti, se validi.</param>
+    /// <param name="error">Diagnostica, se presente.</param>
+    /// <returns><see langword="true"/> se tutti i valori sono validi.</returns>
+    public static bool TryParseExperimentMetadata(
+        IReadOnlyDictionary<string, string> values,
+        out ExperimentRunMetadata? metadata,
+        out string? error)
+    {
+        metadata = null;
+        ExperimentRunKind kind;
+        if (values["--run-kind"] == "pilot")
+        {
+            kind = ExperimentRunKind.Pilot;
+        }
+        else if (values["--run-kind"] == "official")
+        {
+            kind = ExperimentRunKind.Official;
+        }
+        else
+        {
+            error = $"--run-kind richiede 'pilot' oppure 'official': '{values["--run-kind"]}'.";
+            return false;
+        }
+
+        if (!int.TryParse(values["--repetition"], NumberStyles.None, CultureInfo.InvariantCulture, out int repetition)
+            || repetition <= 0)
+        {
+            error = $"--repetition richiede un intero positivo: '{values["--repetition"]}'.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(values["--order-seed"]))
+        {
+            error = "--order-seed richiede un valore non vuoto.";
+            return false;
+        }
+
+        if (!int.TryParse(values["--order-position"], NumberStyles.None, CultureInfo.InvariantCulture, out int orderPosition)
+            || orderPosition <= 0)
+        {
+            error = $"--order-position richiede un intero positivo: '{values["--order-position"]}'.";
+            return false;
+        }
+
+        metadata = new ExperimentRunMetadata(kind, repetition, values["--order-seed"], orderPosition);
+        error = null;
+        return true;
     }
 }
