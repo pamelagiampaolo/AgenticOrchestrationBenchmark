@@ -20,7 +20,9 @@ Contiene verifiche pertinenti al server MCP e alla toolchain attualmente usati:
   congelato e crea la toolchain Node in sola lettura con manifest SHA-256;
 - `Test-OfficialAudit.cjs`: controlla in sola lettura coerenza strutturale e
   hash delle evidenze di un registro delle run rispetto al piano ufficiale;
-  contratto e limiti sono documentati in P38.
+  contratto e limiti sono documentati in P38;
+- `Save-OfficialAudit.cjs`: crea snapshot esclusivi del registro con una catena
+  di hash e un anchor esterno; contratto e limiti sono documentati in P39.
 
 Il fatto che un singolo probe sia superato certifica soltanto le proprietà
 osservate da quella prova, non l'intero isolamento dell'harness.
