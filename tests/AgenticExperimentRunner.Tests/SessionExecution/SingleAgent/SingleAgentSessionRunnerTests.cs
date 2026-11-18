@@ -194,6 +194,26 @@ public sealed class SingleAgentSessionRunnerTests : IDisposable
         Assert.Equal("error_during_execution", record.Result!.Subtype);
     }
 
+    /// <summary>Documenta lo stato e il flag di misura quando il risultato riuscito non contiene usage.</summary>
+    [Fact]
+    public async Task RunAsync_SuccessWithoutUsage_RecordsIncompleteMeasurement()
+    {
+        PrepareRunOutput prepared = await PrepareAsync();
+        var cli = new FakeClaudeCli(Path.Combine(temporaryBase, "cli"),
+        [
+            FakeClaudeCli.Init(),
+            FakeClaudeCli.Assistant("msg_1", 1, 2, 3, 4),
+            """{"type":"result","subtype":"success","is_error":false}""",
+        ]);
+
+        (SessionRecord record, _) = await runner.RunAsync(Request(prepared, cli), Token);
+
+        Assert.Equal(SessionStatus.Completed, record.Status);
+        Assert.False(record.TokenMeasurementComplete);
+        Assert.Null(record.AuthoritativeUsage);
+        Assert.Equal(10, record.TokensObserved);
+    }
+
     [Fact]
     public async Task RunAsync_AuthoritativeTotalAboveBudget_IsTokenLimitExceededEvenWithoutTermination()
     {

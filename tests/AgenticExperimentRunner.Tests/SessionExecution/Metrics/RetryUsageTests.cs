@@ -33,4 +33,16 @@ public sealed class RetryUsageTests
         Assert.Null(tracker.Result.Usage);
         Assert.Equal(new TokenUsage(2, 10, 3, 4), tracker.ObservedUsage);
     }
+
+    /// <summary>Documenta il comportamento corrente quando un oggetto usage non contiene campi di token.</summary>
+    [Fact]
+    public void Observe_EmptyUsageObject_CurrentlyProducesZeroValues()
+    {
+        var tracker = new StreamUsageTracker();
+
+        tracker.Observe("""{"type":"result","subtype":"success","is_error":false,"usage":{}}""");
+
+        Assert.NotNull(tracker.Result);
+        Assert.Equal(TokenUsage.Zero, tracker.Result.Usage);
+    }
 }
