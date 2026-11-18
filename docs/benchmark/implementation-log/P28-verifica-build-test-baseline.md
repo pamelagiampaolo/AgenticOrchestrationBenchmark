@@ -45,8 +45,9 @@ dotnet test .\AgenticOrchestrationBenchmark.slnx --no-build
 
 Risultati osservati:
 
-- `dotnet format`: exit code `0`; ha segnalato genericamente avvisi durante il
-  caricamento del workspace senza dettagli al livello di verbosità usato;
+- `dotnet format`: exit code `0`; il controllo diagnostico successivo, eseguito
+  consentendo le normali scritture MSBuild sotto `obj`, ha caricato tutti e tre
+  i progetti, eseguito gli analizzatori e formattato `0` di `101` file;
 - build: exit code `0`, `0` errori, `0` avvisi;
 - test: `345` totali, `344` superati, `0` falliti, `1` ignorato;
 - test ignorato: `RealCliHierarchyProbes.LongDelegation_IsAwaitedByRealCoordinator`,
@@ -92,8 +93,10 @@ correzione dell'harness e la relativa accettazione sono registrate in B12.
 ## Limiti e lavoro rimanente
 
 - La prova real-CLI ignorata dalla suite .NET resta da eseguire separatamente.
-- Gli avvisi generici di caricamento di `dotnet format` non sono stati espansi
-  con verbosità diagnostica; il comando è comunque terminato con exit code `0`.
+- Gli avvisi iniziali di `dotnet format` provenivano esclusivamente dal rifiuto
+  della sandbox di aggiornare tre cache temporanee sotto `obj`; ripetendo lo
+  stesso comando diagnostico con accesso alle cache non sono comparsi errori di
+  caricamento.
 - I sei test comuni non applicabili a T6 restano visibili come skipped/pending
   nel reporter Vitest, ma non appartengono ai 26 casi canonici T6.
 - Non sono stati eseguiti evaluator o test riservati.
