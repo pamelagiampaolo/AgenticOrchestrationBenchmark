@@ -55,3 +55,29 @@ Prima dell'avvio restano da ripetere i controlli pre-run previsti da B25,
 inclusa l'integrità dell'area preparata, degli input congelati e dei materiali
 riservati. Dopo la run restano valutazione indipendente, controlli di integrità,
 metriche e residui. Questo documento non autorizza chiamate LLM o altri piloti.
+
+## Ricontrollo pre-avvio del 18 novembre 2026
+
+Senza avviare la CLI dell'agente sono stati ripetuti i seguenti controlli:
+
+- area preparata: hash dei due JSON invariati, 15 file su 15 corrispondenti al
+  manifest, nessun file aggiuntivo, sessione e `agent-tests` vuoti;
+- harness: manifest con hash atteso, 16 file attesi e presenti, zero differenze
+  di dimensione o SHA-256; toolchain: manifest con hash atteso, 1148 file attesi
+  e presenti, zero differenze;
+- CLI: dimensione e hash dell'eseguibile e hash del manifest corrispondenti a
+  P34; `--version` ha restituito `2.1.312 (Claude Code)`;
+- manifest sorgente: SHA-256 corrispondente a P30; confronto della baseline
+  fidata con i 19 file benchmark del manifest: zero differenze;
+- evaluator: repository pulito al commit registrato in P35; hash dei manifest
+  pubblico e riservato e dello schema corrispondenti a P35;
+- `Test-PublicManifest.ps1` con baseline e toolchain congelate: exit code 0,
+  `Manifest coerente (test verificati: True)`; `Test-ReservedManifest.ps1` con
+  toolchain congelata: exit code 0, identificatori verificati.
+
+Il controllo della baseline protetta è stato eseguito con accesso autorizzato.
+Le prove precedenti P27 e P29 restano le evidenze di accettazione MCP: questo
+ricontrollo non ripete una prova completa di isolamento né dimostra l'assenza
+di tutti i percorsi alternativi. I controlli sono osservazioni del momento e,
+se l'avvio non è immediato, devono essere ripetuti prima della run. La run e le
+verifiche dei record e dei residui restano da eseguire dopo l'autorizzazione.
