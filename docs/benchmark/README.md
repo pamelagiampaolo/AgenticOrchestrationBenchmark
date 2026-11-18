@@ -19,11 +19,15 @@ nomi dei documenti per mantenere la tracciabilità cronologica delle iterazioni.
 
 Per comprendere il disegno sperimentale, partire da
 [`B1 — Struttura concettuale`](benchmark-design/B1-struttura-concettuale.md) e
-proseguire con i documenti B nella stessa directory. La configurazione e i
-limiti da congelare prima delle run ufficiali sono descritti in
-[`B19 — Calibrazione e freeze dei limiti ufficiali`](benchmark-design/B19-calibrazione-limiti-ufficiali.md),
-in [`B20 — Neutralità delle istruzioni`](benchmark-design/B20-neutralita-istruzioni-agenti.md)
-e in [`B21 — Toolchain congelata e protocollo dei piloti`](benchmark-design/B21-toolchain-congelata-e-protocollo-piloti.md).
+proseguire con i documenti B nella stessa directory. La politica corrente per
+completare la readiness, congelare la configurazione e ricalibrare i limiti è
+descritta in
+[`B22 — Politica di freeze finale e ricalibrazione`](benchmark-design/B22-politica-freeze-e-ricalibrazione.md).
+La precedente calibrazione è conservata come evidenza storica in
+[`B19 — Calibrazione storica dei limiti`](benchmark-design/B19-calibrazione-limiti-ufficiali.md);
+la neutralità delle istruzioni e la toolchain precedente sono documentate in
+[`B20 — Neutralità delle istruzioni`](benchmark-design/B20-neutralita-istruzioni-agenti.md)
+e [`B21 — Toolchain congelata e protocollo dei piloti`](benchmark-design/B21-toolchain-congelata-e-protocollo-piloti.md).
 La registrazione dell'identità effettiva della toolchain e la relativa prova
 completa non ufficiale sono documentate in
 [`P26 — Identità della toolchain`](implementation-log/P26-identita-toolchain-e-prova-completa.md).

@@ -1,9 +1,17 @@
-# B19 — Calibrazione e freeze dei limiti ufficiali
+# B19 — Calibrazione storica dei limiti
+
+> **Stato superato per le future run ufficiali.** I valori di questo documento
+> restano un'evidenza riproducibile della calibrazione eseguita sul commit
+> `2d234ec410c89e7fb4999534e4f57ad8e4a4c2af`, ma non sono applicabili a un
+> successivo commit di readiness con istruzioni o toolchain differenti. La
+> politica corrente di freeze e ricalibrazione è definita in
+> [B22](B22-politica-freeze-e-ricalibrazione.md).
 
 ## Classificazione
 
 - **Data:** 10 novembre 2026.
-- **Stato:** calibrazione completata; limiti ufficiali derivati e congelati.
+- **Stato:** calibrazione completata per la configurazione B19; sostituita da B22
+  per le future run ufficiali.
 - **Protocollo applicato:** B6, approvato prima dei piloti.
 - **Piloti considerati:** esclusivamente i sei run ID della allowlist B18.
 - **Commit sorgente e harness comune:**
@@ -60,9 +68,10 @@ arrotondamento per eccesso a multipli di 50.000 token = 250.000 token
 Il massimo osservato è il pilota T1 con gerarchia statica
 `20261110T162200Z-914660f7`.
 
-## Limiti ufficiali congelati
+## Limiti congelati per la configurazione B19
 
-Tutte le run ufficiali, indipendentemente da task e architettura, devono usare:
+I valori seguenti erano stati congelati per run basate sulla stessa configurazione
+dei sei piloti B13–B18:
 
 | Parametro | Valore ufficiale |
 | --- | ---: |
@@ -87,16 +96,18 @@ La gerarchia statica conserva esattamente le tre deleghe previste dalla propria
 architettura. Il limite di 150 secondi riguarda `agentTaskDurationMs` e il budget
 di 250.000 riguarda il totale globale autorevole di tutti gli agenti della run.
 
-## Conseguenze del freeze
+## Conseguenze storiche del freeze
 
-- i tetti pilota di 900 secondi e 1.000.000 token non devono essere usati nelle
-  run ufficiali;
+- i tetti pilota di 900 secondi e 1.000.000 token non erano valori per le run
+  ufficiali;
 - non si ricalibrano i limiti usando risultati delle run ufficiali;
 - non si introducono limiti differenti per task o architettura;
-- qualunque modifica ai limiti, al margine o agli arrotondamenti costituisce una
-  modifica del protocollo e richiede una nuova decisione esplicita;
+- qualunque modifica ai limiti, al margine o agli arrotondamenti richiede una
+  nuova decisione esplicita e una nuova calibrazione precedente alle run
+  ufficiali;
 - questa iterazione non avvia alcuna run ufficiale e non modifica il codice
   dell'harness, perché i parametri sono input obbligatori della CLI.
 
-Il passo successivo è la verifica finale di readiness e del piano delle run
-ufficiali usando questi valori congelati.
+La configurazione futura non deve riutilizzare automaticamente questi valori. Il
+passo successivo è completare la readiness, congelare la configurazione finale e
+applicare la ricalibrazione prescritta da B22.
