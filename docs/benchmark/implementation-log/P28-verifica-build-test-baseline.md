@@ -79,16 +79,22 @@ restituito exit code `1` per requisiti sperimentali ancora assenti:
 | T3 | 2 | 1 | 0 | aggregazione atomica delle righe duplicate non implementata |
 | T4 | 0 | 4 | 0 | API di sospensione e stato prodotto assenti |
 | T5 | 29 | 1 | 0 | factory con repository forniti assente |
-| T6 | 21 | 5 | 6 | modello di evasione parziale e relativo stato ordine assenti |
+| T6 | 21 | 5 | 6 non applicabili | modello di evasione parziale e relativo stato ordine assenti |
 
 Nessuna soluzione è stata aggiunta alla baseline.
+
+I sei casi comuni riportati come saltati da Vitest per T6 sono esclusioni
+intenzionali: la configurazione seleziona positivamente i 21 casi comuni
+compatibili e i cinque casi canonici T6. La motivazione metodologica e l'elenco
+dei sei contratti sostituiti sono definiti nella specifica pubblica T6; la
+correzione dell'harness e la relativa accettazione sono registrate in B12.
 
 ## Limiti e lavoro rimanente
 
 - La prova real-CLI ignorata dalla suite .NET resta da eseguire separatamente.
 - Gli avvisi generici di caricamento di `dotnet format` non sono stati espansi
   con verbosità diagnostica; il comando è comunque terminato con exit code `0`.
-- I sei test saltati nella configurazione T6 sono stati osservati e registrati;
-  questa prova non ne modifica né presume la motivazione metodologica.
+- I sei test comuni non applicabili a T6 restano visibili come skipped/pending
+  nel reporter Vitest, ma non appartengono ai 26 casi canonici T6.
 - Non sono stati eseguiti evaluator o test riservati.
 - La verifica non congela ancora commit, toolchain, evaluator o manifest.
