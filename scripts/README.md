@@ -12,7 +12,10 @@ Contiene verifiche pertinenti al server MCP e alla toolchain attualmente usati:
 - `Invoke-McpPublicTestsProbe.ps1`: prova end-to-end dell'esecuzione controllata
   dei test pubblici;
 - `New-FrozenSourceManifest.ps1`: estrae direttamente da un commit gli input
-  versionati del freeze e ne genera il manifest deterministico SHA-256.
+  versionati del freeze e ne genera il manifest deterministico SHA-256;
+- `New-FrozenHarness.ps1`: pubblica due volte runner e server MCP dal commit
+  congelato, ne verifica l'identità byte-per-byte e crea l'harness in sola
+  lettura con manifest SHA-256.
 
 Il fatto che un singolo probe sia superato certifica soltanto le proprietà
 osservate da quella prova, non l'intero isolamento dell'harness.
