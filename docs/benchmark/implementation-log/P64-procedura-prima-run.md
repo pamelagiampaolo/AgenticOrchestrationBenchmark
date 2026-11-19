@@ -76,7 +76,8 @@ $evaluationExitCode
 4. Preparare e verificare il candidato del registro secondo P38; salvarlo con
    P65 e conservare separatamente l'hash restituito come anchor per la prossima
    revisione. Verificare i collegamenti a run, valutazione ed evidenze prima di
-   procedere allo slot successivo. Eventuali nuove chiamate per sostituzione
+   procedere allo slot successivo, usando P66 per creare l'evidenza e P67 per
+   controllare anche gli hash dei file referenziati. Eventuali nuove chiamate per sostituzione
    richiedono autorizzazione specifica secondo B34. P62 può produrre il riepilogo
    usando i conteggi P63, previa verifica della loro provenienza.
 
