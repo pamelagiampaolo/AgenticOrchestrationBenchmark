@@ -74,7 +74,7 @@ $evaluationExitCode
 ```
 
 4. Preparare e verificare il candidato del registro secondo P38; salvarlo con
-   P39 e conservare separatamente l'hash restituito come anchor per la prossima
+   P65 e conservare separatamente l'hash restituito come anchor per la prossima
    revisione. Verificare i collegamenti a run, valutazione ed evidenze prima di
    procedere allo slot successivo. Eventuali nuove chiamate per sostituzione
    richiedono autorizzazione specifica secondo B34. P62 può produrre il riepilogo
